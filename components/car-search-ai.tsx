@@ -10,7 +10,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { AiOutlineCar } from 'react-icons/ai'
 import { NavBar } from './nav-bar'
-import { ArrowRight, Search, Zap, Brain, ThumbsUp, Info } from "lucide-react"
+import { ArrowRight, Search, Zap, Brain, ThumbsUp, Info, MapPin, ExternalLink } from "lucide-react"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -18,8 +18,8 @@ import remarkGfm from 'remark-gfm'
 
 interface Message {
   id: number
-  type: 'text' | 'markdown' | 'car_listing'
-  content: string
+  type: 'text' | 'markdown' | 'car_listing' | 'filter_selection'
+  content: string | CarListingContent
   sender: 'user' | 'bot'
   searchResults?: Car[]
   isLoading?: boolean
@@ -44,6 +44,7 @@ export interface Car {
   dealerStatus: string
   description: string
   imageUrl: string
+  url?: string
 }
 
 interface LoadingState {
@@ -119,6 +120,256 @@ export function CarSearchAi() {
       }])
     }
   }, [])
+
+  const parseCarResults = useCallback((content: string): Car[] => {
+    try {
+      // Extract car listings section
+      const carListingsMatch = content.match(/Here are .*?:\n\n([\s\S]+?)(?=\n\nIf you're|$)/);
+      if (!carListingsMatch) return [];
+
+      const carListingsText = carListingsMatch[1];
+      const cars: Car[] = [];
+
+      // Split into individual car entries
+      const carEntries = carListingsText.split(/\n\n(?=\d+\. \*\*)/);
+
+      carEntries.forEach((entry) => {
+        // Extract car details using regex
+        const titleMatch = entry.match(/\d+\. \*\*(.*?)\*\*/);
+        if (!titleMatch) return;
+
+        const titleParts = titleMatch[1].match(/(.*?)\s*\((\d{4})\)(.*?)?$/);
+        if (!titleParts) return;
+
+        const [_, makeModel, year, extraInfo] = titleParts;
+        const [make, ...modelParts] = makeModel.trim().split(/\s+/);
+        const model = modelParts.join(' ');
+
+        // Extract price and URL
+        const priceMatch = entry.match(/Price: €([\d,]+)/);
+        const urlMatch = entry.match(/\[View Listing\]\((.*?)\)/);
+
+        if (priceMatch && urlMatch) {
+          cars.push({
+            id: `car-${cars.length}`,
+            make,
+            model,
+            year,
+            price: `€${priceMatch[1]}`,
+            location: 'Ireland', // Default location
+            dealerStatus: 'Available',
+            description: extraInfo ? extraInfo.trim() : '',
+            imageUrl: `/placeholder.svg?height=200&width=300`,
+            url: urlMatch[1]
+          });
+        }
+      });
+
+      return cars;
+    } catch (error) {
+      console.error('Error parsing car results:', error);
+      return [];
+    }
+  }, []);
+
+  const processMessage = useCallback((content: string): Message => {
+    // Check if the content is a car listing response
+    if (content.includes('Here are') && content.includes('[View Listing]')) {
+      const cars = parseCarResults(content);
+      if (cars.length > 0) {
+        return {
+          id: Date.now(),
+          type: 'car_listing',
+          content: { listings: cars },
+          sender: 'bot'
+        };
+      }
+    }
+
+    // For all other responses, return as markdown
+    return {
+      id: Date.now(),
+      type: 'markdown',
+      content,
+      sender: 'bot'
+    };
+  }, [parseCarResults]);
+
+  const CarListingMessage = ({ content }: { content: CarListingContent | string }) => {
+    // If content is a string, parse it first
+    const listings = typeof content === 'string' 
+      ? parseCarResults(content)
+      : content.listings;
+
+    return (
+      <div className="w-full space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {listings.map((car) => (
+            <CarCard key={car.id} car={car} />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const MessageRenderer = ({ message }: { message: Message }) => {
+    switch (message.type) {
+      case 'text':
+        return <MessageBubble content={message.content as string} sender={message.sender} />;
+      
+      case 'filter_selection':
+        return (
+          <div className="px-4 py-2 rounded-lg bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm">
+            <FilterBadges filters={message.content as string} />
+          </div>
+        );
+      
+      case 'car_listing':
+        return <CarListingMessage content={message.content as CarListingContent} />;
+      
+      case 'markdown':
+        // Check if it's a car listing in markdown format
+        if (typeof message.content === 'string' && 
+            message.content.includes('[View Listing]')) {
+          return <CarListingMessage content={message.content} />;
+        }
+        
+        // For regular markdown content
+        return (
+          <div className={`prose max-w-none ${
+            message.sender === 'user' ? 'text-white' : 'text-gray-800'
+          }`}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                p: ({ children }) => (
+                  <p className="text-sm leading-relaxed mb-4 text-gray-700">{children}</p>
+                ),
+                a: ({ href, children }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#8A2BE2] hover:text-[#7B1FA2] underline"
+                  >
+                    {children}
+                  </a>
+                ),
+                ul: ({ children }) => (
+                  <ul className="list-disc pl-4 mb-4 text-sm text-gray-700">{children}</ul>
+                ),
+                li: ({ children }) => (
+                  <li className="mb-2">{children}</li>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-semibold text-gray-900">{children}</strong>
+                ),
+                em: ({ children }) => (
+                  <em className="text-gray-800">{children}</em>
+                ),
+                h1: ({ children }) => (
+                  <h1 className="text-xl font-semibold mb-4 text-gray-900">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-lg font-medium mb-3 text-gray-800">{children}</h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="text-base font-medium mb-2 text-gray-800">{children}</h3>
+                ),
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  const CarCard = ({ car }: { car: Car }) => (
+    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden">
+      <div className="relative h-48">
+        <Image
+          src={car.imageUrl}
+          alt={`${car.make} ${car.model}`}
+          layout="fill"
+          objectFit="cover"
+          className="transition-transform duration-200 hover:scale-105"
+        />
+      </div>
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-gray-900">
+          {car.make} {car.model} ({car.year})
+        </h3>
+        {car.description && (
+          <p className="text-gray-600 mt-1 text-sm">{car.description}</p>
+        )}
+        <div className="mt-3">
+          <span className="text-xl font-bold text-[#8A2BE2]">{car.price}</span>
+        </div>
+        {car.url && (
+          <a
+            href={car.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-[#8A2BE2] rounded-md hover:bg-[#7B1FA2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8A2BE2] transition-colors duration-200"
+          >
+            View Details
+            <ExternalLink className="ml-2 h-4 w-4" />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+
+  const handleSearch = async () => {
+    if (!inputMessage.trim()) return;
+    
+    // Set chat started immediately
+    setChatStarted(true);
+    
+    setLoadingState({
+      isLoading: true,
+      dots: 0,
+      showThinking: false
+    });
+    setErrorMessage('');
+    
+    const messageText = inputMessage.trim();
+    setInputMessage(''); // Clear input immediately after getting the value
+    
+    try {
+      // Add user message first
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        type: 'text',
+        content: messageText,
+        sender: 'user'
+      }]);
+
+      // Get full text with filters
+      const fullText = `${messageText} ${getFilterString()}`.trim();
+      const aiResponse = await invokeAgent(messageText, fullText);
+      
+      // Process and add bot response
+      const processedMessage = processMessage(aiResponse);
+      setMessages(prev => [...prev, processedMessage]);
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setLoadingState(prev => ({ ...prev, isLoading: false }));
+    }
+  }
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (inputMessage.trim()) {
+      handleSearch()
+    }
+  }
+
   // Filter open effect
   useEffect(() => {
     if (isFilterOpen) {
@@ -156,158 +407,6 @@ export function CarSearchAi() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
-
-  const parseCarResults = useCallback((response: string): Car[] => {
-    const cars: Car[] = []
-    const carBlocks = response.split('\n\n')
-    carBlocks.forEach((block, index) => {
-      const blockLines = block.split('\n')
-      if (blockLines.length >= 5) {
-        cars.push({
-          id: `car-${index}`,
-          make: blockLines[0].split(' ')[0],
-          model: blockLines[0].split(' ').slice(1).join(' '),
-          year: blockLines[0].match(/\d{4}/)?.[0] || '',
-          price: blockLines[1].split(': ')[1],
-          location: blockLines[2].split(': ')[1],
-          dealerStatus: blockLines[3].split(': ')[1],
-          description: blockLines[4].split(': ')[1],
-          imageUrl: `/placeholder.svg?height=200&width=300`,
-        })
-      }
-    })
-
-    handleSearchResults(cars)
-    return cars
-  }, [handleSearchResults])
-
-  // Parse car results effect
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1]
-      if (lastMessage.type === 'markdown' && lastMessage.content.includes('car listings available')) {
-        const results = parseCarResults(lastMessage.content)
-        handleSearchResults(results)
-      }
-    }
-  }, [messages, handleSearchResults])
-
-  const isFiltersApplied = React.useMemo(() => 
-    Object.values(carSpecs).some(value => value !== ''),
-    [carSpecs]
-  )
-
-  // Ensure isFiltersApplied is declared before it's used
-  const renderFilterBadges = useCallback(() => {
-    const badges = []
-    if (carSpecs.make) badges.push({ key: 'make', value: carSpecs.make })
-    if (carSpecs.model) badges.push({ key: 'model', value: carSpecs.model })
-    if (carSpecs.year) badges.push({ key: 'year', value: carSpecs.year })
-    if (carSpecs.county) badges.push({ key: 'county', value: carSpecs.county })
-    if (carSpecs.minPrice) badges.push({ key: 'minPrice', value: carSpecs.minPrice })
-    if (carSpecs.maxPrice) badges.push({ key: 'maxPrice', value: carSpecs.maxPrice })
-
-    return badges.map(badge => (
-      <Button
-        key={badge.key}
-        variant="outline"
-        size="sm"
-        className="bg-gray-700 hover:bg-gray-600 text-gray-200 transition-colors duration-200 rounded-full px-3 py-1 text-xs flex items-center mr-2 mb-2 h-6"
-        onClick={() => updateCarSpecs(badge.key as keyof CarSpecs, '')}
-      >
-        {badge.value}
-        <X className="h-3 w-3 ml-2" />
-      </Button>
-    ))
-  }, [carSpecs])
-
-  useEffect(() => {
-    if (isFiltersApplied) {
-      const badges = renderFilterBadges()
-      console.debug('Active filters:', badges.length)
-    }
-  }, [carSpecs, isFiltersApplied, renderFilterBadges]) // Added dependencies
-
-  useEffect(() => {
-    let thinkingTimeout: NodeJS.Timeout
-    
-    if (loadingState.isLoading) {
-      thinkingTimeout = setTimeout(() => {
-        setLoadingState(prev => ({
-          ...prev,
-          showThinking: true
-        }))
-      }, 2000)
-    }
-
-    return () => {
-      clearTimeout(thinkingTimeout)
-    }
-  }, [loadingState.isLoading])
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (loadingState.isLoading) {
-      interval = setInterval(() => {
-        setLoadingState(prev => ({
-          ...prev,
-          dots: (prev.dots + 1) % 4
-        }))
-      }, 300)
-    }
-    return () => clearInterval(interval)
-  }, [loadingState.isLoading])
-
-  useEffect(() => {
-    if (chatContainerRef.current && chatStarted) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
-    }
-  }, [messages, chatStarted])
-
-  useEffect(() => {
-    if (chatContainerRef.current && messages.length > 0) {
-      const container = chatContainerRef.current;
-      const lastMessage = container.lastElementChild as HTMLElement;
-      
-      if (lastMessage) {
-        try {
-          // Safely calculate scroll position
-          const scrollPosition = lastMessage.getBoundingClientRect().top 
-            - container.getBoundingClientRect().top 
-            - container.clientHeight 
-            + lastMessage.clientHeight 
-            + 200; // 200px buffer
-          
-          container.scrollTo({
-            top: container.scrollTop + scrollPosition,
-            behavior: 'smooth'
-          });
-        } catch (error) {
-          // Fallback scroll to bottom if calculation fails
-          container.scrollTop = container.scrollHeight;
-        }
-      }
-    }
-  }, [messages, loadingState.isLoading]);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
-
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen)
-
-  const handleError = (error: any) => {
-    const errorMsg = error.message || 'An error occurred'
-    setErrorMessage(errorMsg)
-    setMessages(prev => [...prev, {
-      id: prev.length + 1,
-      type: 'text',
-      content: errorMsg,
-      sender: 'bot'
-    }])
-  }
-
-
 
   const invokeAgent = async (text: string, fullText: string) => {
     try {
@@ -350,49 +449,6 @@ export function CarSearchAi() {
     }
   }
 
-  const handleSearch = async () => {
-    setLoadingState({
-      isLoading: true,
-      dots: 0,
-      showThinking: false
-    })
-    setErrorMessage('')
-    
-    try {
-      const fullText = `${inputMessage} ${getFilterString()}`.trim()
-      const aiResponse = await invokeAgent(inputMessage, fullText)
-      
-      setMessages(prev => [...prev, {
-        id: messages.length + 1,
-        type: 'markdown',
-        content: aiResponse,
-        sender: 'bot'
-      }])
-      
-      setChatStarted(true)
-    } catch (error) {
-      handleError(error)
-    } finally {
-      setLoadingState(prev => ({ ...prev, isLoading: false }))
-    }
-  }
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (inputMessage.trim()) {
-      const fullText = `${inputMessage} ${getFilterString()}`.trim()
-      setMessages(prevMessages => [...prevMessages, {
-        id: messages.length + 1,
-        type: 'text',
-        content: inputMessage,
-        sender: 'user'
-      }])
-      setInputMessage('')
-      handleSearch()
-      setChatStarted(true)
-    }
-  }
-
   const updateCarSpecs = (key: keyof CarSpecs, value: string) => {
     setCarSpecs(prev => {
       const updatedSpecs = { ...prev, [key]: value };
@@ -414,36 +470,41 @@ export function CarSearchAi() {
   }
 
   const handleFilterApply = async () => {
-    setIsFilterOpen(false)
-    setChatStarted(true)
+    if (!isFiltersApplied) return; // Don't proceed if no filters are applied
+    
     setLoadingState({
       isLoading: true,
       dots: 0,
       showThinking: false
-    })
+    });
+    setErrorMessage('');
     
-    const filterMessage = getFilterString()
-    setMessages(prev => [...prev, {
-      id: prev.length + 1,
-      type: 'text',
-      content: filterMessage,
-      sender: 'user'
-    }])
+    const filterMessage = getFilterString();
     
     try {
-      const aiResponse = await invokeAgent('', filterMessage)
+      // Set chat started before adding messages
+      setChatStarted(true);
+      
+      // Add filter selection badges in a clean format
       setMessages(prev => [...prev, {
-        id: prev.length + 1,
-        type: 'markdown',
-        content: aiResponse,
-        sender: 'bot'
-      }])
+        id: Date.now(),
+        type: 'filter_selection',
+        content: filterMessage,
+        sender: 'user'
+      }]);
+
+      const aiResponse = await invokeAgent('', filterMessage);
+      const processedMessage = processMessage(aiResponse);
+      setMessages(prev => [...prev, processedMessage]);
+      
+      // Close filter dialog after successful response
+      setIsFilterOpen(false);
     } catch (error) {
-      handleError(error)
+      handleError(error);
     } finally {
-      setLoadingState(prev => ({ ...prev, isLoading: false }))
+      setLoadingState(prev => ({ ...prev, isLoading: false }));
     }
-  }
+  };
 
   const resetChat = () => {
     setMessages([])
@@ -458,96 +519,162 @@ export function CarSearchAi() {
 
   const getFilterString = () => {
     const filters = []
-    if (carSpecs.make) filters.push(`${carSpecs.make}`)
-    if (carSpecs.model) filters.push(`${carSpecs.model}`)
-    if (carSpecs.year) filters.push(`${carSpecs.year}`)
-    if (carSpecs.county) filters.push(`${carSpecs.county}`)
-    if (carSpecs.minPrice) filters.push(`Min Price: ${carSpecs.minPrice}`)
-    if (carSpecs.maxPrice) filters.push(`Max Price: ${carSpecs.maxPrice}`)
+    if (carSpecs.make) filters.push(`Make: ${carSpecs.make}`)
+    if (carSpecs.model) filters.push(`Model: ${carSpecs.model}`)
+    if (carSpecs.year) filters.push(`Year: ${carSpecs.year}`)
+    if (carSpecs.county) filters.push(`Location: ${carSpecs.county}`)
+    if (carSpecs.minPrice) filters.push(`Min Price: €${carSpecs.minPrice}`)
+    if (carSpecs.maxPrice) filters.push(`Max Price: €${carSpecs.maxPrice}`)
     return filters.join(', ')
   }
 
-  const MessageRenderer = ({ message }: { message: Message }) => {
-    // Helper function to check if content is car listing
-    const isCarListing = (content: any): content is CarListingContent => {
-      return typeof content === 'object' && 'listings' in content;
-    };
-  
-    switch (message.type) {
-      case 'text':
-        return <MessageBubble content={message.content as string} sender={message.sender} />;
-      
-      case 'markdown':
-        if (typeof message.content === 'string' && 
-           (message.content.includes('car listings available') || 
-            message.content.includes('[View Details]'))) {
-          return <CarListingMessage content={message.content} />;
-        }
-        return <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            p: ({ children }) => (
-              <p className={`text-base leading-relaxed mb-4 ${
-                message.sender === 'user' 
-                  ? 'text-white' 
-                  : 'text-gray-800'
-              }`}>
-                {children}
-              </p>
-            ),
-            ul: ({ children }) => (
-              <ul className={`list-disc pl-4 mb-4 ${
-                message.sender === 'user' 
-                  ? 'text-white' 
-                  : 'text-gray-800'
-              }`}>
-                {children}
-              </ul>
-            ),
-            li: ({ children }) => (
-              <li className={`mb-2 ${
-                message.sender === 'user' 
-                  ? 'text-white' 
-                  : 'text-gray-800'
-              }`}>
-                {children}
-              </li>
-            ),
-            a: ({ href, children }) => (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${
-                  message.sender === 'user'
-                    ? 'text-white underline'
-                    : 'text-[#8A2BE2] hover:text-[#7B1FA2] underline'
-                }`}
-              >
-                {children}
-              </a>
-            ),
-          }}
-        >
-          {message.content}
-        </ReactMarkdown>;
-      
-      case 'car_listing':
-        return (
-          <>
-            {typeof message.content === 'string' && (
-              <MessageBubble content={message.content} sender={message.sender} />
-            )}
-            <CarListingMessage 
-              content={isCarListing(message.content) ? message.content : message.content} 
-            />
-          </>
-        );
-      
-      default:
-        return null;
-    }
+  const FilterBadges = ({ filters }: { filters: string }) => {
+    const badges = filters.split(', ').map((filter, index) => (
+      <span
+        key={index}
+        className="inline-flex items-center px-3 py-1 mr-2 mb-2 text-sm font-medium rounded-full 
+                 bg-purple-100 text-purple-800 border border-purple-200"
+      >
+        {filter}
+      </span>
+    ));
+
+    return (
+      <div className="flex flex-wrap items-center">
+        <span className="mr-2 text-sm text-gray-500">Selected Filters:</span>
+        {badges}
+      </div>
+    );
   };
+
+  const MessageBubble = ({ content, sender }: { content: string, sender: 'user' | 'bot' }) => (
+    <div className={`${
+      sender === 'user'
+        ? 'text-[#8A2BE2] ml-auto'
+        : 'bg-gray-50 rounded-lg px-4 py-3'
+    }`}>
+      <p className="text-sm leading-relaxed text-current">
+        {content}
+      </p>
+    </div>
+  );
+
+  // Filter state management
+  const isFiltersApplied = React.useMemo(() => 
+    Object.values(carSpecs).some(value => value !== ''),
+    [carSpecs]
+  );
+
+  const renderFilterBadges = useCallback(() => {
+    const badges = []
+    if (carSpecs.make) badges.push({ key: 'make', value: carSpecs.make })
+    if (carSpecs.model) badges.push({ key: 'model', value: carSpecs.model })
+    if (carSpecs.year) badges.push({ key: 'year', value: carSpecs.year })
+    if (carSpecs.county) badges.push({ key: 'county', value: carSpecs.county })
+    if (carSpecs.minPrice) badges.push({ key: 'minPrice', value: carSpecs.minPrice })
+    if (carSpecs.maxPrice) badges.push({ key: 'maxPrice', value: carSpecs.maxPrice })
+
+    return badges.map(badge => (
+      <Button
+        key={badge.key}
+        variant="outline"
+        size="sm"
+        className="bg-gray-700 hover:bg-gray-600 text-gray-200 transition-colors duration-200 rounded-full px-3 py-1 text-xs flex items-center mr-2 mb-2 h-6"
+        onClick={() => updateCarSpecs(badge.key as keyof CarSpecs, '')}
+      >
+        {badge.value}
+        <X className="h-3 w-3 ml-2" />
+      </Button>
+    ))
+  }, [carSpecs]);
+
+  // Monitor active filters
+  useEffect(() => {
+    if (isFiltersApplied) {
+      const badges = renderFilterBadges()
+      console.debug('Active filters:', badges.length)
+    }
+  }, [carSpecs, isFiltersApplied, renderFilterBadges]);
+
+  // Loading state management
+  useEffect(() => {
+    let thinkingTimeout: NodeJS.Timeout
+    
+    if (loadingState.isLoading) {
+      thinkingTimeout = setTimeout(() => {
+        setLoadingState(prev => ({
+          ...prev,
+          showThinking: true
+        }))
+      }, 2000)
+    }
+
+    return () => {
+      clearTimeout(thinkingTimeout)
+    }
+  }, [loadingState.isLoading]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (loadingState.isLoading) {
+      interval = setInterval(() => {
+        setLoadingState(prev => ({
+          ...prev,
+          dots: (prev.dots + 1) % 4
+        }))
+      }, 300)
+    }
+    return () => clearInterval(interval)
+  }, [loadingState.isLoading]);
+
+  // Chat scroll management
+  useEffect(() => {
+    if (chatContainerRef.current && chatStarted) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [messages, chatStarted]);
+
+  useEffect(() => {
+    if (chatContainerRef.current && messages.length > 0) {
+      const container = chatContainerRef.current;
+      const lastMessage = container.lastElementChild as HTMLElement;
+      
+      if (lastMessage) {
+        try {
+          const scrollPosition = lastMessage.getBoundingClientRect().top 
+            - container.getBoundingClientRect().top 
+            - container.clientHeight 
+            + lastMessage.clientHeight 
+            + 200; // 200px buffer
+          
+          container.scrollTo({
+            top: container.scrollTop + scrollPosition,
+            behavior: 'smooth'
+          });
+        } catch (error) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }
+    }
+  }, [messages, loadingState.isLoading]);
+
+  // UI state management
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
+  }
+
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen)
+
+  const handleError = (error: any) => {
+    const errorMsg = error.message || 'An error occurred'
+    setErrorMessage(errorMsg)
+    setMessages(prev => [...prev, {
+      id: prev.length + 1,
+      type: 'text',
+      content: errorMsg,
+      sender: 'bot'
+    }])
+  }
 
   return (
     <div className="relative min-h-screen bg-gray-50">
@@ -1058,25 +1185,7 @@ export function CarSearchAi() {
                         
                         {/* Message Content */}
                         <div className={`${message.sender === 'user' ? 'max-w-[85%]' : 'max-w-[85%]'}`}>
-                          <div className={`rounded-2xl px-4 py-3 ${
-                            message.sender === 'user'
-                              ? 'bg-[#8A2BE2] text-white'
-                              : 'bg-white border border-gray-200 shadow-sm'
-                          }`}>
-                            <div className="prose prose-sm max-w-none">
-                              {message.type === 'car_listing' ? (
-                                <CarListingMessage message={message} />
-                              ) : (
-                                <div className={`text-base leading-relaxed ${
-                                  message.sender === 'user' 
-                                    ? 'text-white' 
-                                    : 'text-gray-800'
-                                }`}>
-                                  {message.content}
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                          <MessageRenderer message={message} />
                         </div>
 
                         {/* Avatar - Only show for user messages */}
@@ -1117,15 +1226,15 @@ export function CarSearchAi() {
                               value={inputMessage}
                               onChange={(e) => setInputMessage(e.target.value)}
                               placeholder="Follow-up"
-                              className="w-full pl-4 pr-10 py-2 bg-[#8A2BE2] text-white text-sm border border-[#8A2BE2] rounded-full
-                              focus:ring-2 focus:ring-[#8A2BE2] focus:border-[#8A2BE2] placeholder-gray-200 shadow-md"
+                              className="w-full pl-4 pr-10 py-2 bg-[#8A2BE2]/90 text-white text-sm border border-[#8A2BE2]/80 rounded-full
+                              focus:ring-2 focus:ring-[#8A2BE2]/40 focus:border-[#8A2BE2]/60 placeholder-gray-200/90 shadow-md"
                               disabled={loadingState.isLoading}
                             />
                             <Button
                               type="submit"
                               size="icon"
                               disabled={loadingState.isLoading}
-                              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent rounded-full p-2 transition-all duration-200 hover:bg-[#7B1FA2]"
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent rounded-full p-2 transition-all duration-200 hover:bg-[#7B1FA2]/20"
                             >
                               <Send className="h-5 w-5 text-white" />
                             </Button>
