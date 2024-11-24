@@ -429,7 +429,7 @@ export function CarSearchAi() {
     setMessages(prev => [...prev, {
       id: prev.length + 1,
       type: 'text',
-      content: `You Selected ${filterMessage}`,
+      content: filterMessage,
       sender: 'user'
     }])
     
@@ -460,13 +460,13 @@ export function CarSearchAi() {
 
   const getFilterString = () => {
     const filters = []
-    if (carSpecs.make) filters.push(`Make: ${carSpecs.make}`)
-    if (carSpecs.model) filters.push(`Model: ${carSpecs.model}`)
-    if (carSpecs.year) filters.push(`Year: ${carSpecs.year}`)
-    if (carSpecs.county) filters.push(`County: ${carSpecs.county}`)
+    if (carSpecs.make) filters.push(`${carSpecs.make}`)
+    if (carSpecs.model) filters.push(`${carSpecs.model}`)
+    if (carSpecs.year) filters.push(`${carSpecs.year}`)
+    if (carSpecs.county) filters.push(`${carSpecs.county}`)
     if (carSpecs.minPrice) filters.push(`Min Price: ${carSpecs.minPrice}`)
     if (carSpecs.maxPrice) filters.push(`Max Price: ${carSpecs.maxPrice}`)
-    return filters.length > 0 ? `(Filters: ${filters.join(', ')})` : ''
+    return filters.join(', ')
   }
 
   const MessageRenderer = ({ message }: { message: Message }) => {
@@ -799,15 +799,17 @@ export function CarSearchAi() {
                         </SelectContent>
                       </Select>
 
-                      {/* Action Button */}
-                      <Button 
+                    </div>
+                    {/* Action Button - Moved outside the grid and centered */}
+                    <div className="mt-6 px-4">
+                      <Button
                         onClick={handleFilterApply}
-                        disabled={!isFilterApplied}
-                        className={`col-span-2 bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white
-                        h-10 rounded-xl transition-all duration-300 text-[14px] font-medium mt-2
-                        ${!isFilterApplied ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] active:scale-[0.98]'}`}
+                        disabled={!isFiltersApplied}
+                        className={`w-full h-10 bg-[#8b5cf6] text-white text-sm
+                          hover:bg-[#7c3aed] transition-all duration-200
+                          ${!isFiltersApplied ? 'opacity-50 cursor-not-allowed bg-gray-500 hover:bg-gray-500' : ''}`}
                       >
-                        Apply Filters
+                        Apply Filter
                       </Button>
                     </div>
                   </div>
