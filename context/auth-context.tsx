@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
 interface User {
-  id: string
   name: string
   email: string
 }
@@ -11,90 +10,58 @@ interface User {
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<void>
-  signup: (name: string, email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
-  isLoading: boolean
+  signup: (email: string, password: string, name: string) => Promise<void>
+  logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is logged in on mount
-    checkAuth()
+    // Check for existing session
+    const savedUser = localStorage.getItem('user')
+    if (savedUser) {
+      setUser(JSON.parse(savedUser))
+    }
   }, [])
 
-  async function checkAuth() {
-    try {
-      // TODO: Implement actual auth check
-      const storedUser = localStorage.getItem('user')
-      if (storedUser) {
-        setUser(JSON.parse(storedUser))
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  async function login(email: string, password: string) {
-    setIsLoading(true)
-    try {
-      // TODO: Implement actual login logic
+  const login = async (email: string, password: string) => {
+    // Mock login - replace with actual API call
+    if (email && password) {
       const mockUser = {
-        id: '1',
-        name: 'Test User',
+        name: email.split('@')[0],
         email: email
       }
-      localStorage.setItem('user', JSON.stringify(mockUser))
       setUser(mockUser)
-    } catch (error) {
-      console.error('Login failed:', error)
-      throw error
-    } finally {
-      setIsLoading(false)
+      localStorage.setItem('user', JSON.stringify(mockUser))
+    } else {
+      throw new Error('Invalid credentials')
     }
   }
 
-  async function signup(name: string, email: string, password: string) {
-    setIsLoading(true)
-    try {
-      // TODO: Implement actual signup logic
+  const signup = async (email: string, password: string, name: string) => {
+    // Mock signup - replace with actual API call
+    if (email && password && name) {
       const mockUser = {
-        id: '1',
         name: name,
         email: email
       }
-      localStorage.setItem('user', JSON.stringify(mockUser))
       setUser(mockUser)
-    } catch (error) {
-      console.error('Signup failed:', error)
-      throw error
-    } finally {
-      setIsLoading(false)
+      localStorage.setItem('user', JSON.stringify(mockUser))
+    } else {
+      throw new Error('Invalid signup data')
     }
   }
 
-  async function logout() {
-    setIsLoading(true)
-    try {
-      // TODO: Implement actual logout logic
-      localStorage.removeItem('user')
-      setUser(null)
-    } catch (error) {
-      console.error('Logout failed:', error)
-      throw error
-    } finally {
-      setIsLoading(false)
-    }
+  const logout = () => {
+    setUser(null)
+    localStorage.removeItem('user')
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   )

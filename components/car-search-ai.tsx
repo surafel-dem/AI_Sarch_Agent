@@ -13,7 +13,8 @@ import { MessageBubble } from './messages/MessageBubble'
 import { MarkdownMessage } from './messages/MarkdownMessage'
 import { CarListingMessage } from './messages/CarListingMessage'
 import Image from 'next/image'
-
+import { AiOutlineCar } from 'react-icons/ai'
+import { NavBar } from './nav-bar'
 
 import { ArrowRight, Search, Zap, Brain, ThumbsUp, Info } from "lucide-react"
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -456,6 +457,7 @@ export function CarSearchAi() {
     setErrorMessage('')
     setSessionId(nanoid())
     setSearchResults([])
+    setAvailableModels([])
   }
 
   const getFilterString = () => {
@@ -508,55 +510,10 @@ export function CarSearchAi() {
     <div className="min-h-screen flex bg-gradient-to-br from-[rgb(0,7,36)] via-[rgb(0,14,72)] to-[rgb(0,21,108)] text-white relative">
       <div className="absolute inset-0 bg-gradient-to-br from-[rgba(0,50,150,0.3)] to-transparent pointer-events-none"></div>
       
-      {/* Sidebar */}
-      <div className="w-12 fixed left-0 top-0 h-screen z-50">
-        <Button variant="ghost" size="icon" className="text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors duration-200" onClick={resetChat}>
-          {chatStarted ? <ChevronLeft className="h-6 w-6" /> : <Home className="h-6 w-6" />}
-        </Button>
-        <Button variant="ghost" size="icon" className="text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors duration-200" onClick={resetChat}>
-          <PlusCircle className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" className="text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors duration-200">
-          <Clock className="h-6 w-6" />
-        </Button>
-      </div>
-
-      {/* Header - Increased z-index and adjusted positioning */}
-      <header className="fixed top-0 left-12 right-0 bg-gradient-to-b from-[rgba(0,7,36,0.8)] to-[rgba(0,21,108,0.8)] 
-        backdrop-blur-sm border-b border-[rgba(255,255,255,0.1)] z-50">
-        <div className="flex items-center justify-between w-full max-w-6xl mx-auto px-4 h-16">
-          <h1 className="text-xl font-bold text-white">CarSearchAI</h1>
-          <nav className="hidden md:flex items-center space-x-8 text-left">
-            <a href="#how-it-works" className="text-[#ffffffcc] hover:text-white text-sm font-medium transition-colors duration-200 flex items-center">
-              <ArrowRight className="h-4 w-4 mr-1" />
-              How It Works
-            </a>
-            <a href="#about-us" className="text-[#ffffffcc] hover:text-white text-sm font-medium transition-colors duration-200 flex items-center">
-              <Info className="h-4 w-4 mr-1" />
-              About Us
-            </a>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Link href="/login">
-              <Button variant="ghost" className="text-[#ffffffcc] hover:text-white text-sm font-medium transition-colors duration-200">Login</Button>
-            </Link>
-            <Link href="/signup">
-              <Button className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white
-              h-10 rounded-full transition-all duration-300 text-[15px] font-medium
-              hover:shadow-[0_0_20px_rgba(139,92,246,0.3)]
-              active:scale-[0.98]">
-                Sign Up
-              </Button>
-            </Link>
-          </div>
-          <Button variant="ghost" size="icon" className="text-white md:hidden" onClick={toggleMobileMenu}>
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
-        </div>
-      </header>
-
-      {/* Main content - Adjusted padding and overflow */}
-      <div className="flex-1 ml-12 pt-16"> {/* Changed pt-28 to pt-16 to match header height */}
+      <NavBar onReset={resetChat} />
+      
+      {/* Main content */}
+      <div className="flex-1 pt-16">
         <div className="h-full overflow-y-auto scrollbar-gutter-stable">
           <div className={`min-h-[calc(100vh-4rem)] flex items-center justify-center ${chatStarted ? 'items-start' : ''}`}>
             {!chatStarted ? (
@@ -871,92 +828,106 @@ export function CarSearchAi() {
 
                 {/* Websites We Search section - Compact version */}
                 <div className="w-full max-w-6xl mx-auto px-4 py-16 space-y-24">
-      <section className="w-full py-12">
-        <h2 className="text-2xl font-bold text-center text-white mb-6">Websites We Search</h2>
-        <p className="text-center text-gray-300 mb-10 max-w-2xl mx-auto">
-          Here are some of the websites we search to find the best car listings for you.
-        </p>
-        <div className="flex justify-center items-center space-x-8 flex-wrap">
-          {websites.map((site) => (
-            <div key={site.name} className="group relative">
-              <div className="w-8 h-8 flex items-center justify-center transition-all duration-300">
-                <Image
-                  src={site.logo}
-                  alt={`${site.name} logo`}
-                  width={24}
-                  height={24}
-                  className="w-6 h-6 object-contain"
-                />
-              </div>
-              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none">
-                <p className="text-[10px] text-gray-400 bg-[rgba(0,7,36,0.9)] px-2 py-1 rounded-md whitespace-nowrap border border-[rgba(255,255,255,0.08)]">
-                  {site.name}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+                  <section className="py-16 bg-gradient-to-b from-transparent to-[rgba(0,50,150,0.1)]">
+                    <div className="max-w-6xl mx-auto px-4">
+                      <h2 className="text-3xl font-bold text-center mb-8">Websites We Search</h2>
+                      <p className="text-center text-[#ffffffcc] mb-12 max-w-2xl mx-auto">
+                        Here are some of the websites we search to find the best car listings for you.
+                      </p>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+                        {websites.map((site) => (
+                          <div key={site.name} className="flex flex-col items-center group">
+                            <div className="relative w-16 h-16 mb-4 transform transition-transform duration-300 group-hover:scale-110">
+                              <Image
+                                src={site.logo}
+                                alt={`${site.name} logo`}
+                                fill
+                                className="object-contain filter brightness-0 invert opacity-80 group-hover:opacity-100"
+                              />
+                            </div>
+                            <span className="text-[#ffffffcc] group-hover:text-white transition-colors duration-200">
+                              {site.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
 
-      <section id="about-us" className="space-y-6">
-        <h2 className="text-xl font-bold text-white mb-2">About Us</h2>
-        <div className="bg-[rgba(0,14,72,0.4)] backdrop-blur-sm p-6 rounded-2xl border border-[rgba(255,255,255,0.08)] text-left">
-          <p className="text-gray-300 mb-4">
-            At CarSearchAI, we&apos;re revolutionizing the way people search for cars. Our cutting-edge AI technology is designed to provide the most efficient and personalized car search experience available.
-          </p>
-          <p className="text-gray-300 mb-4">
-            We understand that finding the perfect car can be a daunting task. That&apos;s why we&apos;ve developed an intelligent system that not only searches through vast databases of car listings but also learns from your preferences to deliver tailored results.
-          </p>
-          <p className="text-gray-300">
-            Our team consists of automotive enthusiasts, AI experts, and customer experience specialists, all working together to make your car search as smooth and effective as possible.
-          </p>
-        </div>
-      </section>
+                  <section id="about-us" className="py-16">
+                    <div className="max-w-6xl mx-auto px-4">
+                      <div className="bg-[rgba(0,21,108,0.3)] rounded-2xl p-8 backdrop-blur-sm border border-[rgba(255,255,255,0.1)]">
+                        <h2 className="text-3xl font-bold mb-8 text-center">About Us</h2>
+                        <div className="space-y-6 text-[#ffffffcc] max-w-3xl mx-auto">
+                          <p className="leading-relaxed">
+                            At CarSearchAI, we're revolutionizing the way people search for cars. Our cutting-edge AI technology is designed to provide the most efficient and personalized car search experience available.
+                          </p>
+                          <p className="leading-relaxed">
+                            We understand that finding the perfect car can be a daunting task. That's why we've developed an intelligent system that not only searches through vast databases of car listings but also learns from your preferences to deliver tailored results.
+                          </p>
+                          <p className="leading-relaxed">
+                            Our team consists of automotive enthusiasts, AI experts, and customer experience specialists, all working together to make your car search as smooth and effective as possible.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
 
-      <section id="how-it-works" className="space-y-6">
-        <h2 className="text-xl font-bold text-white mb-2">How It Works</h2>
-        <div className="bg-[rgba(0,14,72,0.4)] backdrop-blur-sm p-6 rounded-2xl border border-[rgba(255,255,255,0.08)] text-left">
-          <ol className="space-y-4">
-            <li className="flex items-start">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] mr-3">
-                <Search className="w-4 h-4" />
-              </span>
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">AI-Powered Search</h3>
-                <p className="text-gray-300">Our AI agents continuously scrape multiple sources for the latest car listings, ensuring you have access to the most up-to-date information.</p>
-              </div>
-            </li>
-            <li className="flex items-start">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] mr-3">
-                <Brain className="w-4 h-4" />
-              </span>
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Smart Filtering</h3>
-                <p className="text-gray-300">Use our intuitive filters to narrow down your search, or simply chat with our AI assistant to find cars that match your specific criteria.</p>
-              </div>
-            </li>
-            <li className="flex items-start">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] mr-3">
-                <Zap className="w-4 h-4" />
-              </span>
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Personalized Results</h3>
-                <p className="text-gray-300">Our AI learns from your interactions and preferences, continuously improving the relevance of your search results over time.</p>
-              </div>
-            </li>
-            <li className="flex items-start">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] mr-3">
-                <ThumbsUp className="w-4 h-4" />
-              </span>
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Seamless Experience</h3>
-                <p className="text-gray-300">From search to decision, our platform guides you through the entire process, providing valuable insights and answering your questions along the way.</p>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </section>
-    </div>  
+                  <section id="how-it-works" className="py-16 bg-gradient-to-b from-transparent to-[rgba(0,50,150,0.1)]">
+                    <div className="max-w-6xl mx-auto px-4">
+                      <h2 className="text-3xl font-bold mb-12 text-center">How It Works</h2>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div className="group">
+                          <div className="bg-[rgba(0,21,108,0.3)] rounded-xl p-6 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] h-full transform transition-transform duration-300 group-hover:scale-105">
+                            <div className="w-12 h-12 mb-4 rounded-lg bg-[#8b5cf6] flex items-center justify-center">
+                              <Search className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-4">AI-Powered Search</h3>
+                            <p className="text-[#ffffffcc]">
+                              Our AI agents continuously scrape multiple sources for the latest car listings, ensuring you have access to the most up-to-date information.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="group">
+                          <div className="bg-[rgba(0,21,108,0.3)] rounded-xl p-6 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] h-full transform transition-transform duration-300 group-hover:scale-105">
+                            <div className="w-12 h-12 mb-4 rounded-lg bg-[#8b5cf6] flex items-center justify-center">
+                              <Brain className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-4">Smart Filtering</h3>
+                            <p className="text-[#ffffffcc]">
+                              Use our intuitive filters to narrow down your search, or simply chat with our AI assistant to find cars that match your specific criteria.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="group">
+                          <div className="bg-[rgba(0,21,108,0.3)] rounded-xl p-6 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] h-full transform transition-transform duration-300 group-hover:scale-105">
+                            <div className="w-12 h-12 mb-4 rounded-lg bg-[#8b5cf6] flex items-center justify-center">
+                              <ThumbsUp className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-4">Personalized Results</h3>
+                            <p className="text-[#ffffffcc]">
+                              Our AI learns from your interactions and preferences, continuously improving the relevance of your search results over time.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="group">
+                          <div className="bg-[rgba(0,21,108,0.3)] rounded-xl p-6 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] h-full transform transition-transform duration-300 group-hover:scale-105">
+                            <div className="w-12 h-12 mb-4 rounded-lg bg-[#8b5cf6] flex items-center justify-center">
+                              <Zap className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-4">Seamless Experience</h3>
+                            <p className="text-[#ffffffcc]">
+                              From search to decision, our platform guides you through the entire process, providing valuable insights and answering your questions along the way.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>  
 
             
               </div>
