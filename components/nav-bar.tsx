@@ -68,7 +68,14 @@ export function NavBar({ onReset }: NavBarProps) {
     }
   }
 
-  const handleNavigation = () => {
+  const handleHomeClick = () => {
+    if (onReset) {
+      onReset()
+    }
+    router.push('/')
+  }
+
+  const handleNewChat = () => {
     if (onReset) {
       onReset()
     }
@@ -81,12 +88,12 @@ export function NavBar({ onReset }: NavBarProps) {
   return (
     <div className="flex">
       {/* Left Sidebar */}
-      <div className="w-12 fixed left-0 top-0 h-screen z-50">
+      <div className="w-16 fixed left-0 top-0 h-screen bg-gradient-to-b from-[rgba(0,7,36,0.8)] to-[rgba(0,21,108,0.8)] backdrop-blur-sm border-r border-[rgba(255,255,255,0.1)] flex flex-col items-center pt-4 gap-4">
         <Button 
           variant="ghost" 
           size="icon" 
           className="text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors duration-200"
-          onClick={handleNavigation}
+          onClick={handleHomeClick}
         >
           <Home className="h-6 w-6" />
         </Button>
@@ -94,7 +101,7 @@ export function NavBar({ onReset }: NavBarProps) {
           variant="ghost" 
           size="icon" 
           className="text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors duration-200"
-          onClick={handleNavigation}
+          onClick={handleNewChat}
         >
           <PlusCircle className="h-6 w-6" />
         </Button>
@@ -104,11 +111,11 @@ export function NavBar({ onReset }: NavBarProps) {
       </div>
 
       {/* Top Header */}
-      <header className="fixed top-0 left-12 right-0 z-50">
+      <header className="fixed top-0 left-16 right-0 z-50">
         <div className="w-full bg-gradient-to-b from-[rgba(0,7,36,0.8)] to-[rgba(0,21,108,0.8)] backdrop-blur-sm border-b border-[rgba(255,255,255,0.1)]">
           <div className="flex items-center justify-between w-full max-w-6xl mx-auto px-4 h-16">
             <button 
-              onClick={handleNavigation}
+              onClick={handleHomeClick}
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
               <AiOutlineCar className="h-6 w-6 text-[#8b5cf6]" />

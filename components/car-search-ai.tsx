@@ -3,26 +3,25 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select"
 import { Send, Home, PlusCircle, Clock, ChevronLeft, Menu, X } from 'lucide-react'
-import { nanoid } from 'nanoid'
-import Link from 'next/link'
-import Image from 'next/image'
-import { AiOutlineCar } from 'react-icons/ai'
+import { ArrowRight, Search, Zap, Brain, ThumbsUp, Info } from "lucide-react"
 import { NavBar } from './nav-bar'
-import { ArrowRight, Search, Zap, Brain, ThumbsUp, Info, MapPin, ExternalLink } from "lucide-react"
+import { nanoid } from 'nanoid'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useAuth } from '@/context/auth-context'
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface Message {
   id: number
-  type: 'text' | 'markdown' | 'car_listing' | 'filter_selection'
-  content: string | CarListingContent
+  type: 'text' | 'markdown' | 'filter_selection'
+  content: string
   sender: 'user' | 'bot'
-  searchResults?: Car[]
-  isLoading?: boolean
 }
 
 interface CarSpecs {
@@ -43,7 +42,6 @@ export interface Car {
   location: string
   dealerStatus: string
   description: string
-  imageUrl: string
   url?: string
 }
 
@@ -53,16 +51,11 @@ interface LoadingState {
   showThinking: boolean
 }
 
-interface CarListingContent {
-  listings: Car[];
-}
-
 const websites = [
-  { name: 'AutoTrader', logo: '/logos/carsie.png' },
-  { name: 'Cars.com', logo: '/logos/carsie.png' },
-  { name: 'CarGurus', logo: '/logos/carsie.png' },
-  { name: 'Edmunds', logo: '/logos/carsie.png' },
-  { name: 'KBB', logo: '/logos/carsie.png' },
+  { name: 'AutoTrader', url: 'https://www.autotrader.ie' },
+  { name: 'Cars.com', url: 'https://www.cars.com' },
+  { name: 'CarGurus', url: 'https://www.cargurus.com' },
+  { name: 'Edmunds', url: 'https://www.edmunds.com' }
 ]
 
 // Car makes and their corresponding models
@@ -113,216 +106,66 @@ export function CarSearchAi() {
     if (results.length > 0) {
       setMessages(prev => [...prev, {
         id: prev.length + 1,
-        type: 'car_listing',
+        type: 'markdown',
         content: 'Here are your search results:',
-        sender: 'bot',
-        searchResults: results
+        sender: 'bot'
       }])
     }
   }, [])
 
-  const parseCarResults = useCallback((content: string): Car[] => {
+  const invokeAgent = async (text: string, fullText: string) => {
     try {
-      // Extract car listings section
-      const carListingsMatch = content.match(/Here are .*?:\n\n([\s\S]+?)(?=\n\nIf you're|$)/);
-      if (!carListingsMatch) return [];
+      setIsSearching(true)
+      const response = await fetch('https://n8n.yotor.co/webhook/invoke_agent', {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_AGENT_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: sessionId,
+          chatInput: fullText,
+          resetContext: false // Don't reset context within the same session
+        })
+      })
 
-      const carListingsText = carListingsMatch[1];
-      const cars: Car[] = [];
-
-      // Split into individual car entries
-      const carEntries = carListingsText.split(/\n\n(?=\d+\. \*\*)/);
-
-      carEntries.forEach((entry) => {
-        // Extract car details using regex
-        const titleMatch = entry.match(/\d+\. \*\*(.*?)\*\*/);
-        if (!titleMatch) return;
-
-        const titleParts = titleMatch[1].match(/(.*?)\s*\((\d{4})\)(.*?)?$/);
-        if (!titleParts) return;
-
-        const [_, makeModel, year, extraInfo] = titleParts;
-        const [make, ...modelParts] = makeModel.trim().split(/\s+/);
-        const model = modelParts.join(' ');
-
-        // Extract price and URL
-        const priceMatch = entry.match(/Price: €([\d,]+)/);
-        const urlMatch = entry.match(/\[View Listing\]\((.*?)\)/);
-
-        if (priceMatch && urlMatch) {
-          cars.push({
-            id: `car-${cars.length}`,
-            make,
-            model,
-            year,
-            price: `€${priceMatch[1]}`,
-            location: 'Ireland', // Default location
-            dealerStatus: 'Available',
-            description: extraInfo ? extraInfo.trim() : '',
-            imageUrl: `/placeholder.svg?height=200&width=300`,
-            url: urlMatch[1]
-          });
-        }
-      });
-
-      return cars;
-    } catch (error) {
-      console.error('Error parsing car results:', error);
-      return [];
-    }
-  }, []);
-
-  const processMessage = useCallback((content: string): Message => {
-    // Check if the content is a car listing response
-    if (content.includes('Here are') && content.includes('[View Listing]')) {
-      const cars = parseCarResults(content);
-      if (cars.length > 0) {
-        return {
-          id: Date.now(),
-          type: 'car_listing',
-          content: { listings: cars },
-          sender: 'bot'
-        };
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Network response was not ok: ${response.status} ${errorText}`)
       }
-    }
 
-    // For all other responses, return as markdown
+      const data = await response.json()
+      console.log('Full response data:', data)
+
+      if (data && data.output) {
+        let outputContent = data.output;
+        
+        // If output is an object, convert it to string
+        if (typeof outputContent === 'object') {
+          outputContent = JSON.stringify(outputContent, null, 2);
+        }
+        
+        return outputContent;
+      }
+
+      throw new Error('Unexpected response format')
+    } catch (error) {
+      handleError(error)
+      return "Sorry, there was an error processing your request."
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const processMessage = useCallback((content: any): Message => {
+    // For all responses, return as markdown
     return {
       id: Date.now(),
       type: 'markdown',
-      content,
+      content: typeof content === 'string' ? content : JSON.stringify(content, null, 2),
       sender: 'bot'
     };
-  }, [parseCarResults]);
-
-  const CarListingMessage = ({ content }: { content: CarListingContent | string }) => {
-    // If content is a string, parse it first
-    const listings = typeof content === 'string' 
-      ? parseCarResults(content)
-      : content.listings;
-
-    return (
-      <div className="w-full space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {listings.map((car) => (
-            <CarCard key={car.id} car={car} />
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const MessageRenderer = ({ message }: { message: Message }) => {
-    switch (message.type) {
-      case 'text':
-        return <MessageBubble content={message.content as string} sender={message.sender} />;
-      
-      case 'filter_selection':
-        return (
-          <div className="px-4 py-2 rounded-lg bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm">
-            <FilterBadges filters={message.content as string} />
-          </div>
-        );
-      
-      case 'car_listing':
-        return <CarListingMessage content={message.content as CarListingContent} />;
-      
-      case 'markdown':
-        // Check if it's a car listing in markdown format
-        if (typeof message.content === 'string' && 
-            message.content.includes('[View Listing]')) {
-          return <CarListingMessage content={message.content} />;
-        }
-        
-        // For regular markdown content
-        return (
-          <div className={`prose max-w-none ${
-            message.sender === 'user' ? 'text-white' : 'text-gray-800'
-          }`}>
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                p: ({ children }) => (
-                  <p className="text-sm leading-relaxed mb-4 text-gray-700">{children}</p>
-                ),
-                a: ({ href, children }) => (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#8A2BE2] hover:text-[#7B1FA2] underline"
-                  >
-                    {children}
-                  </a>
-                ),
-                ul: ({ children }) => (
-                  <ul className="list-disc pl-4 mb-4 text-sm text-gray-700">{children}</ul>
-                ),
-                li: ({ children }) => (
-                  <li className="mb-2">{children}</li>
-                ),
-                strong: ({ children }) => (
-                  <strong className="font-semibold text-gray-900">{children}</strong>
-                ),
-                em: ({ children }) => (
-                  <em className="text-gray-800">{children}</em>
-                ),
-                h1: ({ children }) => (
-                  <h1 className="text-xl font-semibold mb-4 text-gray-900">{children}</h1>
-                ),
-                h2: ({ children }) => (
-                  <h2 className="text-lg font-medium mb-3 text-gray-800">{children}</h2>
-                ),
-                h3: ({ children }) => (
-                  <h3 className="text-base font-medium mb-2 text-gray-800">{children}</h3>
-                ),
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
-          </div>
-        );
-      
-      default:
-        return null;
-    }
-  };
-
-  const CarCard = ({ car }: { car: Car }) => (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden">
-      <div className="relative h-48">
-        <Image
-          src={car.imageUrl}
-          alt={`${car.make} ${car.model}`}
-          layout="fill"
-          objectFit="cover"
-          className="transition-transform duration-200 hover:scale-105"
-        />
-      </div>
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          {car.make} {car.model} ({car.year})
-        </h3>
-        {car.description && (
-          <p className="text-gray-600 mt-1 text-sm">{car.description}</p>
-        )}
-        <div className="mt-3">
-          <span className="text-xl font-bold text-[#8A2BE2]">{car.price}</span>
-        </div>
-        {car.url && (
-          <a
-            href={car.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-[#8A2BE2] rounded-md hover:bg-[#7B1FA2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8A2BE2] transition-colors duration-200"
-          >
-            View Details
-            <ExternalLink className="ml-2 h-4 w-4" />
-          </a>
-        )}
-      </div>
-    </div>
-  );
+  }, []);
 
   const handleSearch = async () => {
     if (!inputMessage.trim()) return;
@@ -350,7 +193,7 @@ export function CarSearchAi() {
       }]);
 
       // Get full text with filters
-      const fullText = `${messageText} ${getFilterString()}`.trim();
+      const fullText = `${messageText}`.trim();
       const aiResponse = await invokeAgent(messageText, fullText);
       
       // Process and add bot response
@@ -408,52 +251,20 @@ export function CarSearchAi() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const invokeAgent = async (text: string, fullText: string) => {
-    try {
-      setIsSearching(true)
-      const response = await fetch('https://n8n.yotor.co/webhook/invoke_agent', {
-        method: 'POST',
-        headers: {
-          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_AGENT_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionId: sessionId,
-          chatInput: fullText,
-          carSpecs: carSpecs
-        })
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Network response was not ok: ${response.status} ${errorText}`)
-      }
-
-      const data = await response.json()
-      console.log('Full response data:', data)
-
-      if (data && data.output) {
-        if (typeof data.output === 'string') {
-          return data.output
-        } else if (typeof data.output === 'object') {
-          return JSON.stringify(data.output, null, 2)
-        }
-      }
-
-      throw new Error('Unexpected response format')
-    } catch (error) {
-      handleError(error)
-      return "Sorry, there was an error processing your request."
-    } finally {
-      setIsSearching(false)
-    }
-  }
-
   const updateCarSpecs = (key: keyof CarSpecs, value: string) => {
     setCarSpecs(prev => {
       const updatedSpecs = { ...prev, [key]: value };
       const anySelected = Object.values(updatedSpecs).some(spec => spec !== '');
       setIsFilterApplied(anySelected);
+      
+      // If make is changed, reset model
+      if (key === 'make') {
+        updatedSpecs.model = '';
+        // Update available models
+        const models = carMakes[value as keyof typeof carMakes] || [];
+        setAvailableModels(models);
+      }
+      
       return updatedSpecs;
     });
   }
@@ -466,7 +277,9 @@ export function CarSearchAi() {
       county: '',
       minPrice: '',
       maxPrice: ''
-    })
+    });
+    setIsFilterApplied(false);
+    setAvailableModels([]);
   }
 
   const handleFilterApply = async () => {
@@ -506,16 +319,54 @@ export function CarSearchAi() {
     }
   };
 
-  const resetChat = () => {
-    setMessages([])
-    setInputMessage('')
-    setChatStarted(false)
-    handleFilterReset()
-    setErrorMessage('')
-    setSessionId(nanoid())
-    setSearchResults([])
-    setAvailableModels([])
-  }
+  const resetChat = useCallback(() => {
+    // Clear all messages
+    setMessages([]);
+    setInputMessage('');
+    
+    // Reset all specifications
+    setCarSpecs({
+      make: '',
+      model: '',
+      year: '',
+      county: '',
+      minPrice: '',
+      maxPrice: ''
+    });
+    
+    // Reset all states
+    setIsFilterApplied(false);
+    setChatStarted(false);
+    setSearchResults([]);
+    setAvailableModels([]);
+    setErrorMessage('');
+    
+    // Generate new session ID for completely fresh start
+    const newSessionId = nanoid();
+    setSessionId(newSessionId);
+    
+    // Initial webhook call to reset context
+    fetch('https://n8n.yotor.co/webhook/invoke_agent', {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${process.env.NEXT_PUBLIC_AGENT_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sessionId: newSessionId,
+        chatInput: "",
+        resetContext: true
+      })
+    }).catch(error => console.error('Error resetting context:', error));
+  }, []);
+
+  const handleNewChat = () => {
+    resetChat();
+  };
+
+  const handleHomeClick = () => {
+    resetChat();
+  };
 
   const getFilterString = () => {
     const filters = []
@@ -676,6 +527,72 @@ export function CarSearchAi() {
     }])
   }
 
+  const MessageRenderer = ({ message }: { message: Message }) => {
+    switch (message.type) {
+      case 'text':
+        return <MessageBubble content={message.content as string} sender={message.sender} />;
+      
+      case 'filter_selection':
+        return (
+          <div className="px-4 py-2 rounded-lg bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm">
+            <FilterBadges filters={message.content as string} />
+          </div>
+        );
+      
+      case 'markdown':
+        return (
+          <div className={`prose max-w-none ${
+            message.sender === 'user' ? 'text-white' : 'text-gray-800'
+          }`}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                p: ({ children }) => (
+                  <p className="text-sm leading-relaxed mb-4 text-gray-700">{children}</p>
+                ),
+                a: ({ href, children }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#8A2BE2] hover:text-[#7B1FA2] underline"
+                  >
+                    {children}
+                  </a>
+                ),
+                ul: ({ children }) => (
+                  <ul className="list-disc pl-4 mb-4 text-sm text-gray-700">{children}</ul>
+                ),
+                li: ({ children }) => (
+                  <li className="mb-2">{children}</li>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-semibold text-gray-900">{children}</strong>
+                ),
+                em: ({ children }) => (
+                  <em className="text-gray-800">{children}</em>
+                ),
+                h1: ({ children }) => (
+                  <h1 className="text-xl font-semibold mb-4 text-gray-900">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-lg font-medium mb-3 text-gray-800">{children}</h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="text-base font-medium mb-2 text-gray-800">{children}</h3>
+                ),
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-gray-50">
       {/* Left Sidebar */}
@@ -684,7 +601,7 @@ export function CarSearchAi() {
           variant="ghost" 
           size="icon" 
           className="text-gray-700 hover:text-[#8A2BE2] hover:bg-gray-50 transition-colors duration-200"
-          onClick={() => resetChat()}
+          onClick={handleHomeClick}
         >
           <Home className="h-6 w-6" />
         </Button>
@@ -692,7 +609,7 @@ export function CarSearchAi() {
           variant="ghost" 
           size="icon" 
           className="text-gray-700 hover:text-[#8A2BE2] hover:bg-gray-50 transition-colors duration-200"
-          onClick={() => resetChat()}
+          onClick={handleNewChat}
         >
           <PlusCircle className="h-6 w-6" />
         </Button>
@@ -1031,12 +948,11 @@ export function CarSearchAi() {
                         {websites.map((site) => (
                           <div key={site.name} className="flex flex-col items-center group">
                             <div className="relative w-16 h-16 mb-4 transform transition-transform duration-300 group-hover:scale-110">
-                              <Image
-                                src={site.logo}
-                                alt={`${site.name} logo`}
-                                fill
-                                className="object-contain filter brightness-0 invert opacity-80 group-hover:opacity-100"
-                              />
+                              <a href={site.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
+                                <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center">
+                                  <span className="text-2xl font-bold text-gray-500">{site.name.charAt(0)}</span>
+                                </div>
+                              </a>
                             </div>
                             <span className="text-white group-hover:text-[#7B1FA2] transition-colors duration-200">
                               {site.name}
@@ -1249,6 +1165,253 @@ export function CarSearchAi() {
           </div>
         </div>
       </div>
+      {/* Filter Dialog */}
+      <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto top-[10vh]">
+          <div className="bg-white shadow-lg rounded-2xl border border-purple-200 p-6 shadow-purple-100/50">
+            {/* Grid Layout */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Make Selection */}
+              <Select onValueChange={(value) => {
+                updateCarSpecs('make', value);
+                setAvailableModels(carMakes[value as keyof typeof carMakes] || []);
+                updateCarSpecs('model', '');
+              }}>
+                <SelectTrigger 
+                  className="w-full bg-gray-50 text-gray-900 h-11
+                  border border-purple-100 rounded-lg
+                  transition-all duration-200 hover:border-[#8A2BE2]
+                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  text-[14px] font-medium px-3"
+                >
+                  <SelectValue placeholder="Make" />
+                </SelectTrigger>
+                <SelectContent 
+                  className="bg-white border-gray-200
+                  text-gray-900 rounded-lg overflow-hidden shadow-lg"
+                >
+                  {Object.keys(carMakes).map((make) => (
+                    <SelectItem 
+                      key={make}
+                      value={make}
+                      className="transition-colors duration-200 cursor-pointer py-2.5 px-4
+                      hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                    >
+                      {make}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Model Selection */}
+              <Select 
+                onValueChange={(value) => updateCarSpecs('model', value)}
+                disabled={!carSpecs.make}
+              >
+                <SelectTrigger 
+                  className="w-full bg-gray-50 text-gray-900 h-11
+                  border border-purple-100 rounded-lg
+                  transition-all duration-200 hover:border-[#8A2BE2]
+                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  text-[14px] font-medium px-3
+                  disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                >
+                  <SelectValue placeholder="Model" />
+                </SelectTrigger>
+                <SelectContent 
+                  className="bg-white border-gray-200
+                  text-gray-900 rounded-lg overflow-hidden shadow-lg"
+                >
+                  {availableModels.map((model) => (
+                    <SelectItem 
+                      key={model}
+                      value={model}
+                      className="transition-colors duration-200 cursor-pointer py-2.5 px-4
+                      hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                    >
+                      {model}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Year Selection */}
+              <Select onValueChange={(value) => updateCarSpecs('year', value)}>
+                <SelectTrigger 
+                  className="w-full bg-gray-50 text-gray-900 h-11
+                  border border-purple-100 rounded-lg
+                  transition-all duration-200 hover:border-[#8A2BE2]
+                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  text-[14px] font-medium px-3"
+                >
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent 
+                  className="bg-white border-gray-200
+                  text-gray-900 rounded-lg overflow-hidden shadow-lg"
+                >
+                  {[2024, 2023, 2022, 2021].map((year) => (
+                    <SelectItem 
+                      key={year}
+                      value={year.toString()}
+                      className="transition-colors duration-200 cursor-pointer py-2.5 px-4
+                      hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                    >
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* County Selection */}
+              <Select onValueChange={(value) => updateCarSpecs('county', value)}>
+                <SelectTrigger 
+                  className="w-full bg-gray-50 text-gray-900 h-11
+                  border border-purple-100 rounded-lg
+                  transition-all duration-200 hover:border-[#8A2BE2]
+                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  text-[14px] font-medium px-3"
+                >
+                  <SelectValue placeholder="County" />
+                </SelectTrigger>
+                <SelectContent 
+                  className="bg-white border-gray-200 text-gray-900 rounded-lg overflow-hidden shadow-lg"
+                  style={{ maxHeight: '300px', overflowY: 'auto' }}
+                >
+                  <SelectGroup>
+                    <SelectLabel className="px-3 py-2 text-xs text-gray-500">All Ireland</SelectLabel>
+                    <SelectItem 
+                      value="all" 
+                      className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                    >
+                      All Counties
+                    </SelectItem>
+                  </SelectGroup>
+
+                  <SelectGroup>
+                    <SelectLabel className="px-3 py-2 text-xs text-gray-500">Republic of Ireland</SelectLabel>
+                    <SelectItem value="carlow" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Carlow</SelectItem>
+                    <SelectItem value="cavan" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Cavan</SelectItem>
+                    <SelectItem value="clare" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Clare</SelectItem>
+                    <SelectItem value="cork" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Cork</SelectItem>
+                    <SelectItem value="donegal" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Donegal</SelectItem>
+                    <SelectItem value="dublin" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Dublin</SelectItem>
+                    <SelectItem value="galway" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Galway</SelectItem>
+                    <SelectItem value="kerry" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Kerry</SelectItem>
+                    <SelectItem value="kildare" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Kildare</SelectItem>
+                    <SelectItem value="kilkenny" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Kilkenny</SelectItem>
+                    <SelectItem value="laois" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Laois</SelectItem>
+                    <SelectItem value="leitrim" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Leitrim</SelectItem>
+                    <SelectItem value="limerick" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Limerick</SelectItem>
+                    <SelectItem value="longford" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Longford</SelectItem>
+                    <SelectItem value="louth" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Louth</SelectItem>
+                    <SelectItem value="mayo" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Mayo</SelectItem>
+                    <SelectItem value="meath" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Meath</SelectItem>
+                    <SelectItem value="monaghan" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Monaghan</SelectItem>
+                    <SelectItem value="offaly" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Offaly</SelectItem>
+                    <SelectItem value="roscommon" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Roscommon</SelectItem>
+                    <SelectItem value="sligo" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Sligo</SelectItem>
+                    <SelectItem value="tipperary" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Tipperary</SelectItem>
+                    <SelectItem value="waterford" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Waterford</SelectItem>
+                    <SelectItem value="westmeath" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Westmeath</SelectItem>
+                    <SelectItem value="wexford" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Wexford</SelectItem>
+                    <SelectItem value="wicklow" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Wicklow</SelectItem>
+                  </SelectGroup>
+
+                  <SelectGroup>
+                    <SelectLabel className="px-3 py-2 text-xs text-gray-500">Northern Ireland</SelectLabel>
+                    <SelectItem value="antrim" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Antrim</SelectItem>
+                    <SelectItem value="armagh" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Armagh</SelectItem>
+                    <SelectItem value="derry" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Derry</SelectItem>
+                    <SelectItem value="down" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Down</SelectItem>
+                    <SelectItem value="fermanagh" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Fermanagh</SelectItem>
+                    <SelectItem value="tyrone" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Tyrone</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+
+              {/* Price Range Selection */}
+              <Select onValueChange={(value) => updateCarSpecs('minPrice', value)}>
+                <SelectTrigger 
+                  className="w-full bg-gray-50 text-gray-900 h-11
+                  border border-purple-100 rounded-lg
+                  transition-all duration-200 hover:border-[#8A2BE2]
+                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  text-[14px] font-medium px-3"
+                >
+                  <SelectValue placeholder="Min Price" />
+                </SelectTrigger>
+                <SelectContent 
+                  className="bg-white border-gray-200
+                  text-gray-900 rounded-lg overflow-hidden shadow-lg"
+                >
+                  <SelectItem 
+                    value="0"
+                    className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                  >
+                    Any
+                  </SelectItem>
+                  {[5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000].map((price) => (
+                    <SelectItem 
+                      key={price}
+                      value={price.toString()}
+                      className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                    >
+                      €{price.toLocaleString()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select onValueChange={(value) => updateCarSpecs('maxPrice', value)}>
+                <SelectTrigger 
+                  className="w-full bg-gray-50 text-gray-900 h-11
+                  border border-purple-100 rounded-lg
+                  transition-all duration-200 hover:border-[#8A2BE2]
+                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  text-[14px] font-medium px-3"
+                >
+                  <SelectValue placeholder="Max Price" />
+                </SelectTrigger>
+                <SelectContent 
+                  className="bg-white border-gray-200
+                  text-gray-900 rounded-lg overflow-hidden shadow-lg"
+                >
+                  <SelectItem 
+                    value="999999"
+                    className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                  >
+                    Any
+                  </SelectItem>
+                  {[10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000].map((price) => (
+                    <SelectItem 
+                      key={price}
+                      value={price.toString()}
+                      className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                    >
+                      €{price.toLocaleString()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Action Button */}
+            <div className="mt-6 px-4">
+              <Button
+                onClick={handleFilterApply}
+                disabled={!isFiltersApplied}
+                className={`w-full h-11 bg-[#8A2BE2] text-white text-sm font-medium
+                  rounded-lg shadow-md hover:bg-[#7B1FA2] transition-all duration-200
+                  disabled:bg-gray-300 disabled:cursor-not-allowed
+                  ${!isFiltersApplied ? 'opacity-50' : ''}`}
+              >
+                Apply Filter
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
