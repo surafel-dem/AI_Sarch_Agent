@@ -14,6 +14,7 @@ import { nanoid } from 'nanoid'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useAuth } from '@/context/auth-context'
+import { supabase } from '@/lib/supabase'
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -73,6 +74,7 @@ const carMakes = {
 };
 
 export function CarSearchAi() {
+  const { user, updateLastSeen } = useAuth()
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [chatStarted, setChatStarted] = useState(false)
   const [inputMessage, setInputMessage] = useState('')
@@ -93,6 +95,7 @@ export function CarSearchAi() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [searchResults, setSearchResults] = useState<Car[]>([])
   const lastMessageRef = useRef<HTMLDivElement>(null)
+  const [sessionStarted, setSessionStarted] = useState(false)
 
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
@@ -113,9 +116,70 @@ export function CarSearchAi() {
     }
   }, [])
 
+  const updateUserStats = useCallback(async () => {
+    if (!user) return
+
+    try {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('total_conversations, total_searches, message_count')
+        .eq('id', user.id)
+        .single()
+
+      if (userData) {
+        await supabase
+          .from('users')
+          .update({
+            total_conversations: userData.total_conversations + 1,
+            total_searches: userData.total_searches + 1,
+            message_count: (userData.message_count || 0) + 1,
+            last_seen_at: new Date().toISOString()
+          })
+          .eq('id', user.id)
+      }
+    } catch (error) {
+      console.error('Error updating user stats:', error)
+    }
+  }, [user])
+
+  const updateMessageCount = useCallback(async () => {
+    if (!user) return
+
+    try {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('message_count')
+        .eq('id', user.id)
+        .single()
+
+      if (userData) {
+        await supabase
+          .from('users')
+          .update({
+            message_count: (userData.message_count || 0) + 1
+          })
+          .eq('id', user.id)
+      }
+    } catch (error) {
+      console.error('Error updating message count:', error)
+    }
+  }, [user])
+
   const invokeAgent = async (text: string, fullText: string) => {
     try {
       setIsSearching(true)
+
+      // If this is the first message in the session, update user stats
+      if (!sessionStarted && user) {
+        await updateUserStats()
+        setSessionStarted(true)
+      }
+
+      // Update last seen
+      if (user) {
+        await updateLastSeen()
+      }
+
       const response = await fetch('https://n8n.yotor.co/webhook/invoke_agent', {
         method: 'POST',
         headers: {
@@ -125,7 +189,7 @@ export function CarSearchAi() {
         body: JSON.stringify({
           sessionId: sessionId,
           chatInput: fullText,
-          resetContext: false // Don't reset context within the same session
+          resetContext: false
         })
       })
 
@@ -138,14 +202,14 @@ export function CarSearchAi() {
       console.log('Full response data:', data)
 
       if (data && data.output) {
-        let outputContent = data.output;
+        let outputContent = data.output
         
         // If output is an object, convert it to string
         if (typeof outputContent === 'object') {
-          outputContent = JSON.stringify(outputContent, null, 2);
+          outputContent = JSON.stringify(outputContent, null, 2)
         }
         
-        return outputContent;
+        return outputContent
       }
 
       throw new Error('Unexpected response format')
@@ -192,6 +256,11 @@ export function CarSearchAi() {
         sender: 'user'
       }]);
 
+      // Update message count for user
+      if (user) {
+        await updateMessageCount()
+      }
+
       // Get full text with filters
       const fullText = `${messageText}`.trim();
       const aiResponse = await invokeAgent(messageText, fullText);
@@ -199,6 +268,11 @@ export function CarSearchAi() {
       // Process and add bot response
       const processedMessage = processMessage(aiResponse);
       setMessages(prev => [...prev, processedMessage]);
+
+      // Update message count again for AI response
+      if (user) {
+        await updateMessageCount()
+      }
     } catch (error) {
       handleError(error);
     } finally {
@@ -337,6 +411,7 @@ export function CarSearchAi() {
     // Reset all states
     setIsFilterApplied(false);
     setChatStarted(false);
+    setSessionStarted(false);
     setSearchResults([]);
     setAvailableModels([]);
     setErrorMessage('');
@@ -398,17 +473,25 @@ export function CarSearchAi() {
     );
   };
 
-  const MessageBubble = ({ content, sender }: { content: string, sender: 'user' | 'bot' }) => (
-    <div className={`${
-      sender === 'user'
-        ? 'text-[#8A2BE2] ml-auto'
-        : 'bg-gray-50 rounded-lg px-4 py-3'
-    }`}>
-      <p className="text-sm leading-relaxed text-current">
-        {content}
-      </p>
-    </div>
-  );
+  const MessageBubble = ({ content, sender }: { content: string, sender: 'user' | 'bot' }) => {
+    const messageClasses = sender === 'user' 
+      ? 'flex flex-row-reverse items-start gap-2'
+      : 'flex items-start gap-2'
+
+    const textClasses = sender === 'user'
+      ? 'bg-purple-50 text-gray-900 rounded-lg px-4 py-3'
+      : 'bg-gray-50 text-gray-900 rounded-lg px-4 py-3'
+
+    return (
+      <div className={messageClasses}>
+        <div className={textClasses}>
+          <p className="text-sm leading-relaxed">
+            {content}
+          </p>
+        </div>
+      </div>
+    )
+  };
 
   // Filter state management
   const isFiltersApplied = React.useMemo(() => 

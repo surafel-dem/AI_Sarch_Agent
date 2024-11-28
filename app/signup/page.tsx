@@ -6,48 +6,50 @@ import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
-import { MdOutlineAlternateEmail } from 'react-icons/md'
-import { RiLockPasswordFill } from 'react-icons/ri'
-import { BsPersonFill } from 'react-icons/bs'
-import { useAuth } from '@/context/auth-context'
+import { FcGoogle } from 'react-icons/fc'
+import { HiOutlineUserAdd } from 'react-icons/hi'
+import { supabase } from '@/lib/supabase'
 
 export default function SignUpPage() {
   const router = useRouter()
-  const { signup } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  })
+  const [email, setEmail] = useState('')
 
-  async function onSubmit(event: React.FormEvent) {
+  async function handleEmailSignUp(event: React.FormEvent) {
     event.preventDefault()
     setIsLoading(true)
 
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match')
-      setIsLoading(false)
-      return
-    }
-
     try {
-      await signup(formData.name, formData.email, formData.password)
-      router.push('/login')
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (error) throw error
+      alert('Check your email for the signup link!')
     } catch (error) {
-      console.error('Signup failed:', error)
+      console.error('Error:', error)
+      alert('Error sending magic link email')
     } finally {
       setIsLoading(false)
     }
   }
 
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { id, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [id]: value
-    }))
+  async function handleGoogleSignUp() {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) throw error
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error signing up with Google')
+    }
   }
 
   return (
@@ -55,31 +57,38 @@ export default function SignUpPage() {
       <div className="container flex h-screen w-screen flex-col items-center justify-center">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center">
-            <BsPersonFill className="mx-auto h-6 w-6 text-[#8b5cf6]" />
+            <HiOutlineUserAdd className="mx-auto h-6 w-6 text-[#8b5cf6]" />
             <h1 className="text-2xl font-semibold tracking-tight text-white">
-              Create an account
+              Join Car Search AI
             </h1>
             <p className="text-sm text-gray-400">
-              Enter your details below to create your account
+              Create an account to start your car search journey
             </p>
           </div>
 
-          <div className="bg-[rgba(0,7,36,0.6)] backdrop-blur-md rounded-xl border border-[rgba(139,92,246,0.2)] p-4">
-            <form onSubmit={onSubmit}>
+          <div className="bg-[rgba(0,7,36,0.6)] backdrop-blur-md rounded-xl border border-[rgba(139,92,246,0.2)] p-4 space-y-4">
+            <Button 
+              onClick={handleGoogleSignUp}
+              disabled={isLoading}
+              className="w-full bg-white hover:bg-gray-50 text-gray-900 flex items-center justify-center gap-2"
+              variant="outline"
+            >
+              <FcGoogle className="h-5 w-5" />
+              Continue with Google
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-600" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-[rgba(0,7,36,0.6)] px-2 text-gray-400">Or continue with</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleEmailSignUp}>
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Input
-                    id="name"
-                    placeholder="Full Name"
-                    type="text"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    disabled={isLoading}
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="bg-[rgba(139,92,246,0.1)] border-[rgba(139,92,246,0.2)] text-gray-200 placeholder:text-gray-400"
-                    icon={<BsPersonFill />}
-                  />
                   <Input
                     id="email"
                     placeholder="name@example.com"
@@ -88,32 +97,9 @@ export default function SignUpPage() {
                     autoComplete="email"
                     autoCorrect="off"
                     disabled={isLoading}
-                    value={formData.email}
-                    onChange={handleInputChange}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="bg-[rgba(139,92,246,0.1)] border-[rgba(139,92,246,0.2)] text-gray-200 placeholder:text-gray-400"
-                    icon={<MdOutlineAlternateEmail />}
-                  />
-                  <Input
-                    id="password"
-                    placeholder="Password"
-                    type="password"
-                    autoComplete="new-password"
-                    disabled={isLoading}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="bg-[rgba(139,92,246,0.1)] border-[rgba(139,92,246,0.2)] text-gray-200 placeholder:text-gray-400"
-                    icon={<RiLockPasswordFill />}
-                  />
-                  <Input
-                    id="confirmPassword"
-                    placeholder="Confirm Password"
-                    type="password"
-                    autoComplete="new-password"
-                    disabled={isLoading}
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="bg-[rgba(139,92,246,0.1)] border-[rgba(139,92,246,0.2)] text-gray-200 placeholder:text-gray-400"
-                    icon={<RiLockPasswordFill />}
                   />
                 </div>
                 <Button 
@@ -123,7 +109,7 @@ export default function SignUpPage() {
                   {isLoading && (
                     <AiOutlineLoading3Quarters className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Create Account
+                  Get Started
                 </Button>
               </div>
             </form>

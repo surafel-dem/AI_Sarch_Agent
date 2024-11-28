@@ -1,76 +1,79 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
-
-interface User {
-  name: string
-  email: string
-}
+import { createContext, useContext, useEffect, useState } from 'react'
+import { User } from '@supabase/supabase-js'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<void>
-  signup: (email: string, password: string, name: string) => Promise<void>
-  logout: () => void
+  loading: boolean
+  logout: () => Promise<void>
+  updateLastSeen: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  logout: async () => {},
+  updateLastSeen: async () => {}
+})
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem('user')
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
-    }
-  }, [])
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
 
-  const login = async (email: string, password: string) => {
-    // Mock login - replace with actual API call
-    if (email && password) {
-      const mockUser = {
-        name: email.split('@')[0],
-        email: email
-      }
-      setUser(mockUser)
-      localStorage.setItem('user', JSON.stringify(mockUser))
-    } else {
-      throw new Error('Invalid credentials')
-    }
-  }
+    // Listen for changes on auth state (logged in, signed out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+      router.refresh()
+    })
 
-  const signup = async (email: string, password: string, name: string) => {
-    // Mock signup - replace with actual API call
-    if (email && password && name) {
-      const mockUser = {
-        name: name,
-        email: email
-      }
-      setUser(mockUser)
-      localStorage.setItem('user', JSON.stringify(mockUser))
-    } else {
-      throw new Error('Invalid signup data')
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [router])
+
+  const updateLastSeen = async () => {
+    if (user) {
+      await supabase
+        .from('users')
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq('id', user.id)
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem('user')
+  useEffect(() => {
+    // Update last_seen_at every 5 minutes while the user is active
+    if (user) {
+      updateLastSeen()
+      const interval = setInterval(updateLastSeen, 5 * 60 * 1000)
+      return () => clearInterval(interval)
+    }
+  }, [user])
+
+  const logout = async () => {
+    await updateLastSeen()
+    await supabase.auth.signOut()
+    router.refresh()
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, logout, updateLastSeen }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
+export const useAuth = () => {
+  return useContext(AuthContext)
 }

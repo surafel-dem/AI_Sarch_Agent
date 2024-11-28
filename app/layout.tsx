@@ -1,20 +1,14 @@
-import localFont from "next/font/local";
-import "./globals.css";
-import { AuthProvider } from '@/context/auth-context'
-import { NavBar } from '@/components/nav-bar'
+import './globals.css'
+import { Inter } from 'next/font/google'
+import { SupabaseProvider } from '@/components/providers/supabase-auth-provider'
+import { Toaster } from 'sonner'
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+const inter = Inter({ subsets: ['latin'] })
 
-
+export const metadata = {
+  title: 'Car Search AI',
+  description: 'Your intelligent car search assistant',
+}
 
 export default function RootLayout({
   children,
@@ -23,14 +17,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AuthProvider>
-          <NavBar />
+      <body className={inter.className}>
+        <SupabaseProvider>
           {children}
-        </AuthProvider>
+          <Toaster />
+        </SupabaseProvider>
       </body>
     </html>
-  );
+  )
 }
