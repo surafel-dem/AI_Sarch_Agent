@@ -479,13 +479,13 @@ export function CarSearchAi() {
       : 'flex items-start gap-2'
 
     const textClasses = sender === 'user'
-      ? 'bg-purple-50 text-gray-900 rounded-lg px-4 py-3'
-      : 'bg-gray-50 text-gray-900 rounded-lg px-4 py-3'
+      ? 'backdrop-blur-md bg-[#2563EB]/10 border border-[#2563EB]/20 text-gray-900 rounded-lg px-4 py-3 shadow-[0_4px_16px_rgba(37,99,235,0.1)] hover:shadow-lg transition-all duration-300'
+      : 'backdrop-blur-md bg-white/30 border border-white/40 text-gray-900 rounded-lg px-4 py-3 shadow-[0_4px_16px_rgba(255,255,255,0.2)] hover:shadow-lg transition-all duration-300'
 
     return (
       <div className={messageClasses}>
         <div className={textClasses}>
-          <p className="text-sm leading-relaxed">
+          <p className="text-sm leading-relaxed font-medium">
             {content}
           </p>
         </div>
@@ -638,7 +638,7 @@ export function CarSearchAi() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#8A2BE2] hover:text-[#7B1FA2] underline"
+                    className="text-[#2563EB] hover:text-[#1E40AF] underline"
                   >
                     {children}
                   </a>
@@ -682,7 +682,7 @@ export function CarSearchAi() {
       <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-sm border-b border-gray-100 z-50">
         <div className="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Car className="w-6 h-6 text-[#8A2BE2]" />
+            <Car className="w-6 h-6 text-[#2563EB]" />
             <span className="text-xl font-semibold text-gray-900">CarSearchAI</span>
           </div>
 
@@ -690,19 +690,19 @@ export function CarSearchAi() {
           <nav className="hidden md:flex items-center space-x-8">
             <button
               onClick={() => document.getElementById('home')?.scrollIntoView({ behavior: 'smooth' })}
-              className="text-sm text-gray-600 hover:text-[#8A2BE2] transition-colors duration-200"
+              className="text-sm text-gray-600 hover:text-[#2563EB] transition-colors duration-200"
             >
               Home
             </button>
             <button
               onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-              className="text-sm text-gray-600 hover:text-[#8A2BE2] transition-colors duration-200"
+              className="text-sm text-gray-600 hover:text-[#2563EB] transition-colors duration-200"
             >
               How It Works
             </button>
             <button
               onClick={() => document.getElementById('about-us')?.scrollIntoView({ behavior: 'smooth' })}
-              className="text-sm text-gray-600 hover:text-[#8A2BE2] transition-colors duration-200"
+              className="text-sm text-gray-600 hover:text-[#2563EB] transition-colors duration-200"
             >
               About Us
             </button>
@@ -720,7 +720,7 @@ export function CarSearchAi() {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="text-gray-700 hover:text-[#8A2BE2] hover:bg-gray-50 transition-colors duration-200"
+          className="text-gray-700 hover:text-[#2563EB] hover:bg-gray-50 transition-colors duration-200"
           onClick={handleHomeClick}
         >
           <Home className="h-6 w-6" />
@@ -728,7 +728,7 @@ export function CarSearchAi() {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="text-gray-700 hover:text-[#8A2BE2] hover:bg-gray-50 transition-colors duration-200"
+          className="text-gray-700 hover:text-[#2563EB] hover:bg-gray-50 transition-colors duration-200"
           onClick={handleNewChat}
         >
           <PlusCircle className="h-6 w-6" />
@@ -746,9 +746,9 @@ export function CarSearchAi() {
               // Hero Section with Filter Box and Chat Box
               <div className="flex flex-col">
                 {/* Hero Section with Filter Box - Full Height Landing */}
-                <section id="home" className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-purple-50/30">
+                <section id="home" className="min-h-screen flex items-center justify-center bg-gray-50">
                   <div className="text-center max-w-3xl mx-auto px-4">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center text-gray-900">
+                    <h1 className="text-4xl font-bold mb-4 text-center text-gray-900">
                       Find Your Perfect Car
                     </h1>
                     <p className="text-sm md:text-base text-gray-600 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
@@ -756,8 +756,11 @@ export function CarSearchAi() {
                     </p>
 
                     {/* Filter Box */}
-                    <div className="w-full max-w-[460px] mx-auto mb-16">
-                      <div className="bg-white shadow-lg rounded-lg border border-purple-100 p-6 shadow-purple-50/50">
+                    <div className="w-full max-w-[460px] mx-auto mb-24">
+                      <div className="backdrop-blur-lg bg-white/10 border border-white/20 
+                        shadow-[0_8px_32px_rgba(0,0,0,0.1)] rounded-lg p-8
+                        hover:shadow-[0_8px_32px_rgba(31,38,135,0.15)]
+                        transition-all duration-300">
                         {/* Grid Layout */}
                         <div className="grid grid-cols-2 gap-4">
                           {/* Make Selection */}
@@ -768,9 +771,9 @@ export function CarSearchAi() {
                           }}>
                             <SelectTrigger 
                               className="w-full bg-gray-50 text-gray-900 h-11
-                              border border-purple-100 rounded-lg
-                              transition-all duration-200 hover:border-[#8A2BE2]
-                              focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                              border border-[#2563EB]/20 rounded-lg
+                              transition-all duration-200 hover:border-[#2563EB]
+                              focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                               text-[14px] font-medium px-3"
                             >
                               <SelectValue placeholder="Make" />
@@ -784,7 +787,7 @@ export function CarSearchAi() {
                                   key={make}
                                   value={make}
                                   className="transition-colors duration-200 cursor-pointer py-2.5 px-4
-                                  hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                                  hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                                 >
                                   {make}
                                 </SelectItem>
@@ -799,9 +802,9 @@ export function CarSearchAi() {
                           >
                             <SelectTrigger 
                               className="w-full bg-gray-50 text-gray-900 h-11
-                              border border-purple-100 rounded-lg
-                              transition-all duration-200 hover:border-[#8A2BE2]
-                              focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                              border border-[#2563EB]/20 rounded-lg
+                              transition-all duration-200 hover:border-[#2563EB]
+                              focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                               text-[14px] font-medium px-3
                               disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                             >
@@ -816,7 +819,7 @@ export function CarSearchAi() {
                                   key={model}
                                   value={model}
                                   className="transition-colors duration-200 cursor-pointer py-2.5 px-4
-                                  hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                                  hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                                 >
                                   {model}
                                 </SelectItem>
@@ -828,9 +831,9 @@ export function CarSearchAi() {
                           <Select onValueChange={(value) => updateCarSpecs('year', value)}>
                             <SelectTrigger 
                               className="w-full bg-gray-50 text-gray-900 h-11
-                              border border-purple-100 rounded-lg
-                              transition-all duration-200 hover:border-[#8A2BE2]
-                              focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                              border border-[#2563EB]/20 rounded-lg
+                              transition-all duration-200 hover:border-[#2563EB]
+                              focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                               text-[14px] font-medium px-3"
                             >
                               <SelectValue placeholder="Year" />
@@ -844,7 +847,7 @@ export function CarSearchAi() {
                                   key={year}
                                   value={year.toString()}
                                   className="transition-colors duration-200 cursor-pointer py-2.5 px-4
-                                  hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                                  hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                                 >
                                   {year}
                                 </SelectItem>
@@ -856,9 +859,9 @@ export function CarSearchAi() {
                           <Select onValueChange={(value) => updateCarSpecs('county', value)}>
                             <SelectTrigger 
                               className="w-full bg-gray-50 text-gray-900 h-11
-                              border border-purple-100 rounded-lg
-                              transition-all duration-200 hover:border-[#8A2BE2]
-                              focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                              border border-[#2563EB]/20 rounded-lg
+                              transition-all duration-200 hover:border-[#2563EB]
+                              focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                               text-[14px] font-medium px-3"
                             >
                               <SelectValue placeholder="County" />
@@ -871,7 +874,7 @@ export function CarSearchAi() {
                                 <SelectLabel className="px-3 py-2 text-xs text-gray-500">All Ireland</SelectLabel>
                                 <SelectItem 
                                   value="all" 
-                                  className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                                  className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                                 >
                                   All Counties
                                 </SelectItem>
@@ -879,42 +882,42 @@ export function CarSearchAi() {
 
                               <SelectGroup>
                                 <SelectLabel className="px-3 py-2 text-xs text-gray-500">Republic of Ireland</SelectLabel>
-                                <SelectItem value="carlow" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Carlow</SelectItem>
-                                <SelectItem value="cavan" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Cavan</SelectItem>
-                                <SelectItem value="clare" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Clare</SelectItem>
-                                <SelectItem value="cork" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Cork</SelectItem>
-                                <SelectItem value="donegal" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Donegal</SelectItem>
-                                <SelectItem value="dublin" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Dublin</SelectItem>
-                                <SelectItem value="galway" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Galway</SelectItem>
-                                <SelectItem value="kerry" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Kerry</SelectItem>
-                                <SelectItem value="kildare" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Kildare</SelectItem>
-                                <SelectItem value="kilkenny" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Kilkenny</SelectItem>
-                                <SelectItem value="laois" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Laois</SelectItem>
-                                <SelectItem value="leitrim" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Leitrim</SelectItem>
-                                <SelectItem value="limerick" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Limerick</SelectItem>
-                                <SelectItem value="longford" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Longford</SelectItem>
-                                <SelectItem value="louth" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Louth</SelectItem>
-                                <SelectItem value="mayo" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Mayo</SelectItem>
-                                <SelectItem value="meath" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Meath</SelectItem>
-                                <SelectItem value="monaghan" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Monaghan</SelectItem>
-                                <SelectItem value="offaly" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Offaly</SelectItem>
-                                <SelectItem value="roscommon" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Roscommon</SelectItem>
-                                <SelectItem value="sligo" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Sligo</SelectItem>
-                                <SelectItem value="tipperary" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Tipperary</SelectItem>
-                                <SelectItem value="waterford" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Waterford</SelectItem>
-                                <SelectItem value="westmeath" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Westmeath</SelectItem>
-                                <SelectItem value="wexford" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Wexford</SelectItem>
-                                <SelectItem value="wicklow" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Wicklow</SelectItem>
+                                <SelectItem value="carlow" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Carlow</SelectItem>
+                                <SelectItem value="cavan" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Cavan</SelectItem>
+                                <SelectItem value="clare" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Clare</SelectItem>
+                                <SelectItem value="cork" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Cork</SelectItem>
+                                <SelectItem value="donegal" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Donegal</SelectItem>
+                                <SelectItem value="dublin" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Dublin</SelectItem>
+                                <SelectItem value="galway" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Galway</SelectItem>
+                                <SelectItem value="kerry" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Kerry</SelectItem>
+                                <SelectItem value="kildare" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Kildare</SelectItem>
+                                <SelectItem value="kilkenny" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Kilkenny</SelectItem>
+                                <SelectItem value="laois" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Laois</SelectItem>
+                                <SelectItem value="leitrim" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Leitrim</SelectItem>
+                                <SelectItem value="limerick" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Limerick</SelectItem>
+                                <SelectItem value="longford" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Longford</SelectItem>
+                                <SelectItem value="louth" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Louth</SelectItem>
+                                <SelectItem value="mayo" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Mayo</SelectItem>
+                                <SelectItem value="meath" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Meath</SelectItem>
+                                <SelectItem value="monaghan" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Monaghan</SelectItem>
+                                <SelectItem value="offaly" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Offaly</SelectItem>
+                                <SelectItem value="roscommon" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Roscommon</SelectItem>
+                                <SelectItem value="sligo" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Sligo</SelectItem>
+                                <SelectItem value="tipperary" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Tipperary</SelectItem>
+                                <SelectItem value="waterford" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Waterford</SelectItem>
+                                <SelectItem value="westmeath" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Westmeath</SelectItem>
+                                <SelectItem value="wexford" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Wexford</SelectItem>
+                                <SelectItem value="wicklow" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Wicklow</SelectItem>
                               </SelectGroup>
 
                               <SelectGroup>
                                 <SelectLabel className="px-3 py-2 text-xs text-gray-500">Northern Ireland</SelectLabel>
-                                <SelectItem value="antrim" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Antrim</SelectItem>
-                                <SelectItem value="armagh" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Armagh</SelectItem>
-                                <SelectItem value="derry" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Derry</SelectItem>
-                                <SelectItem value="down" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Down</SelectItem>
-                                <SelectItem value="fermanagh" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Fermanagh</SelectItem>
-                                <SelectItem value="tyrone" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Tyrone</SelectItem>
+                                <SelectItem value="antrim" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Antrim</SelectItem>
+                                <SelectItem value="armagh" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Armagh</SelectItem>
+                                <SelectItem value="derry" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Derry</SelectItem>
+                                <SelectItem value="down" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Down</SelectItem>
+                                <SelectItem value="fermanagh" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Fermanagh</SelectItem>
+                                <SelectItem value="tyrone" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Tyrone</SelectItem>
                               </SelectGroup>
                             </SelectContent>
                           </Select>
@@ -923,9 +926,9 @@ export function CarSearchAi() {
                           <Select onValueChange={(value) => updateCarSpecs('minPrice', value)}>
                             <SelectTrigger 
                               className="w-full bg-gray-50 text-gray-900 h-11
-                              border border-purple-100 rounded-lg
-                              transition-all duration-200 hover:border-[#8A2BE2]
-                              focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                              border border-[#2563EB]/20 rounded-lg
+                              transition-all duration-200 hover:border-[#2563EB]
+                              focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                               text-[14px] font-medium px-3"
                             >
                               <SelectValue placeholder="Min Price" />
@@ -936,7 +939,7 @@ export function CarSearchAi() {
                             >
                               <SelectItem 
                                 value="0"
-                                className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                                className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                               >
                                 Any
                               </SelectItem>
@@ -944,7 +947,7 @@ export function CarSearchAi() {
                                 <SelectItem 
                                   key={price}
                                   value={price.toString()}
-                                  className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                                  className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                                 >
                                   €{price.toLocaleString()}
                                 </SelectItem>
@@ -955,9 +958,9 @@ export function CarSearchAi() {
                           <Select onValueChange={(value) => updateCarSpecs('maxPrice', value)}>
                             <SelectTrigger 
                               className="w-full bg-gray-50 text-gray-900 h-11
-                              border border-purple-100 rounded-lg
-                              transition-all duration-200 hover:border-[#8A2BE2]
-                              focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                              border border-[#2563EB]/20 rounded-lg
+                              transition-all duration-200 hover:border-[#2563EB]
+                              focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                               text-[14px] font-medium px-3"
                             >
                               <SelectValue placeholder="Max Price" />
@@ -968,7 +971,7 @@ export function CarSearchAi() {
                             >
                               <SelectItem 
                                 value="999999"
-                                className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                                className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                               >
                                 Any
                               </SelectItem>
@@ -976,7 +979,7 @@ export function CarSearchAi() {
                                 <SelectItem 
                                   key={price}
                                   value={price.toString()}
-                                  className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                                  className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                                 >
                                   €{price.toLocaleString()}
                                 </SelectItem>
@@ -990,8 +993,8 @@ export function CarSearchAi() {
                           <Button
                             onClick={handleFilterApply}
                             disabled={!isFiltersApplied}
-                            className={`w-full h-11 bg-[#8A2BE2] text-white text-sm font-medium
-                              rounded-lg shadow-sm hover:bg-[#7B1FA2] transition-colors duration-200
+                            className={`w-full h-11 bg-[#2563EB] text-white text-sm font-medium
+                              rounded-lg shadow-sm hover:bg-[#1E40AF] transition-colors duration-200
                               disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:bg-gray-200
                               ${!isFiltersApplied ? 'opacity-50' : ''}`}
                           >
@@ -1011,15 +1014,19 @@ export function CarSearchAi() {
                             value={inputMessage}
                             onChange={(e) => setInputMessage(e.target.value)}
                             placeholder="How can CarSearchAI help you today?"
-                            className="w-full pl-4 pr-10 py-2 bg-[#8A2BE2] text-white text-sm border border-[#8A2BE2] rounded-lg
-                            focus:ring-2 focus:ring-[#8A2BE2] focus:border-[#8A2BE2] placeholder-gray-200 shadow-md"
+                            className="w-full pl-4 pr-10 py-2 backdrop-blur-lg bg-[#2563EB]/10 
+                              border border-[#2563EB]/20 rounded-lg text-gray-900 text-sm
+                              focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]/30 
+                              placeholder-gray-500 shadow-lg
+                              hover:shadow-[0_4px_16px_rgba(37,99,235,0.15)]
+                              transition-all duration-300"
                             disabled={loadingState.isLoading}
                           />
                           <Button
                             type="submit"
                             size="icon"
                             disabled={loadingState.isLoading}
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent rounded-lg p-2 transition-all duration-200 hover:bg-[#7B1FA2]/20"
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent rounded-lg p-2 transition-all duration-200 hover:bg-[#1E40AF]/20"
                           >
                             <Send className="h-5 w-5 text-white" />
                           </Button>
@@ -1040,7 +1047,7 @@ export function CarSearchAi() {
                                 </div>
                               </a>
                             </div>
-                            <span className="text-xs text-gray-600 group-hover:text-[#7B1FA2] transition-colors duration-200">
+                            <span className="text-xs text-gray-600 group-hover:text-[#2563EB] transition-colors duration-200">
                               {site.name}
                             </span>
                           </div>
@@ -1051,7 +1058,7 @@ export function CarSearchAi() {
                 </section>
 
                 {/* How It Works Section - Full Height */}
-                <section id="how-it-works" className="min-h-screen flex items-center justify-center bg-[#8A2BE2] py-24">
+                <section id="how-it-works" className="min-h-screen flex items-center justify-center bg-[#2563EB] py-24">
                   <div className="max-w-6xl mx-auto px-4">
                     <div className="text-center mb-16">
                       <h2 className="text-4xl font-bold mb-6 text-white">How It Works</h2>
@@ -1068,7 +1075,7 @@ export function CarSearchAi() {
                       <div className="group relative">
                         <div className="bg-white rounded-lg p-8 shadow-lg h-full transform transition-all duration-300 hover:-translate-y-1">
                           <div className="flex items-start space-x-6">
-                            <div className="w-14 h-14 rounded-lg bg-[#8A2BE2] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <div className="w-14 h-14 rounded-lg bg-[#2563EB] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                               <Search className="w-7 h-7 text-white" />
                             </div>
                             <div>
@@ -1085,7 +1092,7 @@ export function CarSearchAi() {
                       <div className="group relative">
                         <div className="bg-white rounded-lg p-8 shadow-lg h-full transform transition-all duration-300 hover:-translate-y-1">
                           <div className="flex items-start space-x-6">
-                            <div className="w-14 h-14 rounded-lg bg-[#8A2BE2] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <div className="w-14 h-14 rounded-lg bg-[#2563EB] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                               <Brain className="w-7 h-7 text-white" />
                             </div>
                             <div>
@@ -1102,9 +1109,9 @@ export function CarSearchAi() {
                 </section>
 
                 {/* About Us Section - Full Height */}
-                <section id="about-us" className="min-h-screen flex items-center justify-center bg-gradient-to-b from-purple-50/30 to-white py-24">
+                <section id="about-us" className="min-h-screen flex items-center justify-center bg-gray-50 py-24">
                   <div className="max-w-6xl mx-auto px-4">
-                    <div className="bg-white rounded-lg p-12 shadow-xl border border-purple-100">
+                    <div className="bg-white rounded-lg p-12 shadow-xl border border-[#2563EB]/20">
                       <h2 className="text-4xl font-bold mb-8 text-center text-gray-900">About Us</h2>
                       <div className="space-y-6 text-gray-600 max-w-3xl mx-auto">
                         <p className="leading-relaxed text-lg">
@@ -1137,7 +1144,7 @@ export function CarSearchAi() {
                       >
                         {/* Avatar - Only show for AI messages */}
                         {message.sender === 'bot' && (
-                          <div className="w-8 h-8 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-600 shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-[#2563EB] border border-[#2563EB]/20 flex items-center justify-center text-white shrink-0">
                             🤖
                           </div>
                         )}
@@ -1149,7 +1156,7 @@ export function CarSearchAi() {
 
                         {/* Avatar - Only show for user messages */}
                         {message.sender === 'user' && (
-                          <div className="w-8 h-8 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-600 shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-[#2563EB] border border-[#2563EB]/20 flex items-center justify-center text-white shrink-0">
                             👤
                           </div>
                         )}
@@ -1159,14 +1166,14 @@ export function CarSearchAi() {
                     {/* Loading State */}
                     {loadingState.isLoading && (
                       <div className="flex items-start">
-                        <div className="w-8 h-8 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-600 shrink-0 mr-3">
+                        <div className="w-8 h-8 rounded-full bg-[#2563EB] border border-[#2563EB]/20 flex items-center justify-center text-white shrink-0 mr-3">
                           🤖
                         </div>
                         <div className="flex items-center gap-2 text-gray-600 bg-white border border-gray-200 px-4 py-2 rounded-lg rounded-bl-sm shadow-sm">
                           <div className="flex space-x-1">
-                            <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                            <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                            <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"></div>
+                            <div className="w-1.5 h-1.5 bg-[#2563EB] rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                            <div className="w-1.5 h-1.5 bg-[#2563EB] rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                            <div className="w-1.5 h-1.5 bg-[#2563EB] rounded-full animate-bounce"></div>
                           </div>
                         </div>
                       </div>
@@ -1185,15 +1192,19 @@ export function CarSearchAi() {
                               value={inputMessage}
                               onChange={(e) => setInputMessage(e.target.value)}
                               placeholder="Follow-up"
-                              className="w-full pl-4 pr-10 py-2 bg-[#8A2BE2]/90 text-white text-sm border border-[#8A2BE2]/80 rounded-lg
-                              focus:ring-2 focus:ring-[#8A2BE2]/40 focus:border-[#8A2BE2]/60 placeholder-gray-200/90 shadow-md"
+                              className="w-full pl-4 pr-10 py-2 backdrop-blur-lg bg-[#2563EB]/10 
+                                border border-[#2563EB]/20 rounded-lg text-gray-900 text-sm
+                                focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]/30 
+                                placeholder-gray-500 shadow-lg
+                                hover:shadow-[0_4px_16px_rgba(37,99,235,0.15)]
+                                transition-all duration-300"
                               disabled={loadingState.isLoading}
                             />
                             <Button
                               type="submit"
                               size="icon"
                               disabled={loadingState.isLoading}
-                              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent rounded-lg p-2 transition-all duration-200 hover:bg-[#7B1FA2]/20"
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent rounded-lg p-2 transition-all duration-200 hover:bg-[#1E40AF]/20"
                             >
                               <Send className="h-5 w-5 text-white" />
                             </Button>
@@ -1210,18 +1221,21 @@ export function CarSearchAi() {
       </div>
       {/* Filter Dialog */}
       <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto bg-white rounded-lg 
-          border border-purple-100 shadow-lg p-6">
+        <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto 
+          backdrop-blur-lg bg-white/10 border border-white/20 
+          shadow-[0_8px_32px_rgba(0,0,0,0.1)] rounded-lg p-6
+          hover:shadow-[0_8px_32px_rgba(31,38,135,0.15)]
+          transition-all duration-300">
           <DialogHeader className="mb-6">
             <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Car className="w-5 h-5 text-[#8A2BE2]" />
+              <Car className="w-5 h-5 text-[#2563EB]" />
               Filter Cars
             </DialogTitle>
             <p className="text-gray-500 mt-2 text-sm">
               Set your preferences to find the perfect car
             </p>
           </DialogHeader>
-          <div className="bg-white rounded-lg border-[1.5px] border-gray-200/70 p-6 hover:border-[#8A2BE2]/30 transition-colors duration-200">
+          <div className="bg-white rounded-lg border-[1.5px] border-[#2563EB]/20 p-6 hover:border-[#2563EB]/30 transition-colors duration-200">
             {/* Grid Layout */}
             <div className="grid grid-cols-2 gap-4">
               {/* Make Selection */}
@@ -1232,9 +1246,9 @@ export function CarSearchAi() {
               }}>
                 <SelectTrigger 
                   className="w-full bg-gray-50 text-gray-900 h-11
-                  border border-purple-100 rounded-lg
-                  transition-all duration-200 hover:border-[#8A2BE2]
-                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  border border-[#2563EB]/20 rounded-lg
+                  transition-all duration-200 hover:border-[#2563EB]
+                  focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                   text-[14px] font-medium px-3"
                 >
                   <SelectValue placeholder="Make" />
@@ -1248,7 +1262,7 @@ export function CarSearchAi() {
                       key={make}
                       value={make}
                       className="transition-colors duration-200 cursor-pointer py-2.5 px-4
-                      hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                      hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                     >
                       {make}
                     </SelectItem>
@@ -1263,9 +1277,9 @@ export function CarSearchAi() {
               >
                 <SelectTrigger 
                   className="w-full bg-gray-50 text-gray-900 h-11
-                  border border-purple-100 rounded-lg
-                  transition-all duration-200 hover:border-[#8A2BE2]
-                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  border border-[#2563EB]/20 rounded-lg
+                  transition-all duration-200 hover:border-[#2563EB]
+                  focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                   text-[14px] font-medium px-3
                   disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                 >
@@ -1280,7 +1294,7 @@ export function CarSearchAi() {
                       key={model}
                       value={model}
                       className="transition-colors duration-200 cursor-pointer py-2.5 px-4
-                      hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                      hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                     >
                       {model}
                     </SelectItem>
@@ -1292,9 +1306,9 @@ export function CarSearchAi() {
               <Select onValueChange={(value) => updateCarSpecs('year', value)}>
                 <SelectTrigger 
                   className="w-full bg-gray-50 text-gray-900 h-11
-                  border border-purple-100 rounded-lg
-                  transition-all duration-200 hover:border-[#8A2BE2]
-                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  border border-[#2563EB]/20 rounded-lg
+                  transition-all duration-200 hover:border-[#2563EB]
+                  focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                   text-[14px] font-medium px-3"
                 >
                   <SelectValue placeholder="Year" />
@@ -1308,7 +1322,7 @@ export function CarSearchAi() {
                       key={year}
                       value={year.toString()}
                       className="transition-colors duration-200 cursor-pointer py-2.5 px-4
-                      hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                      hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                     >
                       {year}
                     </SelectItem>
@@ -1320,9 +1334,9 @@ export function CarSearchAi() {
               <Select onValueChange={(value) => updateCarSpecs('county', value)}>
                 <SelectTrigger 
                   className="w-full bg-gray-50 text-gray-900 h-11
-                  border border-purple-100 rounded-lg
-                  transition-all duration-200 hover:border-[#8A2BE2]
-                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  border border-[#2563EB]/20 rounded-lg
+                  transition-all duration-200 hover:border-[#2563EB]
+                  focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                   text-[14px] font-medium px-3"
                 >
                   <SelectValue placeholder="County" />
@@ -1335,7 +1349,7 @@ export function CarSearchAi() {
                     <SelectLabel className="px-3 py-2 text-xs text-gray-500">All Ireland</SelectLabel>
                     <SelectItem 
                       value="all" 
-                      className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                      className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                     >
                       All Counties
                     </SelectItem>
@@ -1343,42 +1357,42 @@ export function CarSearchAi() {
 
                   <SelectGroup>
                     <SelectLabel className="px-3 py-2 text-xs text-gray-500">Republic of Ireland</SelectLabel>
-                    <SelectItem value="carlow" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Carlow</SelectItem>
-                    <SelectItem value="cavan" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Cavan</SelectItem>
-                    <SelectItem value="clare" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Clare</SelectItem>
-                    <SelectItem value="cork" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Cork</SelectItem>
-                    <SelectItem value="donegal" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Donegal</SelectItem>
-                    <SelectItem value="dublin" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Dublin</SelectItem>
-                    <SelectItem value="galway" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Galway</SelectItem>
-                    <SelectItem value="kerry" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Kerry</SelectItem>
-                    <SelectItem value="kildare" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Kildare</SelectItem>
-                    <SelectItem value="kilkenny" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Kilkenny</SelectItem>
-                    <SelectItem value="laois" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Laois</SelectItem>
-                    <SelectItem value="leitrim" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Leitrim</SelectItem>
-                    <SelectItem value="limerick" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Limerick</SelectItem>
-                    <SelectItem value="longford" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Longford</SelectItem>
-                    <SelectItem value="louth" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Louth</SelectItem>
-                    <SelectItem value="mayo" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Mayo</SelectItem>
-                    <SelectItem value="meath" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Meath</SelectItem>
-                    <SelectItem value="monaghan" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Monaghan</SelectItem>
-                    <SelectItem value="offaly" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Offaly</SelectItem>
-                    <SelectItem value="roscommon" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Roscommon</SelectItem>
-                    <SelectItem value="sligo" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Sligo</SelectItem>
-                    <SelectItem value="tipperary" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Tipperary</SelectItem>
-                    <SelectItem value="waterford" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Waterford</SelectItem>
-                    <SelectItem value="westmeath" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Westmeath</SelectItem>
-                    <SelectItem value="wexford" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Wexford</SelectItem>
-                    <SelectItem value="wicklow" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Wicklow</SelectItem>
+                    <SelectItem value="carlow" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Carlow</SelectItem>
+                    <SelectItem value="cavan" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Cavan</SelectItem>
+                    <SelectItem value="clare" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Clare</SelectItem>
+                    <SelectItem value="cork" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Cork</SelectItem>
+                    <SelectItem value="donegal" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Donegal</SelectItem>
+                    <SelectItem value="dublin" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Dublin</SelectItem>
+                    <SelectItem value="galway" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Galway</SelectItem>
+                    <SelectItem value="kerry" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Kerry</SelectItem>
+                    <SelectItem value="kildare" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Kildare</SelectItem>
+                    <SelectItem value="kilkenny" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Kilkenny</SelectItem>
+                    <SelectItem value="laois" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Laois</SelectItem>
+                    <SelectItem value="leitrim" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Leitrim</SelectItem>
+                    <SelectItem value="limerick" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Limerick</SelectItem>
+                    <SelectItem value="longford" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Longford</SelectItem>
+                    <SelectItem value="louth" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Louth</SelectItem>
+                    <SelectItem value="mayo" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Mayo</SelectItem>
+                    <SelectItem value="meath" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Meath</SelectItem>
+                    <SelectItem value="monaghan" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Monaghan</SelectItem>
+                    <SelectItem value="offaly" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Offaly</SelectItem>
+                    <SelectItem value="roscommon" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Roscommon</SelectItem>
+                    <SelectItem value="sligo" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Sligo</SelectItem>
+                    <SelectItem value="tipperary" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Tipperary</SelectItem>
+                    <SelectItem value="waterford" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Waterford</SelectItem>
+                    <SelectItem value="westmeath" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Westmeath</SelectItem>
+                    <SelectItem value="wexford" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Wexford</SelectItem>
+                    <SelectItem value="wicklow" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Wicklow</SelectItem>
                   </SelectGroup>
 
                   <SelectGroup>
                     <SelectLabel className="px-3 py-2 text-xs text-gray-500">Northern Ireland</SelectLabel>
-                    <SelectItem value="antrim" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Antrim</SelectItem>
-                    <SelectItem value="armagh" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Armagh</SelectItem>
-                    <SelectItem value="derry" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Derry</SelectItem>
-                    <SelectItem value="down" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Down</SelectItem>
-                    <SelectItem value="fermanagh" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Fermanagh</SelectItem>
-                    <SelectItem value="tyrone" className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]">Tyrone</SelectItem>
+                    <SelectItem value="antrim" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Antrim</SelectItem>
+                    <SelectItem value="armagh" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Armagh</SelectItem>
+                    <SelectItem value="derry" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Derry</SelectItem>
+                    <SelectItem value="down" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Down</SelectItem>
+                    <SelectItem value="fermanagh" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Fermanagh</SelectItem>
+                    <SelectItem value="tyrone" className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]">Tyrone</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -1387,9 +1401,9 @@ export function CarSearchAi() {
               <Select onValueChange={(value) => updateCarSpecs('minPrice', value)}>
                 <SelectTrigger 
                   className="w-full bg-gray-50 text-gray-900 h-11
-                  border border-purple-100 rounded-lg
-                  transition-all duration-200 hover:border-[#8A2BE2]
-                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  border border-[#2563EB]/20 rounded-lg
+                  transition-all duration-200 hover:border-[#2563EB]
+                  focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                   text-[14px] font-medium px-3"
                 >
                   <SelectValue placeholder="Min Price" />
@@ -1400,7 +1414,7 @@ export function CarSearchAi() {
                 >
                   <SelectItem 
                     value="0"
-                    className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                    className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                   >
                     Any
                   </SelectItem>
@@ -1408,7 +1422,7 @@ export function CarSearchAi() {
                     <SelectItem 
                       key={price}
                       value={price.toString()}
-                      className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                      className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                     >
                       €{price.toLocaleString()}
                     </SelectItem>
@@ -1419,9 +1433,9 @@ export function CarSearchAi() {
               <Select onValueChange={(value) => updateCarSpecs('maxPrice', value)}>
                 <SelectTrigger 
                   className="w-full bg-gray-50 text-gray-900 h-11
-                  border border-purple-100 rounded-lg
-                  transition-all duration-200 hover:border-[#8A2BE2]
-                  focus:ring-2 focus:ring-[#8A2BE2] focus:ring-opacity-20
+                  border border-[#2563EB]/20 rounded-lg
+                  transition-all duration-200 hover:border-[#2563EB]
+                  focus:ring-2 focus:ring-[#2563EB]/20 focus:ring-opacity-20
                   text-[14px] font-medium px-3"
                 >
                   <SelectValue placeholder="Max Price" />
@@ -1432,7 +1446,7 @@ export function CarSearchAi() {
                 >
                   <SelectItem 
                     value="999999"
-                    className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                    className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                   >
                     Any
                   </SelectItem>
@@ -1440,7 +1454,7 @@ export function CarSearchAi() {
                     <SelectItem 
                       key={price}
                       value={price.toString()}
-                      className="hover:bg-[#8A2BE2] hover:bg-opacity-10 hover:text-[#8A2BE2]"
+                      className="hover:bg-[#2563EB] hover:bg-opacity-10 hover:text-[#2563EB]"
                     >
                       €{price.toLocaleString()}
                     </SelectItem>
@@ -1454,8 +1468,8 @@ export function CarSearchAi() {
               <Button
                 onClick={handleFilterApply}
                 disabled={!isFiltersApplied}
-                className={`w-full h-11 bg-[#8A2BE2] text-white text-sm font-medium
-                  rounded-lg shadow-sm hover:bg-[#7B1FA2] transition-colors duration-200
+                className={`w-full h-11 bg-[#2563EB] text-white text-sm font-medium
+                  rounded-lg shadow-sm hover:bg-[#1E40AF] transition-colors duration-200
                   disabled:bg-gray-200 disabled:cursor-not-allowed disabled:hover:bg-gray-200
                   ${!isFiltersApplied ? 'opacity-50' : ''}`}
               >
