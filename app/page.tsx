@@ -28,51 +28,53 @@ export default function Home() {
   };
 
   return (
-    <div className="relative">
-      {/* Hero Section */}
-      <div className="relative h-screen">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/hero/hero-bg.jpg"
-            alt="Car Search Hero"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 to-gray-900/40" />
-        </div>
-        <div className="relative h-full flex flex-col items-center justify-center text-center px-6 text-white">
-          <h1 className="text-6xl font-bold mb-6">
-            Find Your Perfect Car
-          </h1>
-          <p className="text-xl text-gray-200 max-w-2xl mb-12">
-            Tell us what you're looking for and our AI will help you find the ideal car that matches your needs
-          </p>
-          <div className="w-full max-w-2xl">
-            <SearchForm />
+    <div className="w-full min-h-screen">
+      <div className="container mx-auto px-4">
+        {/* Hero Section */}
+        <div className="relative h-screen">
+          <div className="absolute inset-0">
+            <Image
+              src="/images/hero/hero-bg.jpg"
+              alt="Car Search Hero"
+              fill
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 to-gray-900/40" />
+          </div>
+          <div className="relative h-full flex flex-col items-center justify-center text-center px-6 text-white">
+            <h1 className="text-6xl font-bold mb-6">
+              Find Your Perfect Car
+            </h1>
+            <p className="text-xl text-gray-200 max-w-2xl mb-12">
+              Tell us what you're looking for and our AI will help you find the ideal car that matches your needs
+            </p>
+            <div className="w-full max-w-2xl">
+              <SearchForm />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Suggestions Section */}
-      <div className="max-w-6xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {suggestions.map((suggestion, index) => (
-            <button
-              key={index}
-              onClick={() => handleSuggestionClick(suggestion.query)}
-              className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all text-left"
-            >
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                {suggestion.text}
-              </h3>
-            </button>
-          ))}
+        {/* Suggestions Section */}
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {suggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => handleSuggestionClick(suggestion.query)}
+                className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all text-left"
+              >
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  {suggestion.text}
+                </h3>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="fixed bottom-6 right-6">
-        <AIAssistant />
+        <div className="fixed bottom-6 right-6">
+          <AIAssistant />
+        </div>
       </div>
     </div>
   );

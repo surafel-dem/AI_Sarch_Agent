@@ -54,38 +54,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    let mounted = true;
+    checkUser()
 
-    const initialize = async () => {
-      if (mounted) {
-        await checkUser();
-      }
-    };
-
-    initialize();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      
-      if (session?.user) {
-        setUser(session.user);
-        // Create or update user in our database
-        const { error } = await supabase.from('users').upsert({
-          id: session.user.id,
-          email: session.user.email,
-          last_seen_at: new Date().toISOString(),
-        })
-        if (error) console.error('Error updating user:', error)
-      } else {
-        setUser(null)
-      }
-      setLoading(false)
-    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
 
     return () => {
-      mounted = false;
       subscription.unsubscribe()
-    };
+    }
   }, [])
 
   return (

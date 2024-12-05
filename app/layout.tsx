@@ -1,8 +1,7 @@
 'use client';
 
 import './globals.css';
-import { SidePanel } from '@/components/side-panel';
-import { AuthProvider } from '@/contexts/auth-context';
+import { ClerkProvider } from '@clerk/nextjs';
 
 export default function RootLayout({
   children,
@@ -10,14 +9,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="bg-white">
-      <body className="bg-white">
-        <AuthProvider>
-          <SidePanel />
-          <main className="ml-12 transition-all duration-300">
+    <html lang="en">
+      <body className="min-h-screen bg-[#0a0a0a]">
+        <ClerkProvider>
+          <div className="relative flex min-h-screen flex-col">
             {children}
-          </main>
-        </AuthProvider>
+          </div>
+        </ClerkProvider>
       </body>
     </html>
   );

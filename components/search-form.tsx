@@ -52,8 +52,8 @@ const carModels = {
 type CarMake = keyof typeof carModels;
 
 // Styles for dropdowns
-const selectTriggerStyles = "h-11 px-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-200 focus:ring-2 focus:ring-yellow-500/20 data-[placeholder]:text-gray-500 text-[15px] [&>svg]:hidden"
-const selectContentStyles = "bg-white min-w-[var(--radix-select-trigger-width)] overflow-hidden mt-2"
+const selectTriggerStyles = "h-11 px-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-200 focus:ring-2 focus:ring-yellow-500/20 data-[placeholder]:text-gray-500 text-[15px] relative [&>svg]:hidden"
+const selectContentStyles = "bg-white min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-xl shadow-lg border border-gray-200 fixed"
 const selectItemStyles = "py-2.5 px-4 text-[15px] hover:bg-gray-50 cursor-pointer transition-colors duration-200 data-[highlighted]:bg-gray-50 data-[highlighted]:text-gray-900"
 
 export function SearchForm() {
@@ -218,13 +218,15 @@ export function SearchForm() {
                     </div>
                   </SelectTrigger>
                   <SelectContent position="popper" side="bottom" align="start" sideOffset={5} className={selectContentStyles}>
-                    <SelectItem value="dublin" className={selectItemStyles}>Dublin</SelectItem>
-                    <SelectItem value="cork" className={selectItemStyles}>Cork</SelectItem>
-                    <SelectItem value="galway" className={selectItemStyles}>Galway</SelectItem>
-                    <SelectItem value="limerick" className={selectItemStyles}>Limerick</SelectItem>
-                    <SelectItem value="waterford" className={selectItemStyles}>Waterford</SelectItem>
-                    <SelectItem value="belfast" className={selectItemStyles}>Belfast</SelectItem>
-                    <SelectItem value="kilkenny" className={selectItemStyles}>Kilkenny</SelectItem>
+                    <div className="py-1">
+                      <SelectItem value="dublin" className={selectItemStyles}>Dublin</SelectItem>
+                      <SelectItem value="cork" className={selectItemStyles}>Cork</SelectItem>
+                      <SelectItem value="galway" className={selectItemStyles}>Galway</SelectItem>
+                      <SelectItem value="limerick" className={selectItemStyles}>Limerick</SelectItem>
+                      <SelectItem value="waterford" className={selectItemStyles}>Waterford</SelectItem>
+                      <SelectItem value="belfast" className={selectItemStyles}>Belfast</SelectItem>
+                      <SelectItem value="kilkenny" className={selectItemStyles}>Kilkenny</SelectItem>
+                    </div>
                   </SelectContent>
                 </Select>
               </div>
@@ -239,20 +241,18 @@ export function SearchForm() {
                     </div>
                   </SelectTrigger>
                   <SelectContent position="popper" side="bottom" align="start" sideOffset={5} className={selectContentStyles}>
-                    <SelectItem value="volkswagen" className={selectItemStyles}>Volkswagen</SelectItem>
-                    <SelectItem value="toyota" className={selectItemStyles}>Toyota</SelectItem>
-                    <SelectItem value="hyundai" className={selectItemStyles}>Hyundai</SelectItem>
-                    <SelectItem value="ford" className={selectItemStyles}>Ford</SelectItem>
-                    <SelectItem value="skoda" className={selectItemStyles}>Skoda</SelectItem>
-                    <SelectItem value="bmw" className={selectItemStyles}>BMW</SelectItem>
-                    <SelectItem value="audi" className={selectItemStyles}>Audi</SelectItem>
-                    <SelectItem value="mercedes" className={selectItemStyles}>Mercedes</SelectItem>
-                    <SelectItem value="nissan" className={selectItemStyles}>Nissan</SelectItem>
-                    <SelectItem value="peugeot" className={selectItemStyles}>Peugeot</SelectItem>
+                    <div className="py-1">
+                      <SelectItem value="volkswagen" className={selectItemStyles}>Volkswagen</SelectItem>
+                      <SelectItem value="toyota" className={selectItemStyles}>Toyota</SelectItem>
+                      <SelectItem value="bmw" className={selectItemStyles}>BMW</SelectItem>
+                      <SelectItem value="audi" className={selectItemStyles}>Audi</SelectItem>
+                      <SelectItem value="mercedes" className={selectItemStyles}>Mercedes</SelectItem>
+                    </div>
                   </SelectContent>
                 </Select>
-                <Select 
-                  name="model" 
+
+                <Select
+                  name="model"
                   onValueChange={(value) => handleSelectChange("model", value)}
                   disabled={!formData.make}
                 >
@@ -263,11 +263,13 @@ export function SearchForm() {
                     </div>
                   </SelectTrigger>
                   <SelectContent position="popper" side="bottom" align="start" sideOffset={5} className={selectContentStyles}>
-                    {formData.make && carModels[formData.make as CarMake].map((model) => (
-                      <SelectItem key={model} value={model.toLowerCase()} className={selectItemStyles}>
-                        {model}
-                      </SelectItem>
-                    ))}
+                    <div className="py-1">
+                      {formData.make && carModels[formData.make as CarMake].map((model) => (
+                        <SelectItem key={model} value={model.toLowerCase()} className={selectItemStyles}>
+                          {model}
+                        </SelectItem>
+                      ))}
+                    </div>
                   </SelectContent>
                 </Select>
               </div>
@@ -282,10 +284,11 @@ export function SearchForm() {
                     </div>
                   </SelectTrigger>
                   <SelectContent position="popper" side="bottom" align="start" sideOffset={5} className={selectContentStyles}>
-                    <SelectItem value="5000" className={selectItemStyles}>€5,000</SelectItem>
-                    <SelectItem value="10000" className={selectItemStyles}>€10,000</SelectItem>
-                    <SelectItem value="15000" className={selectItemStyles}>€15,000</SelectItem>
-                    <SelectItem value="20000" className={selectItemStyles}>€20,000</SelectItem>
+                    <div className="py-1">
+                      <SelectItem value="5000" className={selectItemStyles}>€5,000</SelectItem>
+                      <SelectItem value="10000" className={selectItemStyles}>€10,000</SelectItem>
+                      <SelectItem value="15000" className={selectItemStyles}>€15,000</SelectItem>
+                    </div>
                   </SelectContent>
                 </Select>
                 <Select name="maxPrice" onValueChange={(value) => handleSelectChange("maxPrice", value)}>
@@ -296,10 +299,11 @@ export function SearchForm() {
                     </div>
                   </SelectTrigger>
                   <SelectContent position="popper" side="bottom" align="start" sideOffset={5} className={selectContentStyles}>
-                    <SelectItem value="25000" className={selectItemStyles}>€25,000</SelectItem>
-                    <SelectItem value="30000" className={selectItemStyles}>€30,000</SelectItem>
-                    <SelectItem value="40000" className={selectItemStyles}>€40,000</SelectItem>
-                    <SelectItem value="50000" className={selectItemStyles}>€50,000+</SelectItem>
+                    <div className="py-1">
+                      <SelectItem value="25000" className={selectItemStyles}>€25,000</SelectItem>
+                      <SelectItem value="30000" className={selectItemStyles}>€30,000</SelectItem>
+                      <SelectItem value="35000" className={selectItemStyles}>€35,000</SelectItem>
+                    </div>
                   </SelectContent>
                 </Select>
               </div>
@@ -314,10 +318,11 @@ export function SearchForm() {
                     </div>
                   </SelectTrigger>
                   <SelectContent position="popper" side="bottom" align="start" sideOffset={5} className={selectContentStyles}>
-                    <SelectItem value="2018" className={selectItemStyles}>2018</SelectItem>
-                    <SelectItem value="2019" className={selectItemStyles}>2019</SelectItem>
-                    <SelectItem value="2020" className={selectItemStyles}>2020</SelectItem>
-                    <SelectItem value="2021" className={selectItemStyles}>2021</SelectItem>
+                    <div className="py-1">
+                      <SelectItem value="2018" className={selectItemStyles}>2018</SelectItem>
+                      <SelectItem value="2019" className={selectItemStyles}>2019</SelectItem>
+                      <SelectItem value="2020" className={selectItemStyles}>2020</SelectItem>
+                    </div>
                   </SelectContent>
                 </Select>
                 <Select name="maxYear" onValueChange={(value) => handleSelectChange("maxYear", value)}>
@@ -328,16 +333,17 @@ export function SearchForm() {
                     </div>
                   </SelectTrigger>
                   <SelectContent position="popper" side="bottom" align="start" sideOffset={5} className={selectContentStyles}>
-                    <SelectItem value="2022" className={selectItemStyles}>2022</SelectItem>
-                    <SelectItem value="2023" className={selectItemStyles}>2023</SelectItem>
-                    <SelectItem value="2024" className={selectItemStyles}>2024</SelectItem>
-                    <SelectItem value="2025" className={selectItemStyles}>2025</SelectItem>
+                    <div className="py-1">
+                      <SelectItem value="2022" className={selectItemStyles}>2022</SelectItem>
+                      <SelectItem value="2023" className={selectItemStyles}>2023</SelectItem>
+                      <SelectItem value="2024" className={selectItemStyles}>2024</SelectItem>
+                    </div>
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </div>
-        )
+        );
       case 2:
         return (
           <div className="w-full max-w-2xl mx-auto">
@@ -359,7 +365,7 @@ export function SearchForm() {
               ))}
             </div>
           </div>
-        )
+        );
       case 3:
         return (
           <div className="w-full max-w-2xl mx-auto">
@@ -372,17 +378,20 @@ export function SearchForm() {
                   </div>
                 </SelectTrigger>
                 <SelectContent position="popper" side="bottom" align="start" sideOffset={5} className={selectContentStyles}>
-                  <SelectItem value="daily" className={selectItemStyles}>Daily Commute</SelectItem>
-                  <SelectItem value="weekend" className={selectItemStyles}>Weekend Trips</SelectItem>
-                  <SelectItem value="family" className={selectItemStyles}>Family Car</SelectItem>
-                  <SelectItem value="offroad" className={selectItemStyles}>Off-road Adventures</SelectItem>
+                  <div className="py-1">
+                    <SelectItem value="daily" className={selectItemStyles}>Daily Commute</SelectItem>
+                    <SelectItem value="weekend" className={selectItemStyles}>Weekend Trips</SelectItem>
+                    <SelectItem value="family" className={selectItemStyles}>Family Car</SelectItem>
+                  </div>
                 </SelectContent>
               </Select>
             </div>
           </div>
-        )
+        );
+      default:
+        return null;
     }
-  }
+  };
 
   useEffect(() => {
     return () => {
@@ -391,20 +400,20 @@ export function SearchForm() {
   }, []);
 
   return (
-    <>
-      <div className="bg-white rounded-lg shadow-lg p-6 relative max-w-[800px] mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Step {step} of 3
-          </h2>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-2xl mx-auto">
-          <div className="w-full" style={{ height: '140px' }}>
-            {renderStepContent()}
+    <div className="relative isolate">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Fixed height container */}
+        <div className="min-h-[280px] flex flex-col">
+          {/* Step indicator */}
+          <div className="text-center mb-4">
+            <p className="text-sm text-gray-400">Step {step} of 3</p>
           </div>
 
-          <div className="mt-4 flex justify-between px-2">
+          {/* Form content */}
+          {renderStepContent()}
+
+          {/* Navigation buttons */}
+          <div className="mt-auto pt-4 flex justify-between px-2">
             {step > 1 && (
               <Button 
                 onClick={prevStep}
@@ -449,11 +458,12 @@ export function SearchForm() {
               </Button>
             )}
           </div>
-        </form>
+        </div>
+
         {error && (
           <div className="mt-4 text-sm text-red-500 text-center">{error}</div>
         )}
-      </div>
-    </>
+      </form>
+    </div>
   );
 }
