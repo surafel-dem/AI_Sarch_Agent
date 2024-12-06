@@ -51,8 +51,9 @@
   --background-end-rgb: 0, 0, 0;
 }
 
+/* Default border color */
 * {
-  @apply border-foreground/20;
+  @apply border-white/10;
 }
 
 /* Force scrollbar to always show to prevent layout shifts */
@@ -89,21 +90,21 @@ body {
 
 /* Modern scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--secondary);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Firefox scrollbar */
@@ -173,4 +174,43 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animations */
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
+}
+
+/* Form styles */
+.form-select {
+  @apply bg-white/5 border border-white/10 rounded-lg text-gray-200 hover:bg-white/10 transition-colors;
+}
+
+.form-input {
+  @apply bg-white/5 border border-white/10 rounded-lg text-gray-200 placeholder-gray-400 hover:bg-white/10 transition-colors;
+}
+
+.form-button {
+  @apply bg-white/5 hover:bg-white/10 text-gray-200 border border-white/10 rounded-lg transition-colors;
+}
+
+.form-button-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors;
+}
+
+/* Grid background */
+.bg-grid {
+  background-size: 60px 60px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
 }

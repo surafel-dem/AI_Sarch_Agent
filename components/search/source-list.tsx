@@ -13,24 +13,24 @@ export function SourceList({ sources }: { sources: Source[] }) {
     <div className="space-y-4">
       {/* Source Summary */}
       <div className="flex items-center space-x-2">
-        <div className="flex -space-x-2">
+        <div className="flex -space-x-1.5">
           {sources.slice(0, 3).map((source, i) => (
             <div
               key={source.name}
-              className="relative w-8 h-8 rounded-full ring-2 ring-gray-900 overflow-hidden"
+              className="relative w-6 h-6 rounded-full ring-1 ring-white/10 overflow-hidden"
               style={{ zIndex: 3 - i }}
             >
               <Image
                 src={source.logo}
                 alt={source.name}
-                width={32}
-                height={32}
+                width={24}
+                height={24}
                 className="object-cover"
               />
             </div>
           ))}
         </div>
-        <span className="text-sm text-gray-400">{sources.length} sources</span>
+        <span className="text-xs text-muted-foreground/80">{sources.length} sources</span>
       </div>
 
       {/* Source Grid */}
@@ -38,23 +38,21 @@ export function SourceList({ sources }: { sources: Source[] }) {
         {sources.map((source) => (
           <div
             key={source.name}
-            className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 hover:bg-gray-800 transition-colors group"
+            className="flex items-center space-x-2.5 p-2 rounded-md bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 transition-colors group"
           >
-            <div className="flex items-center space-x-3">
-              <div className="relative w-6 h-6 rounded-full overflow-hidden">
-                <Image
-                  src={source.logo}
-                  alt={source.name}
-                  width={24}
-                  height={24}
-                  className="object-cover"
-                />
-              </div>
-              <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
-                {source.name}
-              </span>
+            <div className="relative w-5 h-5 rounded-full overflow-hidden flex-shrink-0">
+              <Image
+                src={source.logo}
+                alt={source.name}
+                width={20}
+                height={20}
+                className="object-cover"
+              />
             </div>
-            <ExternalLink size={16} className="text-gray-500 group-hover:text-gray-300" />
+            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors truncate">
+              {source.name}
+            </span>
+            <ExternalLink size={16} className="text-muted-foreground group-hover:text-foreground" />
           </div>
         ))}
       </div>

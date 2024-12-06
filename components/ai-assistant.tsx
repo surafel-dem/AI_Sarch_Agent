@@ -44,14 +44,14 @@ export function AIAssistant() {
 
   return (
     <div className="fixed bottom-4 right-4">
-      <div className="w-[240px] bg-white rounded-[24px] shadow-2xl border border-gray-100">
+      <div className="w-[240px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 rounded-xl shadow-lg border border-white/10">
         <div className="p-3">
           {/* Header */}
           <div className="flex items-center mb-3">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm mr-2">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-sm mr-2">
               <span className="text-white text-xs font-bold">A</span>
             </div>
-            <h2 className="text-sm font-medium text-gray-900">Assistant</h2>
+            <h2 className="text-sm font-medium text-foreground">Assistant</h2>
           </div>
 
           {/* Options Grid */}
@@ -60,10 +60,10 @@ export function AIAssistant() {
               <button
                 key={option.label}
                 onClick={() => handleOptionClick(option.query)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors text-left text-xs"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left text-xs text-foreground border border-white/10"
               >
                 <span>{option.icon}</span>
-                <span className="text-gray-700">{option.label}</span>
+                <span>{option.label}</span>
               </button>
             ))}
           </div>
@@ -75,10 +75,10 @@ export function AIAssistant() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Ask a question..."
-              className="w-full pl-3 pr-10 py-2 text-sm bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-3 pr-10 py-2 text-sm bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-foreground placeholder:text-muted-foreground"
             />
             <button 
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-blue-500 transition-colors disabled:opacity-50"
               disabled={!inputValue.trim()}
             >
               <Send className="w-4 h-4" />

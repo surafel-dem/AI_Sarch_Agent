@@ -85,7 +85,7 @@ export default function RootLayout({
           <div className="min-h-screen bg-[#0a0a0a]">
             <div className="fixed inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]"></div>
             <Navbar />
-            <main className="pt-16 container mx-auto px-4">
+            <main>
               {children}
             </main>
             <Toaster />

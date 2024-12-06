@@ -197,32 +197,35 @@ export function ChatInterface({ initialSpecs, initialQuery, messages: initialMes
 
       {/* Input Form */}
       <div className="fixed bottom-6 left-0 right-0 mx-auto max-w-4xl px-4">
-        <div className="bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm">
-          <form onSubmit={handleSubmit} className="flex items-center">
+        <form onSubmit={handleSubmit} className="flex items-center bg-white rounded-2xl shadow-sm">
+          <div className="flex-1 flex items-center pl-4">
+            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask a follow-up question..."
-              className="flex-1 px-4 py-3 bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-900 placeholder-gray-400 text-sm"
+              placeholder="Ask follow up..."
+              className="flex-1 px-3 py-3.5 bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-900 placeholder:text-gray-400 text-[15px]"
               disabled={isLoading}
             />
-            <Button 
-              type="submit" 
-              disabled={isLoading || !inputMessage.trim()}
-              className="mr-2 px-4 py-2 rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? (
-                <div className="w-4 h-4 relative">
-                  <div className="absolute inset-0 border-2 border-purple-200 border-opacity-20 rounded-full"></div>
-                  <div className="absolute inset-0 border-2 border-r-transparent border-purple-600 animate-spin rounded-full"></div>
-                </div>
-              ) : (
-                'Send'
-              )}
-            </Button>
-          </form>
-        </div>
+          </div>
+          <button 
+            type="submit" 
+            disabled={isLoading || !inputMessage.trim()}
+            className="mx-2 px-6 py-2 rounded-xl bg-[#A7C7FF] hover:bg-[#96B8FF] text-[#2D63E2] font-medium transition-colors disabled:opacity-50"
+          >
+            {isLoading ? (
+              <div className="w-4 h-4 relative">
+                <div className="absolute inset-0 border-2 border-[#2D63E2]/20 rounded-full"></div>
+                <div className="absolute inset-0 border-2 border-r-transparent border-[#2D63E2] animate-spin rounded-full"></div>
+              </div>
+            ) : (
+              'Send'
+            )}
+          </button>
+        </form>
       </div>
     </div>
   );

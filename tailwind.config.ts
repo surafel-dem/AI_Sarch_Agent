@@ -61,9 +61,22 @@ const config: Config = {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        'pulse-slow': {
+          '0%, 100%': { opacity: '0.1' },
+          '50%': { opacity: '0.3' },
+        }
       },
       animation: {
         fadeIn: 'fadeIn 0.5s ease-in-out',
+        'float': 'float 6s ease-in-out infinite',
+        'float-slow': 'float 8s ease-in-out infinite',
+        'float-slower': 'float 10s ease-in-out infinite',
+        'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
+        'pulse-slower': 'pulse-slow 6s ease-in-out infinite',
       },
     },
   },

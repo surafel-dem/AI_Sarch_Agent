@@ -19,63 +19,54 @@ export default function Home() {
   const router = useRouter();
 
   const handleSuggestionClick = (query: string) => {
-    const sessionId = uuidv4();
-    const params = new URLSearchParams({
-      sessionId,
-      chatInput: query
-    });
-    router.push(`/search?${params.toString()}`);
+    router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
   return (
-    <div className="w-full min-h-screen">
-      <div className="container mx-auto px-4">
-        {/* Hero Section */}
-        <div className="relative h-screen">
-          <div className="absolute inset-0">
-            <Image
-              src="/images/hero/hero-bg.jpg"
-              alt="Car Search Hero"
-              fill
-              className="object-cover"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 to-gray-900/40" />
-          </div>
-          <div className="relative h-full flex flex-col items-center justify-center text-center px-6 text-white">
-            <h1 className="text-6xl font-bold mb-6">
-              Find Your Perfect Car
-            </h1>
-            <p className="text-xl text-gray-200 max-w-2xl mb-12">
-              Tell us what you're looking for and our AI will help you find the ideal car that matches your needs
-            </p>
-            <div className="w-full max-w-2xl">
-              <SearchForm />
+    <main className="relative min-h-screen bg-gradient-to-br from-[#f5f3ff] via-[#ede9fe] to-[#f5f3ff]">
+      {/* Subtle mesh gradient overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e0e7ff_1px,transparent_1px)] [background-size:16px_16px] opacity-50" />
+
+      {/* Animated floating elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Glowing orbs */}
+        <div className="absolute left-1/4 top-1/4 w-64 h-64">
+          <div className="absolute inset-0 bg-[#818cf8] rounded-full blur-3xl opacity-[0.15] animate-pulse-slower" />
+        </div>
+        <div className="absolute right-1/4 bottom-1/3 w-96 h-96">
+          <div className="absolute inset-0 bg-[#c7d2fe] rounded-full blur-3xl opacity-[0.15] animate-pulse-slow" />
+        </div>
+        
+        {/* Subtle geometric shapes */}
+        <div className="absolute left-1/3 top-1/2 w-24 h-24 border border-indigo-200/30 rounded-xl transform rotate-12 animate-float-slow" />
+        <div className="absolute right-1/3 top-1/4 w-32 h-32 border border-purple-200/30 rounded-xl transform -rotate-12 animate-float-slower" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 w-full">
+        <div className="container mx-auto px-4">
+          <SearchForm />
+          
+          {/* Suggestions */}
+          <div className="mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion.text}
+                  onClick={() => handleSuggestionClick(suggestion.query)}
+                  className="p-4 text-left bg-white/70 hover:bg-white/90 rounded-xl text-gray-600 text-sm transition-all duration-200 border border-indigo-50 shadow-sm hover:shadow-md backdrop-blur-sm"
+                >
+                  {suggestion.text}
+                </button>
+              ))}
             </div>
           </div>
         </div>
-
-        {/* Suggestions Section */}
-        <div className="max-w-6xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => handleSuggestionClick(suggestion.query)}
-                className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all text-left"
-              >
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  {suggestion.text}
-                </h3>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="fixed bottom-6 right-6">
-          <AIAssistant />
-        </div>
       </div>
-    </div>
+      
+      <div className="fixed bottom-6 right-6">
+        <AIAssistant />
+      </div>
+    </main>
   );
 }
