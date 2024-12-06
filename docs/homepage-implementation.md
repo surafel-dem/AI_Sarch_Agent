@@ -3,6 +3,185 @@
 ## Overview
 The Car Search homepage is a modern, responsive web application built with Next.js and TypeScript. It features a clean, minimalist design with a full-screen hero section and an intelligent search interface that connects to an AI agent for personalized car recommendations.
 
+## Authentication & Data Management
+
+### 1. Authentication Architecture
+The application uses a dual-system architecture combining Clerk for authentication and Supabase for data storage:
+
+```mermaid
+sequenceDiagram
+    User->>Clerk: Sign up/Sign in
+    Clerk->>Webhook: Send user event
+    Webhook->>Supabase: Sync user data
+    Supabase-->>Webhook: Confirm sync
+    Webhook-->>Clerk: Complete authentication
+    Clerk-->>User: Redirect to app
+```
+
+### 2. Data Structure
+
+#### Clerk User Data
+```typescript
+{
+  id: string;          // Clerk's user ID
+  emailAddresses: [];  // User's email(s)
+  // ... other Clerk data
+}
+```
+
+#### Supabase User Schema
+```sql
+create table public.users (
+    id uuid default gen_random_uuid() primary key,
+    clerk_id text unique not null,
+    email text unique not null,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+```
+
+### 3. Security Implementation
+
+#### Row Level Security (RLS)
+```sql
+-- Enable RLS
+alter table public.users enable row level security;
+
+-- User access policy
+create policy "Users can view their own data" 
+    on public.users
+    for select 
+    using (auth.uid()::text = clerk_id);
+
+-- Admin access policy
+create policy "Service role can manage all users" 
+    on public.users
+    using (auth.jwt()->>'role' = 'service_role');
+```
+
+#### Route Protection
+```typescript
+// middleware.ts
+const publicRoutes = [
+  "/",              // Homepage
+  "/discover",      // Discovery page
+  "/search",        // Search results
+  "/api/search",    // Search API
+];
+
+const ignoredRoutes = [
+  "/api/auth/webhook",  // Clerk webhook
+  "/_next",            // Next.js assets
+  "/favicon.ico",      // Favicon
+];
+```
+
+### 4. Integration Components
+
+#### Type Definitions (types/user.ts)
+```typescript
+interface SupabaseUser {
+  id: string;
+  clerk_id: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ExtendedUser extends User {
+  supabaseData?: SupabaseUser;
+}
+
+interface UserProfile extends SupabaseUser {
+  // Additional user profile fields
+}
+```
+
+#### Utility Functions (lib/supabase-utils.ts)
+```typescript
+// Get current user's data
+async function getCurrentUserData(): Promise<SupabaseUser | null>
+
+// Get user by Clerk ID
+async function getUserByClerkId(clerkId: string): Promise<SupabaseUser | null>
+
+// Get user by email
+async function getUserByEmail(email: string): Promise<SupabaseUser | null>
+```
+
+### 5. Environment Configuration
+
+```env
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_***
+CLERK_SECRET_KEY=sk_***
+CLERK_WEBHOOK_SECRET=whsec_***
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://***
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ***
+SUPABASE_SERVICE_ROLE_KEY=eyJ***
+
+# Search API
+NEXT_PUBLIC_AGENT_TOKEN=***
+```
+
+### 6. Webhook Implementation
+
+The webhook handler (/api/auth/webhook/route.ts) manages user synchronization:
+
+1. **Event Reception**:
+   - Receives Clerk user events
+   - Verifies webhook signature
+   - Extracts user data
+
+2. **Data Synchronization**:
+   - Checks for existing user
+   - Creates or updates Supabase record
+   - Handles errors and logging
+
+3. **Security Measures**:
+   - Validates webhook signatures
+   - Uses service role for Supabase operations
+   - Implements error handling
+
+## UI Implementation
+
+### 1. Theme Configuration
+```typescript
+const theme = {
+  colors: {
+    background: '#0a0a0a',
+    primary: '#3b82f6',
+    primaryHover: '#2563eb',
+    secondary: '#1e293b',
+    border: '#334155',
+    textSecondary: '#94a3b8',
+  },
+  effects: {
+    glass: 'backdrop-blur-lg bg-secondary/70',
+    gradient: 'bg-gradient-to-r from-primary to-primaryHover',
+  }
+}
+```
+
+### 2. Component Styling
+```typescript
+// Clerk Components
+appearance={{
+  baseTheme: {
+    variables: {
+      colorBackground: '#0a0a0a',
+      colorInputBackground: '#1e293b',
+      colorInputText: '#ffffff',
+      colorText: '#ffffff',
+      colorTextSecondary: '#94a3b8',
+      colorPrimary: '#3b82f6',
+    }
+  }
+}}
+```
+
 ## Search Flow Implementation
 
 ### 1. Homepage Search Form (`components/search-form.tsx`)
@@ -26,7 +205,7 @@ Flow:
 ```typescript
 Implementation:
 - Immediate display of search parameters as badges
-- Asynchronous webhook call to AI agent
+- Asynchronous webhook call to AI agent - n8n
 - Real-time loading states
 - Error handling with user feedback
 
@@ -43,12 +222,43 @@ Components:
    - Error handling
 ```
 
-### 3. Webhook Integration (`lib/search-api.ts`)
+## API Integration
+
+### 1. Clerk Webhook (`/api/auth/webhook`)
 ```typescript
-Payload Structure:
+Endpoint: POST /api/auth/webhook
+
+Headers:
+- svix-id
+- svix-timestamp
+- svix-signature
+
+Events Handled:
+- user.created
+- user.updated
+
+Implementation:
+- Async webhook handler
+- Signature verification
+- Supabase sync
+- Error handling
+```
+
+### 2. Search Webhook
+```typescript
+Endpoint: POST https://n8n.yotor.co/webhook/invoke_agent
+
+Headers:
 {
-  sessionId: string;      // Unique identifier for search session
-  chatInput: string;      // Formatted user selections
+  'Authorization': `Bearer ${NEXT_PUBLIC_AGENT_TOKEN}`,
+  'Content-Type': 'application/json',
+  'Accept': 'application/json'
+}
+
+Payload:
+{
+  sessionId: string;
+  chatInput: string;
   carSpecs: {
     make?: string;
     model?: string;
@@ -60,12 +270,92 @@ Payload Structure:
     maxPrice?: number;
   }
 }
+```
 
-Implementation:
-- Asynchronous API calls
-- Error handling
-- Response parsing
-- Authorization header management
+## API Routes
+
+```typescript
+// Public Routes
+- / (Homepage)
+- /discover (Discovery page)
+- /search (Search results)
+- /api/search (Search API)
+
+// Protected Routes
+- /api/auth/* (Auth endpoints)
+- /api/user/* (User data endpoints)
+
+// Webhook Routes
+- /api/auth/webhook (Clerk webhook)
+```
+
+## Development Guidelines
+
+1. **Authentication**:
+   - Use Clerk components for auth UI
+   - Implement proper route protection
+   - Handle auth state changes
+
+2. **Data Management**:
+   - Use Supabase for user data storage
+   - Implement proper error handling
+   - Follow type definitions
+
+3. **Security**:
+   - Use environment variables
+   - Implement proper RLS policies
+   - Validate webhook signatures
+
+4. **Styling**:
+   - Follow theme configuration
+   - Use glass morphism effects
+   - Maintain responsive design
+
+## Environment Variables
+```env
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_***
+CLERK_SECRET_KEY=sk_***
+CLERK_WEBHOOK_SECRET=whsec_***
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://***
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ***
+SUPABASE_SERVICE_ROLE_KEY=eyJ***
+
+# Search API
+NEXT_PUBLIC_AGENT_TOKEN=***
+```
+
+## Styling
+The application uses a modern, dark theme inspired by Clerk's design:
+
+```css
+Colors:
+- Background: #0a0a0a
+- Primary: #3b82f6
+- Primary Hover: #2563eb
+- Secondary: #1e293b
+- Border: #334155
+- Text Secondary: #94a3b8
+
+Features:
+- Glass morphism effects
+- Grid background patterns
+- Gradient text
+- Modern scrollbar styling
+- Smooth transitions
+```
+
+## Routes
+```typescript
+Pages:
+- / (Homepage)
+- /search (Search results)
+- /discover (Discovery page)
+
+API Routes:
+- /api/auth/webhook (Clerk webhook)
 ```
 
 ## Webhook Integration Details
@@ -197,28 +487,6 @@ try {
   // Display user-friendly error message
 }
 ```
-
-### Implementation Notes
-1. **Payload Construction**
-   - All fields in `carSpecs` are optional
-   - `chatInput` is constructed from selected values
-   - `sessionId` is generated fresh for each search
-
-2. **Request Timing**
-   - Webhook call is made after page navigation
-   - Asynchronous - doesn't block UI
-   - Loading state shown during request
-
-3. **Response Handling**
-   - Messages displayed in chat interface
-   - Listings shown in results grid
-   - Sources displayed as reference links
-
-4. **Error Scenarios**
-   - Network connectivity issues
-   - Invalid authentication token
-   - Rate limiting exceeded
-   - Server-side errors
 
 ## User Experience Flow
 

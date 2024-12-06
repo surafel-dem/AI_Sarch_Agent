@@ -11,13 +11,25 @@ export interface CarSpecs {
 }
 
 export interface WebhookPayload {
-  sessionId: string;
-  chatInput: string;
-  carSpecs: CarSpecs;
+  userId: string;        // Clerk user ID
+  sessionId: string;     // Unique session identifier
+  chatInput: string;     // User's search query
+  carSpecs: CarSpecs;    // Car specifications
+  timestamp?: number;    // When the message was sent
 }
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  userId: string;        // Added to track message ownership
+  sessionId: string;     // Added to group messages by session
+}
+
+export interface SearchResponse {
+  message: string;
+  listings: any[];
+  sources: string[];
+  sessionId: string;     // Echo back the session ID
+  timestamp: number;     // When the response was generated
 }

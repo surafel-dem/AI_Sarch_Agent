@@ -5,6 +5,17 @@ import { config } from './config'
 const supabaseUrl = config.supabase.url
 const supabaseAnonKey = config.supabase.anonKey
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+// Create Supabase client without auth
+export const supabase = createClient<Database>(
+  supabaseUrl, 
+  supabaseAnonKey,
+  {
+    auth: {
+      persistSession: false, // Disable Supabase auth persistence
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  }
+)
 
 export type User = Database['public']['Tables']['users']['Row']

@@ -1,53 +1,114 @@
 import { NextResponse } from 'next/server';
 import { config } from '@/lib/config';
+import { WebhookPayload, SearchResponse } from '@/types/search';
+import { auth } from '@clerk/nextjs';
 
 export async function POST(request: Request) {
   try {
+    // Get auth session
+    const session = auth();
     const body = await request.json();
     const token = process.env.NEXT_PUBLIC_AGENT_TOKEN || 'Tmichael12@';
+
+    // Extract user ID from session
+    const userId = session.userId || body.userId;
+    
+    console.log('Processing search request for user:', { 
+      userId,
+      sessionId: body.sessionId,
+      authenticated: !!session.userId 
+    });
+
+    // Prepare the webhook payload
+    const payload: WebhookPayload = {
+      userId,
+      sessionId: body.sessionId,
+      chatInput: body.chatInput,
+      carSpecs: body.carSpecs || {},
+      timestamp: Date.now()
+    };
+
+    console.log('Sending payload to n8n:', {
+      userId: payload.userId,
+      sessionId: payload.sessionId,
+      timestamp: new Date(payload.timestamp).toISOString()
+    });
 
     const response = await fetch(config.n8n.webhookUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-User-ID': userId,
+        'X-Session-ID': body.sessionId
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Webhook error response:', errorText);
+      console.error('n8n webhook error:', {
+        status: response.status,
+        error: errorText,
+        userId,
+        sessionId: body.sessionId
+      });
       return NextResponse.json(
-        { error: `Network response was not ok: ${response.status}` },
+        { error: `Failed to process search request: ${response.status}` },
         { status: response.status }
       );
     }
 
     const data = await response.json();
     
-    // If the response is an array, return the first item's output
+    // Format the response
+    const formatResponse = (responseData: any): SearchResponse => ({
+      message: responseData.output || responseData.message || 'No response from the agent.',
+      listings: responseData.listings || [],
+      sources: responseData.sources || [],
+      sessionId: payload.sessionId,
+      timestamp: Date.now()
+    });
+    
+    // Handle array response
     if (Array.isArray(data) && data.length > 0) {
-      return NextResponse.json({
-        message: data[0].output || 'No response from the agent.',
-        listings: data[0].listings || [],
-        sources: data[0].sources || []
+      const response = formatResponse(data[0]);
+      console.log('Formatted array response:', {
+        userId,
+        sessionId: response.sessionId,
+        hasListings: response.listings.length > 0
       });
+      return NextResponse.json(response);
     }
     
-    // If the response is an object with output
-    if (data && data.output) {
-      return NextResponse.json({
-        message: data.output,
-        listings: data.listings || [],
-        sources: data.sources || []
+    // Handle object response
+    if (data && (data.output || data.message)) {
+      const response = formatResponse(data);
+      console.log('Formatted object response:', {
+        userId,
+        sessionId: response.sessionId,
+        hasListings: response.listings.length > 0
       });
+      return NextResponse.json(response);
     }
 
-    return NextResponse.json({ error: 'Invalid response format from agent' }, { status: 500 });
+    console.error('Invalid response format from n8n:', {
+      userId,
+      sessionId: body.sessionId,
+      responseType: typeof data,
+      isArray: Array.isArray(data)
+    });
+
+    return NextResponse.json(
+      { error: 'Invalid response format from agent' },
+      { status: 500 }
+    );
   } catch (error) {
-    console.error('Error in search agent:', error);
+    console.error('Error in search agent:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
       { error: 'Failed to process search request' },
       { status: 500 }

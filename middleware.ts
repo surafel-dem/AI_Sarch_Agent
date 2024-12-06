@@ -1,23 +1,36 @@
-import { withClerkMiddleware } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { authMiddleware } from "@clerk/nextjs";
 
-const publicPaths = ["/", "/discover", "/search", "/api/search"];
+// Public routes that don't require authentication
+const publicRoutes = [
+  "/",              // Homepage
+  "/discover",      // Discovery page
+  "/search",        // Search results
+  "/api/search",    // Search API
+];
 
-const isPublic = (path: string) => {
-  return publicPaths.find((x) =>
-    path.match(new RegExp(`^${x}$`.replace("*$", "($|/)")))
-  );
-};
+// Routes that should be completely ignored by Clerk
+const ignoredRoutes = [
+  "/api/auth/webhook",  // Clerk webhook
+  "/_next",            // Next.js assets
+  "/favicon.ico",      // Favicon
+];
 
-export default withClerkMiddleware((request: NextRequest) => {
-  if (isPublic(request.nextUrl.pathname)) {
-    return NextResponse.next();
-  }
-  // Handle other routes that need authentication
-  return NextResponse.next();
+export default authMiddleware({
+  publicRoutes,
+  ignoredRoutes,
+  debug: process.env.NODE_ENV === 'development',
+  // Optional: Add afterAuth to sync with Supabase if needed
+  afterAuth: async (auth, req, evt) => {
+    // Handle after auth logic if needed
+  },
 });
 
+// Matcher configuration for Clerk middleware
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    // Required for Next.js
+    "/((?!.+\\.[\\w]+$|_next).*)",
+    // Match all API routes except ignored ones
+    "/(api|trpc)(.*)",
+  ],
 };

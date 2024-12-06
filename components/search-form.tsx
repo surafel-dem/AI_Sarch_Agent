@@ -14,6 +14,7 @@ import { Search, ChevronRight, ChevronLeft, ChevronDown } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { invokeSearchAgent } from '@/lib/search-api'
 import { WebhookPayload, CarSpecs } from '@/types/search'
+import { useUser } from "@clerk/nextjs";
 
 // Car makes and models data
 const carModels = {
@@ -57,6 +58,7 @@ const selectContentStyles = "bg-white min-w-[var(--radix-select-trigger-width)] 
 const selectItemStyles = "py-2.5 px-4 text-[15px] hover:bg-gray-50 cursor-pointer transition-colors duration-200 data-[highlighted]:bg-gray-50 data-[highlighted]:text-gray-900"
 
 export function SearchForm() {
+  const { user } = useUser();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     make: "",
@@ -128,8 +130,11 @@ export function SearchForm() {
       // Build search URL with parameters
       const searchParams = new URLSearchParams();
       
-      // Add session ID
+      // Add session and user IDs
       searchParams.append('sessionId', sessionId);
+      if (user?.id) {
+        searchParams.append('userId', user.id);
+      }
 
       // Prepare webhook payload with only selected values
       const selectedValues = Object.entries(formData)
@@ -146,19 +151,19 @@ export function SearchForm() {
       // Create chat input from selected values
       const chatInput = Object.entries(selectedValues)
         .map(([key, value]) => {
-          if (key === 'make') return value;
-          if (key === 'model') return value;
-          if (key === 'location') return value;
-          if (key === 'minPrice') return `${value}`;
-          if (key === 'maxPrice') return `${value}`;
-          if (key === 'minYear') return value;
-          if (key === 'maxYear') return value;
-          if (key === 'features') return (value as string[]).join(', ');
-          if (key === 'usage') return value;
+          if (key === 'make') return `Make: ${value}`;
+          if (key === 'model') return `Model: ${value}`;
+          if (key === 'location') return `Location: ${value}`;
+          if (key === 'minPrice') return `Min Price: €${value}`;
+          if (key === 'maxPrice') return `Max Price: €${value}`;
+          if (key === 'minYear') return `Min Year: ${value}`;
+          if (key === 'maxYear') return `Max Year: ${value}`;
+          if (key === 'features') return `Features: ${(value as string[]).join(', ')}`;
+          if (key === 'usage') return `Usage: ${value}`;
           return '';
         })
         .filter(Boolean)
-        .join(' ');
+        .join(', ');
 
       // Add chatInput and all selected values to URL params
       searchParams.append('chatInput', chatInput);
@@ -170,7 +175,7 @@ export function SearchForm() {
         }
       });
 
-      // Navigate to search page immediately
+      // Navigate to search page with all parameters
       window.location.href = `/search?${searchParams.toString()}`;
     } catch (error) {
       console.error('Error during form submission:', error);
