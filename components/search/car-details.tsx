@@ -59,16 +59,16 @@ export function CarDetails({ title, specs, features }: CarDetailsProps) {
 
       {/* Action Buttons */}
       <div className="flex items-center space-x-2 pt-4">
-        <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+        <button className="p-2 text-gray-400 rounded-lg">
           <MessageCircle className="w-5 h-5" />
         </button>
-        <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+        <button className="p-2 text-gray-400 rounded-lg">
           <Share2 className="w-5 h-5" />
         </button>
-        <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+        <button className="p-2 text-gray-400 rounded-lg">
           <Copy className="w-5 h-5" />
         </button>
-        <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors ml-auto">
+        <button className="p-2 text-gray-400 rounded-lg ml-auto">
           <MoreHorizontal className="w-5 h-5" />
         </button>
       </div>
@@ -76,7 +76,7 @@ export function CarDetails({ title, specs, features }: CarDetailsProps) {
       {/* Link Text */}
       <p className="text-sm text-gray-400">
         For more details, you can view the full listing{' '}
-        <a href="#" className="text-blue-400 hover:text-blue-300">
+        <a href="#" className="text-blue-400">
           here
         </a>
         .

@@ -53,9 +53,9 @@ const carModels = {
 type CarMake = keyof typeof carModels;
 
 // Styles for dropdowns
-const selectTriggerStyles = "h-9 px-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 data-[placeholder]:text-gray-500 text-sm relative [&>svg]:hidden"
+const selectTriggerStyles = "h-9 px-3 bg-white rounded-lg border border-gray-200 shadow-sm data-[placeholder]:text-gray-500 text-sm relative [&>svg]:hidden"
 const selectContentStyles = "bg-white min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg shadow-md border border-gray-200 fixed"
-const selectItemStyles = "py-2 px-3 text-sm hover:bg-gray-50 cursor-pointer transition-colors duration-200 data-[highlighted]:bg-gray-50 data-[highlighted]:text-gray-900"
+const selectItemStyles = "py-2 px-3 text-sm cursor-pointer data-[highlighted]:bg-gray-50 data-[highlighted]:text-gray-900"
 
 const locations = ["dublin", "cork", "galway", "limerick", "waterford", "belfast", "kilkenny"];
 const makes = ["volkswagen", "toyota", "bmw", "audi", "mercedes"];
@@ -377,7 +377,7 @@ export function SearchForm() {
                       type="button"
                       variant={formData.features.includes(feature) ? "default" : "outline"}
                       onClick={() => handleFeatureToggle(feature)}
-                      className={`h-8 px-2.5 text-xs justify-center items-center rounded-lg transition-all whitespace-nowrap ${
+                      className={`h-8 px-2.5 text-xs justify-center items-center rounded-lg whitespace-nowrap ${
                         formData.features.includes(feature) 
                           ? "bg-blue-500 text-white"
                           : "bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10"
