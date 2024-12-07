@@ -16,6 +16,7 @@ import { invokeSearchAgent } from '@/lib/search-api'
 import { WebhookPayload, CarSpecs } from '@/types/search'
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";  
 
 // Car makes and models data
 const carModels = {
@@ -72,6 +73,7 @@ const yearRanges = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
 
 export function SearchForm() {
   const { user } = useUser();
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState<'priorities' | 'mustHave'>('priorities');
   const [formData, setFormData] = useState({
@@ -499,15 +501,24 @@ export function SearchForm() {
                 Back
               </Button>
               <Button
-                type={currentStep === 3 ? 'submit' : 'button'}
-                onClick={currentStep === 3 ? undefined : nextStep}
+                type="button"
+                onClick={() => {
+                  if (currentStep === 3) {
+                    // Route to search results page with current selections
+                    router.push('/search?' + new URLSearchParams({
+                      selections: JSON.stringify(formData)
+                    }).toString());
+                  } else {
+                    nextStep();
+                  }
+                }}
                 className="bg-blue-600 hover:bg-blue-700 text-white ml-auto"
                 disabled={!isFormValid()}
               >
                 {currentStep === 3 ? (
                   <>
-                    Search
-                    <Search className="w-4 h-4 ml-2" />
+                    Apply Filters
+                    <ChevronRight className="w-4 h-4 ml-2" />
                   </>
                 ) : (
                   <>

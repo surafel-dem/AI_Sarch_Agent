@@ -94,8 +94,10 @@ export function ChatInterface({ initialSpecs, initialQuery, messages: initialMes
 
       setMessages([{
         role: 'assistant',
-        content: response,
+        content: response.message,
         timestamp: Date.now(),
+        listings: response.listings,
+        sources: response.sources
       }]);
     } catch (error) {
       console.error('Error in initial search:', error);
@@ -127,8 +129,10 @@ export function ChatInterface({ initialSpecs, initialQuery, messages: initialMes
         ...prev,
         {
           role: 'assistant',
-          content: response,
+          content: response.message,
           timestamp: Date.now(),
+          listings: response.listings,
+          sources: response.sources
         },
       ]);
     } catch (error) {
@@ -151,7 +155,7 @@ export function ChatInterface({ initialSpecs, initialQuery, messages: initialMes
     if (!inputMessage.trim() || isLoading) return;
 
     setMessages(prev => [...prev, {
-      role: 'assistant',
+      role: 'user',
       content: inputMessage,
       timestamp: Date.now(),
     }]);
@@ -182,6 +186,26 @@ export function ChatInterface({ initialSpecs, initialQuery, messages: initialMes
               >
                 {message.content}
               </ReactMarkdown>
+              {message.listings && (
+                <div className="mt-4">
+                  <h4 className="text-gray-900 font-bold">Listings:</h4>
+                  <ul>
+                    {message.listings.map((listing, index) => (
+                      <li key={index} className="text-gray-600">{listing}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {message.sources && (
+                <div className="mt-4">
+                  <h4 className="text-gray-900 font-bold">Sources:</h4>
+                  <ul>
+                    {message.sources.map((source, index) => (
+                      <li key={index} className="text-gray-600">{source}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         ))}

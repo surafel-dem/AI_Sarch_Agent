@@ -24,6 +24,32 @@ export interface ChatMessage {
   timestamp: number;
   userId: string;        // Added to track message ownership
   sessionId: string;     // Added to group messages by session
+  listings?: Array<{
+    title: string;
+    price: number;
+    year: number;
+    location: string;
+    url: string;
+  }>;
+  sources?: Array<{
+    title: string;
+    url: string;
+  }>;
+}
+
+export interface WebhookResponse {
+  message: string;
+  listings?: Array<{
+    title: string;
+    price: number;
+    year: number;
+    location: string;
+    url: string;
+  }>;
+  sources?: Array<{
+    title: string;
+    url: string;
+  }>;
 }
 
 export interface SearchResponse {

@@ -63,47 +63,21 @@ export async function POST(request: Request) {
     const data = await response.json();
     
     // Format the response
-    const formatResponse = (responseData: any): SearchResponse => ({
-      message: responseData.output || responseData.message || 'No response from the agent.',
-      listings: responseData.listings || [],
-      sources: responseData.sources || [],
-      sessionId: payload.sessionId,
-      timestamp: Date.now()
-    });
+    const formatResponse = (responseData: any): string => {
+      if (Array.isArray(responseData) && responseData.length > 0) {
+        return responseData[0].output || responseData[0].message || 'No response from the agent.';
+      }
+      return responseData.output || responseData.message || 'No response from the agent.';
+    };
     
-    // Handle array response
-    if (Array.isArray(data) && data.length > 0) {
-      const response = formatResponse(data[0]);
-      console.log('Formatted array response:', {
-        userId,
-        sessionId: response.sessionId,
-        hasListings: response.listings.length > 0
-      });
-      return NextResponse.json(response);
-    }
-    
-    // Handle object response
-    if (data && (data.output || data.message)) {
-      const response = formatResponse(data);
-      console.log('Formatted object response:', {
-        userId,
-        sessionId: response.sessionId,
-        hasListings: response.listings.length > 0
-      });
-      return NextResponse.json(response);
-    }
-
-    console.error('Invalid response format from n8n:', {
+    const formattedResponse = formatResponse(data);
+    console.log('Formatted response:', {
       userId,
-      sessionId: body.sessionId,
-      responseType: typeof data,
-      isArray: Array.isArray(data)
+      sessionId: payload.sessionId,
+      response: formattedResponse
     });
-
-    return NextResponse.json(
-      { error: 'Invalid response format from agent' },
-      { status: 500 }
-    );
+    
+    return NextResponse.json({ message: formattedResponse });
   } catch (error) {
     console.error('Error in search agent:', {
       error: error instanceof Error ? error.message : 'Unknown error',
