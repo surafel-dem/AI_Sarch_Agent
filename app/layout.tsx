@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
-import { Poppins } from 'next/font/google'
+import { Inter, Poppins } from 'next/font/google'
 import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
+import { ThemeProvider } from '@/components/theme-provider'
 import { Navbar } from '@/components/navbar'
 import { Sidebar } from '@/components/sidebar'
 import { Toaster } from 'sonner'
+import { cn } from '@/lib/utils'
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -24,7 +26,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${poppins.variable} font-poppins`}>
+      <body
+        className={cn(
+          "min-h-screen bg-gradient-to-b from-purple-100/20 via-purple-50/10 to-white antialiased",
+          poppins.variable,
+          "font-poppins"
+        )}
+      >
         <ClerkProvider
           appearance={{
             baseTheme: {
@@ -218,15 +226,14 @@ export default function RootLayout({
             }
           }}
         >
-          <div className="min-h-screen bg-[#0a0a0a]">
-            <div className="fixed inset-0 -z-10 h-full w-full bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]"></div>
+          <div className="min-h-screen">
             <Sidebar />
             <Navbar />
             <main className="w-full">
               {children}
             </main>
+            <Toaster />
           </div>
-          <Toaster />
         </ClerkProvider>
       </body>
     </html>

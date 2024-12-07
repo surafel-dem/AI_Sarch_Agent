@@ -222,17 +222,8 @@ export function SearchForm() {
   }, []);
 
   return (
-    <div className="w-full pt-32 pb-16">
-      <div className="max-w-2xl mx-auto text-center mb-16">
-        <h1 className="text-5xl font-light tracking-tight text-[#5B9BFF] mb-3">
-          Find Your Perfect Car
-        </h1>
-        <p className="text-base text-gray-400/70 font-extralight tracking-wide">
-          Tell us what you're looking for and our AI will help you find the ideal car that matches your needs
-        </p>
-      </div>
-
-      <div className="max-w-xl mx-auto bg-white/[0.03] border border-white/10 p-6 rounded-xl backdrop-blur-sm">
+    <div className="w-full">
+      <div className="max-w-xl mx-auto bg-white/5 border border-purple-100/20 p-6 rounded-xl backdrop-blur-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Step indicator */}
           <div className="flex justify-center items-center gap-2 mb-6">
@@ -255,7 +246,7 @@ export function SearchForm() {
           </div>
 
           {/* Form content with fixed height */}
-          <div className="h-[180px]">
+          <div className="relative h-[180px]">
             {currentStep === 1 && (
               <div className="w-full max-w-[800px] mx-auto px-4">
                 {/* Location, Make, and Model in one row */}
@@ -408,39 +399,39 @@ export function SearchForm() {
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Navigation buttons - consistent placement */}
-          <div className="flex justify-between pt-4 border-t border-white/10">
-            <Button
-              type="button"
-              onClick={prevStep}
-              variant="outline"
-              className={`bg-white/5 hover:bg-white/10 text-gray-200 border-white/10 ${
-                currentStep === 1 ? 'invisible' : ''
-              }`}
-            >
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button
-              type={currentStep === 3 ? 'submit' : 'button'}
-              onClick={currentStep === 3 ? undefined : nextStep}
-              className="bg-blue-600 hover:bg-blue-700 text-white ml-auto"
-              disabled={!isFormValid()}
-            >
-              {currentStep === 3 ? (
-                <>
-                  Search
-                  <Search className="w-4 h-4 ml-2" />
-                </>
-              ) : (
-                <>
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
+            {/* Navigation buttons - Positioned absolutely */}
+            <div className="absolute bottom-0 right-0 left-0 flex justify-between">
+              <Button
+                type="button"
+                onClick={prevStep}
+                variant="outline"
+                className={`bg-white/5 hover:bg-white/10 text-gray-200 border-white/10 ${
+                  currentStep === 1 ? 'invisible' : ''
+                }`}
+              >
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <Button
+                type={currentStep === 3 ? 'submit' : 'button'}
+                onClick={currentStep === 3 ? undefined : nextStep}
+                className="bg-blue-600 hover:bg-blue-700 text-white ml-auto"
+                disabled={!isFormValid()}
+              >
+                {currentStep === 3 ? (
+                  <>
+                    Search
+                    <Search className="w-4 h-4 ml-2" />
+                  </>
+                ) : (
+                  <>
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {error && (
