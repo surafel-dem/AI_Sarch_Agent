@@ -9,12 +9,17 @@ import { ChatMessage, CarSpecs } from '@/types/search';
 import { invokeSearchAgent } from '@/lib/search-api';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/contexts/auth-context';
+import { getOrCreateTempUserId } from '@/lib/utils/temp-user';
+
+// Helper to generate clean UUID without hyphens
+const generateCleanId = () => uuidv4().replace(/-/g, '');
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
-  const [sessionId] = useState(() => uuidv4());
+  const [sessionId] = useState(() => generateCleanId());
+  const [tempUserId] = useState(() => generateCleanId());
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -102,7 +107,7 @@ export default function SearchPage() {
           sessionId,
           chatInput,
           carSpecs: selections,
-          userId: user?.id || 'anonymous',
+          userId: user?.id || tempUserId,
           timestamp: Date.now()
         });
 
@@ -110,7 +115,7 @@ export default function SearchPage() {
           role: 'assistant',
           content: response.message,
           timestamp: Date.now(),
-          userId: user?.id || 'anonymous',
+          userId: user?.id || tempUserId,
           sessionId,
           listings: response.listings,
           sources: response.sources
@@ -123,7 +128,7 @@ export default function SearchPage() {
           role: 'assistant',
           content: 'Sorry, I encountered an error while processing your request. Please try again.',
           timestamp: Date.now(),
-          userId: user?.id || 'anonymous',
+          userId: user?.id || tempUserId,
           sessionId
         }]);
       } finally {
@@ -132,7 +137,7 @@ export default function SearchPage() {
     };
 
     runInitialSearch();
-  }, [selections, sessionId, user, hasInitialSearchRun]);
+  }, [selections, sessionId, user, tempUserId, hasInitialSearchRun]);
 
   const handleMessage = async (message: ChatMessage) => {
     setMessages(prev => [...prev, message]);

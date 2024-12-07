@@ -10,9 +10,11 @@ export async function invokeSearchAgent(payload: WebhookPayload) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        userId: payload.userId,
         sessionId: payload.sessionId,
         chatInput: payload.chatInput,
-        carSpecs: payload.carSpecs || {}
+        carSpecs: payload.carSpecs || {},
+        timestamp: payload.timestamp
       })
     });
 

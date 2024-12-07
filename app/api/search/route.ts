@@ -10,13 +10,27 @@ export async function POST(request: Request) {
     const body = await request.json();
     const token = process.env.NEXT_PUBLIC_AGENT_TOKEN || 'Tmichael12@';
 
-    // Extract user ID from session
+    // Extract user ID from session or use temporary ID
     const userId = session.userId || body.userId;
+    
+    if (!userId) {
+      console.error('No user ID provided in request:', { body });
+      return new Response('No user ID provided', { status: 400 });
+    }
+
+    if (!body.sessionId) {
+      console.error('No session ID provided in request:', { body });
+      return new Response('No session ID provided', { status: 400 });
+    }
+
+    const isTemporaryUser = userId.startsWith('temp');
     
     console.log('Processing search request for user:', { 
       userId,
       sessionId: body.sessionId,
-      authenticated: !!session.userId 
+      authenticated: !!session.userId,
+      isTemporaryUser,
+      requestBody: body
     });
 
     // Prepare the webhook payload

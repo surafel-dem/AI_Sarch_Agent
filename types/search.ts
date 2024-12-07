@@ -11,11 +11,11 @@ export interface CarSpecs {
 }
 
 export interface WebhookPayload {
-  userId: string;        // Clerk user ID
-  sessionId: string;     // Unique session identifier
-  chatInput: string;     // User's search query
-  carSpecs: CarSpecs;    // Car specifications
-  timestamp?: number;    // When the message was sent
+  userId: string;
+  sessionId: string;
+  chatInput: string;
+  carSpecs?: CarSpecs;
+  timestamp: number;
 }
 
 export interface ChatMessage {
