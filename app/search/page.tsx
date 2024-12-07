@@ -97,16 +97,6 @@ export default function SearchPage() {
 
       const chatInput = formatFilterText(selections);
       
-      const userMessage: ChatMessage = {
-        role: 'user',
-        content: chatInput,
-        timestamp: Date.now(),
-        userId: user?.id || 'anonymous',
-        sessionId
-      };
-
-      setMessages(prev => [...prev, userMessage]);
-
       try {
         const response = await invokeSearchAgent({
           sessionId,
@@ -126,10 +116,10 @@ export default function SearchPage() {
           sources: response.sources
         };
 
-        setMessages(prev => [...prev, assistantMessage]);
+        setMessages([assistantMessage]);
       } catch (error) {
         console.error('Error in initial search:', error);
-        setMessages(prev => [...prev, {
+        setMessages([{
           role: 'assistant',
           content: 'Sorry, I encountered an error while processing your request. Please try again.',
           timestamp: Date.now(),
@@ -158,7 +148,7 @@ export default function SearchPage() {
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="max-w-4xl mx-auto px-4 flex flex-col min-h-full">
           {/* Search Params - Always Visible */}
-          <div className="sticky top-0 z-10 bg-white pb-1 border-b">
+          <div className="sticky top-0 z-10 bg-white pt-6 pb-4 border-b">
             <SearchParams 
               selections={selections}
               onEdit={() => router.push('/')}
@@ -166,7 +156,7 @@ export default function SearchPage() {
           </div>
 
           {/* Chat Interface */}
-          <div className="flex-1">
+          <div className="flex-1 pt-4">
             <ChatInterface
               initialSpecs={selections}
               messages={messages}

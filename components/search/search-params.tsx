@@ -49,8 +49,18 @@ export function SearchParams({ selections, onEdit }: SearchParamsProps) {
   };
 
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 place-items-start">
+    <div className="relative">
+      {onEdit && (
+        <Button
+          onClick={onEdit}
+          variant="outline"
+          size="sm"
+          className="absolute right-2 top-2 text-gray-500 hover:text-gray-700 bg-white border-gray-200"
+        >
+          Edit
+        </Button>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {Object.entries(groupedSelections).map(([group, config]) => {
           const hasValues = config.items.some((item) => {
             const value = selections[item.key];
@@ -63,23 +73,23 @@ export function SearchParams({ selections, onEdit }: SearchParamsProps) {
           if (!hasValues) return null;
 
           return (
-            <Card key={group} className="p-2 bg-white shadow-sm hover:shadow-md transition-shadow w-full">
-              <div className="mb-1">
-                <h3 className="text-xs font-medium text-gray-700">{config.title}</h3>
+            <Card key={group} className="p-3 bg-white shadow-sm hover:shadow-md transition-shadow w-full">
+              <div className="mb-2">
+                <h3 className="text-sm font-medium text-gray-700">{config.title}</h3>
               </div>
-              <div className="space-y-1 min-w-[200px]">
+              <div className="space-y-2">
                 {config.items.map((item) => {
                   const value = selections[item.key];
                   if (!value || (typeof value === "string" && value === "")) return null;
                   
                   if (item.isArray && Array.isArray(value)) {
                     return (
-                      <div key={item.key} className="flex flex-wrap gap-1">
+                      <div key={item.key} className="flex flex-wrap gap-1.5">
                         {value.map((v, index) => (
                           <Badge
                             key={`${item.key}-${index}`}
                             variant="secondary"
-                            className="bg-gray-50 text-gray-600 text-[10px] px-1.5 py-0.5 hover:bg-gray-100"
+                            className="bg-gray-50 text-gray-600 text-xs px-2 py-1 hover:bg-gray-100"
                           >
                             {v}
                           </Badge>
@@ -89,7 +99,7 @@ export function SearchParams({ selections, onEdit }: SearchParamsProps) {
                   }
 
                   return (
-                    <div key={item.key} className="text-[11px] text-gray-600">
+                    <div key={item.key} className="text-sm text-gray-600">
                       <span className="font-medium">{item.label}:</span>{' '}
                       <span>{item.prefix || ''}{value}</span>
                     </div>
@@ -100,14 +110,6 @@ export function SearchParams({ selections, onEdit }: SearchParamsProps) {
           );
         })}
       </div>
-
-      <Button 
-        variant="outline" 
-        onClick={onEdit}
-        className="w-full sm:w-auto text-xs py-1"
-      >
-        Edit Filters
-      </Button>
     </div>
   );
 }
