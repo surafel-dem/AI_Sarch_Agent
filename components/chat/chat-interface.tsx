@@ -10,27 +10,21 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface ChatInterfaceProps {
   initialSpecs: CarSpecs;
-  initialQuery?: string;
   messages: ChatMessage[];
   isLoading: boolean;
+  onMessage: (message: ChatMessage) => void;
 }
 
-export function ChatInterface({ initialSpecs, initialQuery, messages: initialMessages, isLoading: initialLoadingState }: ChatInterfaceProps) {
+export function ChatInterface({ 
+  initialSpecs, 
+  messages, 
+  isLoading,
+  onMessage 
+}: ChatInterfaceProps) {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(initialLoadingState);
-  const chatEndRef = useRef<HTMLDivElement>(null);
   const sessionId = useRef(uuidv4());
-  const hasInitialSearchRun = useRef(false);
-
-  useEffect(() => {
-    // Run initial search if there's a query or specs
-    if (!hasInitialSearchRun.current && (initialQuery || (initialSpecs && Object.keys(initialSpecs).length > 0))) {
-      handleInitialSearch();
-      hasInitialSearchRun.current = true;
-    }
-  }, [initialQuery, initialSpecs]);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollToBottom();
@@ -40,113 +34,51 @@ export function ChatInterface({ initialSpecs, initialQuery, messages: initialMes
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const formatFilterText = (specs: CarSpecs): string => {
-    const filterParts: string[] = [];
-    
-    Object.entries(specs).forEach(([key, value]) => {
-      if (value) {
-        switch(key) {
-          case 'make':
-            filterParts.push(`Make: ${value}`);
-            break;
-          case 'model':
-            filterParts.push(`Model: ${value}`);
-            break;
-          case 'minYear':
-            filterParts.push(`Min Year: ${value}`);
-            break;
-          case 'maxYear':
-            filterParts.push(`Max Year: ${value}`);
-            break;
-          case 'minPrice':
-            filterParts.push(`Min Price: €${value}`);
-            break;
-          case 'maxPrice':
-            filterParts.push(`Max Price: €${value}`);
-            break;
-          case 'bodyType':
-            filterParts.push(`Body Type: ${value}`);
-            break;
-          case 'transmission':
-            filterParts.push(`Transmission: ${value}`);
-            break;
-          case 'mileage':
-            filterParts.push(`Max Mileage: ${value}km`);
-            break;
-        }
-      }
-    });
-    
-    return filterParts.join(', ');
-  };
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
 
-  const handleInitialSearch = async () => {
-    setIsLoading(true);
+    const chatInput = inputMessage.trim();
+    
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: chatInput,
+      timestamp: Date.now(),
+      userId: user?.id || 'anonymous',
+      sessionId: sessionId.current
+    };
+
+    onMessage(userMessage);
+    setInputMessage('');
+
     try {
-      const payload = {
+      const response = await invokeSearchAgent({
         sessionId: sessionId.current,
-        chatInput: initialQuery || formatFilterText(initialSpecs),
-        carSpecs: initialSpecs
-      };
+        chatInput,
+        carSpecs: initialSpecs,
+        userId: user?.id || 'anonymous',
+        timestamp: Date.now()
+      });
 
-      console.log('Initial search payload:', payload);
-      const response = await invokeSearchAgent(payload);
-
-      setMessages([{
+      const assistantMessage: ChatMessage = {
         role: 'assistant',
         content: response.message,
         timestamp: Date.now(),
+        userId: user?.id || 'anonymous',
+        sessionId: sessionId.current,
         listings: response.listings,
         sources: response.sources
-      }]);
+      };
+
+      onMessage(assistantMessage);
     } catch (error) {
-      console.error('Error in initial search:', error);
-      setMessages([{
+      console.error('Error sending message:', error);
+      onMessage({
         role: 'assistant',
         content: 'Sorry, I encountered an error while processing your request. Please try again.',
         timestamp: Date.now(),
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const sendMessage = async (content: string) => {
-    if (!content.trim()) return;
-
-    setIsLoading(true);
-    try {
-      const payload = {
-        sessionId: sessionId.current,
-        chatInput: content,
-        carSpecs: initialSpecs
-      };
-
-      console.log('Sending chat message:', payload);
-      const response = await invokeSearchAgent(payload);
-
-      setMessages(prev => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: response.message,
-          timestamp: Date.now(),
-          listings: response.listings,
-          sources: response.sources
-        },
-      ]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: 'Sorry, I encountered an error while processing your request. Please try again.',
-          timestamp: Date.now(),
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
+        userId: user?.id || 'anonymous',
+        sessionId: sessionId.current
+      });
     }
   };
 
@@ -154,13 +86,7 @@ export function ChatInterface({ initialSpecs, initialQuery, messages: initialMes
     e.preventDefault();
     if (!inputMessage.trim() || isLoading) return;
 
-    setMessages(prev => [...prev, {
-      role: 'user',
-      content: inputMessage,
-      timestamp: Date.now(),
-    }]);
-    setInputMessage('');
-    await sendMessage(inputMessage);
+    await sendMessage();
   };
 
   return (
@@ -186,22 +112,46 @@ export function ChatInterface({ initialSpecs, initialQuery, messages: initialMes
               >
                 {message.content}
               </ReactMarkdown>
-              {message.listings && (
-                <div className="mt-4">
-                  <h4 className="text-gray-900 font-bold">Listings:</h4>
-                  <ul>
-                    {message.listings.map((listing, index) => (
-                      <li key={index} className="text-gray-600">{listing}</li>
-                    ))}
-                  </ul>
+              {message.listings && message.listings.length > 0 && (
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  {message.listings.map((listing, index) => (
+                    <div key={index} className="bg-white p-4 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors">
+                      <h3 className="text-lg font-medium mb-2">{listing.title}</h3>
+                      <div className="space-y-2">
+                        <p className="text-lg font-semibold text-blue-600">
+                          €{listing.price.toLocaleString()}
+                        </p>
+                        <p className="text-gray-600 text-sm">
+                          {listing.year} • {listing.location}
+                        </p>
+                        <a 
+                          href={listing.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
+                        >
+                          View Details →
+                        </a>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
-              {message.sources && (
-                <div className="mt-4">
-                  <h4 className="text-gray-900 font-bold">Sources:</h4>
-                  <ul>
+              {message.sources && message.sources.length > 0 && (
+                <div className="mt-4 text-sm text-gray-500">
+                  <p className="font-medium mb-1">Sources:</p>
+                  <ul className="space-y-1 list-disc list-inside">
                     {message.sources.map((source, index) => (
-                      <li key={index} className="text-gray-600">{source}</li>
+                      <li key={index}>
+                        <a 
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {source.title}
+                        </a>
+                      </li>
                     ))}
                   </ul>
                 </div>
