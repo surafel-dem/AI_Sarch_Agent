@@ -43,7 +43,10 @@ export function Sidebar() {
       <aside 
         className={cn(
           "fixed top-0 left-0 z-40 h-screen w-16 bg-transparent border-r border-white/5",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "transition-transform duration-200 ease-in-out",
+          "-webkit-transform-style: preserve-3d",
+          "transform-style: preserve-3d",
+          isOpen ? "translate-x-0 -webkit-translate-x-0" : "-translate-x-full -webkit-translate-x-full"
         )}
       >
         <div className="h-full pt-16 px-2 flex flex-col items-center">

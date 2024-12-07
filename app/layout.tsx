@@ -28,37 +28,41 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-gradient-to-b from-purple-100/20 via-purple-50/10 to-white antialiased",
+          "min-h-screen antialiased",
+          "bg-white",
+          "bg-[linear-gradient(to_bottom,rgba(247,247,255,1),rgba(255,255,255,1))]",
+          "-webkit-font-smoothing: antialiased",
+          "-moz-osx-font-smoothing: grayscale",
           poppins.variable,
-          "font-poppins"
+          "font-poppins text-gray-900"
         )}
       >
         <ClerkProvider
           appearance={{
             baseTheme: {
               variables: {
-                colorBackground: "transparent",
-                colorInputBackground: "transparent",
-                colorInputText: "#3b82f6",
-                colorText: "#3b82f6",
-                colorTextSecondary: "#60a5fa",
-                colorPrimary: "#3b82f6",
-                colorDanger: "#ef4444",
-                colorSuccess: "#22c55e",
-                colorWarning: "#f59e0b",
-                colorBackgroundSecondary: "transparent",
-                colorAlphaShade: "transparent",
-                colorShimmer: "transparent"
+                colorBackground: "#ffffff",
+                colorInputBackground: "#ffffff",
+                colorInputText: "#111827",
+                colorText: "#111827",
+                colorTextSecondary: "#374151",
+                colorPrimary: "#5046e4",
+                colorDanger: "#dc2626",
+                colorSuccess: "#16a34a",
+                colorWarning: "#d97706",
+                colorBackgroundSecondary: "#f9fafb",
+                colorAlphaShade: "#f3f4f6",
+                colorShimmer: "#f3f4f6"
               },
               elements: {
                 rootBox: {
                   backgroundColor: "transparent !important"
                 },
                 card: {
-                  backgroundColor: "transparent !important",
-                  borderColor: "rgba(255, 255, 255, 0.05)",
+                  backgroundColor: "#ffffff !important",
+                  borderColor: "#e5e7eb",
                   "& *": {
-                    backgroundColor: "transparent !important"
+                    backgroundColor: "#ffffff !important"
                   }
                 },
                 userButtonAvatarBox: {
@@ -70,23 +74,24 @@ export default function RootLayout({
                     backgroundColor: "transparent !important"
                   },
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1) !important"
+                    backgroundColor: "rgba(80, 70, 228, 0.1) !important"
                   }
                 },
                 userButtonPopoverCard: {
-                  backgroundColor: "transparent !important",
+                  backgroundColor: "#ffffff !important",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
                   "& *": {
-                    backgroundColor: "transparent !important"
+                    backgroundColor: "#ffffff !important"
                   }
                 },
                 userButtonPopoverActions: {
-                  backgroundColor: "transparent !important"
+                  backgroundColor: "transparent"
                 },
                 userButtonPopoverActionButton: {
-                  backgroundColor: "transparent !important",
-                  color: "#3b82f6 !important",
+                  backgroundColor: "transparent",
+                  color: "#5046e4 !important",
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1) !important"
+                    backgroundColor: "rgba(80, 70, 228, 0.1) !important"
                   }
                 },
                 organizationSwitcherTrigger: {
@@ -95,7 +100,7 @@ export default function RootLayout({
                     backgroundColor: "transparent !important"
                   },
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1) !important"
+                    backgroundColor: "rgba(80, 70, 228, 0.1) !important"
                   }
                 },
                 organizationSwitcherPopoverCard: {
@@ -104,112 +109,115 @@ export default function RootLayout({
                 organizationPreview: {
                   backgroundColor: "transparent !important",
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1) !important"
+                    backgroundColor: "rgba(80, 70, 228, 0.1) !important"
                   }
                 },
                 organizationPreviewTextContainer: {
-                  color: "#3b82f6 !important"
+                  color: "#5046e4 !important"
                 },
                 formButtonPrimary: {
                   backgroundColor: "transparent",
-                  color: "#3b82f6",
+                  color: "#5046e4",
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1)"
+                    backgroundColor: "rgba(80, 70, 228, 0.1)"
                   },
                   borderRadius: "0.5rem"
                 },
                 headerTitle: {
                   fontSize: "1.5rem",
-                  color: "#3b82f6"
+                  color: "#5046e4"
                 },
                 headerSubtitle: {
-                  color: "#60a5fa"
+                  color: "#6b5ce5"
                 },
                 formFieldInput: {
-                  borderColor: "rgba(255, 255, 255, 0.05)",
+                  borderColor: "#e5e7eb",
                   backgroundColor: "transparent",
                   borderRadius: "0.5rem",
                   "&:focus": {
-                    borderColor: "#3b82f6",
-                    boxShadow: "0 0 0 1px #3b82f6"
+                    borderColor: "#5046e4",
+                    boxShadow: "0 0 0 1px #5046e4"
                   }
                 },
                 dividerLine: {
-                  backgroundColor: "rgba(255, 255, 255, 0.05)"
+                  backgroundColor: "#e5e7eb"
                 },
                 dividerText: {
-                  color: "#60a5fa"
+                  color: "#6b5ce5"
                 },
                 footerActionLink: {
-                  color: "#3b82f6",
+                  color: "#5046e4",
                   "&:hover": {
-                    color: "#60a5fa"
+                    color: "#6b5ce5"
                   }
                 },
                 identityPreviewText: {
-                  color: "#3b82f6"
+                  color: "#5046e4"
                 },
                 identityPreviewEditButton: {
-                  color: "#3b82f6"
+                  color: "#5046e4"
                 },
                 avatarBox: {
                   backgroundColor: "transparent"
                 },
                 navbar: {
                   backgroundColor: "transparent",
-                  borderColor: "rgba(255, 255, 255, 0.05)"
+                  borderColor: "#e5e7eb"
                 },
                 navbarButton: {
-                  color: "#3b82f6",
+                  color: "#5046e4",
                   backgroundColor: "transparent",
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1)"
+                    backgroundColor: "rgba(80, 70, 228, 0.1)"
                   }
                 },
                 profileSectionPrimaryButton: {
                   backgroundColor: "transparent",
-                  color: "#3b82f6",
+                  color: "#5046e4",
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1)"
+                    backgroundColor: "rgba(80, 70, 228, 0.1)"
                   }
                 },
                 profileSectionSecondaryButton: {
                   backgroundColor: "transparent",
-                  color: "#3b82f6",
+                  color: "#5046e4",
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1)"
+                    backgroundColor: "rgba(80, 70, 228, 0.1)"
                   }
                 },
                 userPreviewMainIdentifier: {
-                  color: "#3b82f6"
+                  color: "#5046e4"
                 },
                 userPreviewSecondaryIdentifier: {
-                  color: "#60a5fa"
+                  color: "#6b5ce5"
                 },
                 userButtonPopoverCard: {
-                  backgroundColor: "transparent",
-                  borderColor: "rgba(255, 255, 255, 0.05)"
+                  backgroundColor: "#ffffff !important",
+                  borderColor: "#e5e7eb",
+                  "& *": {
+                    backgroundColor: "#ffffff !important"
+                  }
                 },
                 userButtonPopoverActions: {
                   backgroundColor: "transparent"
                 },
                 userButtonPopoverActionButton: {
                   backgroundColor: "transparent",
-                  color: "#3b82f6",
+                  color: "#5046e4",
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1)"
+                    backgroundColor: "rgba(80, 70, 228, 0.1)"
                   }
                 },
                 userButtonTrigger: {
                   backgroundColor: "transparent",
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1)"
+                    backgroundColor: "rgba(80, 70, 228, 0.1)"
                   }
                 },
                 organizationSwitcherTrigger: {
                   backgroundColor: "transparent",
                   "&:hover": {
-                    backgroundColor: "rgba(59, 130, 246, 0.1)"
+                    backgroundColor: "rgba(80, 70, 228, 0.1)"
                   }
                 }
               }
@@ -220,7 +228,7 @@ export default function RootLayout({
                   backgroundColor: "transparent !important"
                 },
                 card: {
-                  backgroundColor: "transparent !important"
+                  backgroundColor: "#ffffff !important"
                 }
               }
             }

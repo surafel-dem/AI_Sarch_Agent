@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { invokeSearchAgent } from '@/lib/search-api'
 import { WebhookPayload, CarSpecs } from '@/types/search'
 import { useUser } from "@clerk/nextjs";
+import { cn } from "@/lib/utils";
 
 // Car makes and models data
 const carModels = {
@@ -61,13 +62,18 @@ const locations = ["dublin", "cork", "galway", "limerick", "waterford", "belfast
 const makes = ["volkswagen", "toyota", "bmw", "audi", "mercedes"];
 const models = ["Golf", "Passat", "Tiguan", "Polo", "ID.4", "T-Roc", "Arteon"];
 const priceRanges = ["5000", "10000", "15000"];
-const features = ["GPS", "Bluetooth", "Leather", "Sunroof", "Camera", "Hybrid"];
-const usageOptions = ["daily", "weekend", "family"];
+const features = ["Fuel Efficiency" ,"Safety", "Performance", "Comfort", "Aesthetics"];
+const priorities = ["Fuel Efficiency", "Safety", "Performance", "Comfort", "Aesthetics"];
+const mustHaveFeatures = ["Electric/Hybrid", "All-Wheel Drive", "Luxury Features", "Advanced Technology"];
+
+const usageOptions = ["Daily Commuting", "Long-Distance Travel", "Family Trips", "Adventure/Off-Road"];   
+
 const yearRanges = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
 
 export function SearchForm() {
   const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
+  const [activeTab, setActiveTab] = useState<'priorities' | 'mustHave'>('priorities');
   const [formData, setFormData] = useState({
     make: "",
     model: "",
@@ -76,8 +82,11 @@ export function SearchForm() {
     minYear: "",
     maxYear: "",
     features: [] as string[],
+    priorities: [] as string[],
+    mustHaveFeatures: [] as string[],
     usage: "",
-    location: ""
+    location: "",
+    customFeature: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,6 +96,16 @@ export function SearchForm() {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleCheckboxChange = (type: 'priorities' | 'mustHave', value: string) => {
+    const stateKey = type === 'mustHave' ? 'mustHaveFeatures' : 'priorities';
+    setFormData(prev => ({
+      ...prev,
+      [stateKey]: prev[stateKey].includes(value)
+        ? prev[stateKey].filter(item => item !== value)
+        : [...prev[stateKey], value]
     }));
   };
 
@@ -223,24 +242,30 @@ export function SearchForm() {
 
   return (
     <div className="w-full">
-      <div className="max-w-xl mx-auto bg-white/5 border border-purple-100/20 p-6 rounded-xl backdrop-blur-sm">
+      <div className="max-w-xl mx-auto bg-white border border-gray-200 p-6 rounded-xl shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Step indicator */}
           <div className="flex justify-center items-center gap-2 mb-6">
             {[1, 2, 3].map((num) => (
               <div key={num} className="flex items-center">
-                {num > 1 && <div className="h-px w-8 bg-white/10 mx-2" />}
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-sm ${
+                  className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
                     currentStep === num
-                      ? 'bg-blue-500 text-white'
-                      : currentStep > num
-                      ? 'bg-white/20 text-white'
-                      : 'bg-white/5 text-gray-400'
-                  }`}
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-500"
+                  )}
                 >
                   {num}
                 </div>
+                {num < 3 && (
+                  <div
+                    className={cn(
+                      "w-12 h-0.5 mx-2",
+                      num < currentStep ? "bg-gray-900" : "bg-gray-200"
+                    )}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -360,23 +385,74 @@ export function SearchForm() {
             )}
 
             {currentStep === 2 && (
-              <div className="w-full max-w-2xl mx-auto">
-                <div className="grid grid-cols-3 gap-2">
-                  {features.map((feature) => (
-                    <Button
-                      key={feature}
-                      type="button"
-                      variant={formData.features.includes(feature) ? "default" : "outline"}
-                      onClick={() => handleFeatureToggle(feature)}
-                      className={`h-8 px-2.5 text-xs justify-center items-center rounded-lg whitespace-nowrap ${
-                        formData.features.includes(feature) 
-                          ? "bg-blue-500 text-white"
-                          : "bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10"
-                      }`}
-                    >
-                      {feature}
-                    </Button>
-                  ))}
+              <div className="space-y-4">
+                {/* Tab Headers */}
+                <div className="flex space-x-1 border-b border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('priorities')}
+                    className={cn(
+                      "px-3 py-1.5 text-sm font-medium rounded-t-lg",
+                      activeTab === 'priorities'
+                        ? "bg-gray-100 text-gray-900 border-b-2 border-gray-900"
+                        : "text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    Priorities
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('mustHave')}
+                    className={cn(
+                      "px-3 py-1.5 text-sm font-medium rounded-t-lg",
+                      activeTab === 'mustHave'
+                        ? "bg-gray-100 text-gray-900 border-b-2 border-gray-900"
+                        : "text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    Must Have
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                <div className="pt-2">
+                  {activeTab === 'priorities' && (
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                      {priorities.map((priority) => (
+                        <label
+                          key={priority}
+                          className="flex items-center space-x-1.5 text-xs"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.priorities.includes(priority)}
+                            onChange={() => handleCheckboxChange('priorities', priority)}
+                            className="h-3 w-3 rounded border-gray-300 text-gray-900 focus:ring-0"
+                          />
+                          <span className="text-gray-600">{priority}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeTab === 'mustHave' && (
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                      {mustHaveFeatures.map((feature) => (
+                        <label
+                          key={feature}
+                          className="flex items-center space-x-1.5 text-xs"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.mustHaveFeatures.includes(feature)}
+                            onChange={() => handleCheckboxChange('mustHave', feature)}
+                            className="h-3 w-3 rounded border-gray-300 text-gray-900 focus:ring-0"
+                          />
+                          <span className="text-gray-600">{feature}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -396,6 +472,15 @@ export function SearchForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="flex justify-center">
+                  <Input
+                    type="text"
+                    placeholder="Any must have feature?"
+                    value={formData.customFeature}
+                    onChange={(e) => setFormData(prev => ({ ...prev, customFeature: e.target.value }))}
+                    className="w-64 h-9 px-3 bg-white/5 border border-white/10 text-gray-200 text-sm rounded-lg placeholder:text-gray-400"
+                  />
                 </div>
               </div>
             )}
