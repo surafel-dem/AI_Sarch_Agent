@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { SearchParams } from '@/components/search/search-params';
 import { useRouter } from 'next/navigation';
 import { ChatInterface } from '@/components/chat/chat-interface';
-import { ChatMessage, CarSpecs } from '@/types/search';
+import { ChatMessage, CarSpecs, SearchResponse } from '@/types/search';
 import { invokeSearchAgent } from '@/lib/search-api';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/contexts/auth-context';
@@ -111,14 +111,29 @@ export default function SearchPage() {
           timestamp: Date.now()
         });
 
+        // Transform webhook response to SearchResponse type
+        let searchResponse: SearchResponse;
+        if (response.type === 'car_listing') {
+          searchResponse = {
+            type: 'car_listing',
+            status: 'success',
+            matches: response.results?.length || 0,
+            results: response.results || []
+          };
+        } else {
+          searchResponse = {
+            type: 'text',
+            content: response.message
+          };
+        }
+
         const assistantMessage: ChatMessage = {
           role: 'assistant',
           content: response.message,
           timestamp: Date.now(),
           userId: user?.id || tempUserId,
           sessionId,
-          listings: response.listings,
-          sources: response.sources
+          response: searchResponse
         };
 
         setMessages([assistantMessage]);
@@ -149,6 +164,20 @@ export default function SearchPage() {
 
   return (
     <div className="relative min-h-screen flex flex-col">
+      {/* Initial Loading Indicator */}
+      {isLoading && !messages.length && (
+        <div className="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-50">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-75" />
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-150" />
+            </div>
+            <span className="text-sm text-gray-600">Finding the best matches...</span>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="max-w-4xl mx-auto px-4 flex flex-col min-h-full">

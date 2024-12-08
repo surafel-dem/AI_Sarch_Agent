@@ -16,6 +16,20 @@ export interface Car {
   details: CarDetails;
 }
 
+export interface CarListingResponse {
+  status: string;
+  type: 'car_listing';
+  matches: number;
+  results: Car[];
+}
+
+export interface TextResponse {
+  type: 'text';
+  content: string;
+}
+
+export type SearchResponse = CarListingResponse | TextResponse;
+
 export interface CarSpecs {
   make?: string;
   model?: string;
@@ -35,7 +49,7 @@ export interface CarSpecs {
 export interface Source {
   name: string;
   logo: string;
-  url?: string;
+  url: string;
 }
 
 export interface ChatMessage {
@@ -44,8 +58,7 @@ export interface ChatMessage {
   timestamp: number;
   userId: string;
   sessionId: string;
-  listings?: Car[];
-  sources?: Source[];
+  response?: SearchResponse;
 }
 
 export interface WebhookPayload {
@@ -57,23 +70,8 @@ export interface WebhookPayload {
 }
 
 export interface WebhookResponse {
+  type: 'car_listing' | 'text';
   message: string;
-  listings?: Array<{
-    title: string;
-    price: number;
-    year: number;
-    location: string;
-    url: string;
-  }>;
-  sources?: Array<{
-    title: string;
-    url: string;
-  }>;
-}
-
-export interface SearchResponse {
-  status: string;
-  type: string;
-  matches: number;
-  results: Car[];
+  results?: Car[];
+  output?: string;  // For responses that contain JSON wrapped in code blocks
 }

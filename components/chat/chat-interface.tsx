@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { CarSpecs, ChatMessage } from '@/types/search';
+import { CarSpecs, ChatMessage, SearchResponse } from '@/types/search';
 import { invokeSearchAgent } from '@/lib/search-api';
 import { Button } from '@/components/ui/button';
-import ReactMarkdown from 'react-markdown';
+import { SearchOutput } from '../search/search-output';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ChatInterfaceProps {
@@ -27,18 +27,17 @@ export function ChatInterface({
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const sendMessage = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!inputMessage.trim() || isLoading) return;
 
     const chatInput = inputMessage.trim();
+    setInputMessage('');
     
+    // Send user message
     const userMessage: ChatMessage = {
       role: 'user',
       content: chatInput,
@@ -46,11 +45,10 @@ export function ChatInterface({
       userId: user?.id || 'anonymous',
       sessionId: sessionId.current
     };
-
     onMessage(userMessage);
-    setInputMessage('');
 
     try {
+      // Get response from API
       const response = await invokeSearchAgent({
         sessionId: sessionId.current,
         chatInput,
@@ -59,14 +57,30 @@ export function ChatInterface({
         timestamp: Date.now()
       });
 
+      // Transform webhook response to SearchResponse type
+      let searchResponse: SearchResponse;
+      if (response.type === 'car_listing' && response.results?.length > 0) {
+        searchResponse = {
+          type: 'car_listing',
+          status: 'success',
+          matches: response.results.length,
+          results: response.results
+        };
+      } else {
+        searchResponse = {
+          type: 'text',
+          content: response.message || 'No results found'
+        };
+      }
+
+      // Create assistant message
       const assistantMessage: ChatMessage = {
         role: 'assistant',
         content: response.message,
         timestamp: Date.now(),
         userId: user?.id || 'anonymous',
         sessionId: sessionId.current,
-        listings: response.listings,
-        sources: response.sources
+        response: searchResponse
       };
 
       onMessage(assistantMessage);
@@ -82,124 +96,68 @@ export function ChatInterface({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || isLoading) return;
-
-    await sendMessage();
-  };
-
   return (
-    <div className="relative">
-      {/* Messages */}
-      <div className="space-y-4">
-        {messages.map((message, index) => (
-          <div key={index} className="flex justify-start">
-            <div
-              className={`max-w-[85%] rounded-lg px-4 py-2 ${
-                message.role === 'assistant'
-                  ? 'bg-gray-50 text-gray-900'
-                  : 'bg-purple-50 text-purple-900'
-              }`}
-            >
-              <ReactMarkdown
-                className={`prose max-w-none ${message.role === 'assistant' ? 'text-gray-900' : 'text-purple-900'}`}
-                components={{
-                  a: ({ node, ...props }) => (
-                    <a {...props} className="text-purple-600 hover:underline" target="_blank" rel="noopener noreferrer" />
-                  ),
-                }}
-              >
-                {message.content}
-              </ReactMarkdown>
-              {message.listings && message.listings.length > 0 && (
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  {message.listings.map((listing, index) => (
-                    <div key={index} className="bg-white p-4 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors">
-                      <h3 className="text-lg font-medium mb-2">{listing.title}</h3>
-                      <div className="space-y-2">
-                        <p className="text-lg font-semibold text-blue-600">
-                          €{listing.price.toLocaleString()}
-                        </p>
-                        <p className="text-gray-600 text-sm">
-                          {listing.year} • {listing.location}
-                        </p>
-                        <a 
-                          href={listing.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
-                        >
-                          View Details →
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {message.sources && message.sources.length > 0 && (
-                <div className="mt-4 text-sm text-gray-500">
-                  <p className="font-medium mb-1">Sources:</p>
-                  <ul className="space-y-1 list-disc list-inside">
-                    {message.sources.map((source, index) => (
-                      <li key={index}>
-                        <a 
-                          href={source.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          {source.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex items-center space-x-2 p-4">
-            <div className="w-1.5 h-1.5 bg-purple-300 rounded-full animate-bounce" />
-            <div className="w-1.5 h-1.5 bg-purple-300 rounded-full animate-bounce delay-100" />
-            <div className="w-1.5 h-1.5 bg-purple-300 rounded-full animate-bounce delay-200" />
-          </div>
-        )}
-        <div ref={chatEndRef} />
-      </div>
-
-      {/* Input Form */}
-      <div className="fixed bottom-6 left-0 right-0 mx-auto max-w-4xl px-4">
-        <form onSubmit={handleSubmit} className="flex items-center bg-white rounded-2xl shadow-sm">
-          <div className="flex-1 flex items-center pl-4">
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask follow up..."
-              className="flex-1 px-3 py-3.5 bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-900 placeholder:text-gray-400 text-[15px]"
-              disabled={isLoading}
-            />
-          </div>
-          <button 
-            type="submit" 
-            disabled={isLoading || !inputMessage.trim()}
-            className="mx-2 px-6 py-2 rounded-xl bg-[#A7C7FF] hover:bg-[#96B8FF] text-[#2D63E2] font-medium transition-colors disabled:opacity-50"
-          >
-            {isLoading ? (
-              <div className="w-4 h-4 relative">
-                <div className="absolute inset-0 border-2 border-[#2D63E2]/20 rounded-full"></div>
-                <div className="absolute inset-0 border-2 border-r-transparent border-[#2D63E2] animate-spin rounded-full"></div>
+    <div className="flex flex-col h-screen">
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto pb-36">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          {messages.map((message, index) => (
+            <div key={index} className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
+              <div className={`max-w-[85%] ${message.role === 'user' ? 'bg-blue-50' : 'bg-white'} rounded-xl border border-gray-200 p-4 my-2`}>
+                {message.role === 'assistant' ? (
+                  message.response ? (
+                    <SearchOutput response={message.response} />
+                  ) : (
+                    <p className="text-gray-700">{message.content}</p>
+                  )
+                ) : (
+                  <p className="text-gray-700">{message.content}</p>
+                )}
               </div>
-            ) : (
-              'Send'
-            )}
-          </button>
-        </form>
+            </div>
+          ))}
+
+          {/* AI Typing Indicator */}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="max-w-[85%] bg-white rounded-xl border border-gray-200 p-4 my-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-75" />
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-150" />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={chatEndRef} />
+        </div>
+      </div>
+      
+      {/* Fixed Chat Input */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="bg-gradient-to-t from-white via-white to-transparent h-32 pointer-events-none absolute inset-x-0 -top-32" />
+        <div className="bg-white border-t border-gray-200 shadow-lg">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Ask about cars..."
+                className="flex-1 rounded-lg border border-gray-200 p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isLoading}
+              />
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 transition-colors duration-200"
+              >
+                Send
+              </Button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
