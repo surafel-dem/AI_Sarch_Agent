@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { Webhook } from "svix";
 import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from 'next/server';
 
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
 
@@ -23,197 +24,156 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   },
 });
 
-async function syncUserToSupabase(clerkId: string, userData: { 
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  imageUrl?: string;
-}) {
-  console.log('Starting user sync to Supabase:', { clerkId, ...userData });
+async function handleUserCreated(event: WebhookEvent) {
+  const { id, email_addresses, image_url } = event.data;
   
   try {
-    // Check if user exists
-    const { data: existingUser, error: fetchError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("clerk_id", clerkId)
-      .single();
+    const { error: createError } = await supabase
+      .from('users')
+      .insert({
+        clerk_id: id,
+        email: email_addresses[0]?.email_address,
+        avatar_url: image_url,
+        subscription_tier: 'free',
+        subscription_status: 'active',
+        total_conversations: 0,
+        total_searches: 0,
+        message_count: 0,
+        token_usage: 0
+      });
 
-    console.log('Existing user check result:', { existingUser, error: fetchError });
-
-    if (fetchError && fetchError.code !== "PGRST116") {
-      console.error("Error checking for existing user:", fetchError);
-      throw fetchError;
+    if (createError) {
+      console.error('Error creating user in Supabase:', createError);
+      return false;
     }
-
-    const userDataToSync = {
-      ...(userData.email && { email: userData.email }),
-      ...(userData.imageUrl && { avatar_url: userData.imageUrl }),
-      updated_at: new Date().toISOString()
-    };
-
-    if (!existingUser) {
-      console.log('Creating new user in Supabase:', { clerkId, ...userDataToSync });
-      
-      const { data: newUser, error: insertError } = await supabase
-        .from("users")
-        .insert({
-          clerk_id: clerkId,
-          ...userDataToSync,
-          subscription_tier: 'free',
-          subscription_status: 'active',
-          total_conversations: 0,
-          total_searches: 0,
-          message_count: 0,
-          token_usage: 0
-        })
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error("Failed to create user in Supabase:", insertError);
-        throw insertError;
-      }
-
-      console.log('Successfully created user in Supabase:', newUser);
-      return newUser;
-    } else {
-      // Only update if there are changes
-      if (Object.keys(userDataToSync).length > 0) {
-        console.log('Updating existing user in Supabase:', { clerkId, ...userDataToSync });
-        
-        const { data: updatedUser, error: updateError } = await supabase
-          .from("users")
-          .update(userDataToSync)
-          .eq("clerk_id", clerkId)
-          .select()
-          .single();
-
-        if (updateError) {
-          console.error("Failed to update user in Supabase:", updateError);
-          throw updateError;
-        }
-
-        console.log('Successfully updated user in Supabase:', updatedUser);
-        return updatedUser;
-      }
-
-      console.log('No changes needed for user in Supabase:', existingUser);
-      return existingUser;
-    }
+    return true;
   } catch (error) {
-    console.error('Error in syncUserToSupabase:', error);
-    throw error;
+    console.error('Unexpected error creating user:', error);
+    return false;
   }
 }
 
-async function deleteUserFromSupabase(clerkId: string) {
-  console.log('Starting user deletion from Supabase:', clerkId);
-  
-  try {
-    const { error } = await supabase
-      .from("users")
-      .delete()
-      .eq("clerk_id", clerkId);
+async function handleUserUpdated(event: WebhookEvent) {
+  const { id, email_addresses, image_url } = event.data;
 
-    if (error) {
-      console.error("Failed to delete user from Supabase:", error);
-      throw error;
+  try {
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        email: email_addresses[0]?.email_address,
+        avatar_url: image_url,
+      })
+      .eq('clerk_id', id);
+
+    if (updateError) {
+      console.error('Error updating user in Supabase:', updateError);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Unexpected error updating user:', error);
+    return false;
+  }
+}
+
+async function handleUserDeleted(event: WebhookEvent) {
+  const { id } = event.data;
+
+  try {
+    // First, delete any related records in other tables
+    // For example, if you have a conversations table with user_id foreign key:
+    const { error: conversationsError } = await supabase
+      .from('conversations')
+      .delete()
+      .eq('user_id', id);
+
+    if (conversationsError) {
+      console.error('Error deleting user conversations:', conversationsError);
     }
 
-    console.log('Successfully deleted user from Supabase:', clerkId);
+    // Then delete the user record
+    const { error: deleteError } = await supabase
+      .from('users')
+      .delete()
+      .eq('clerk_id', id);
+
+    if (deleteError) {
+      console.error('Error deleting user from Supabase:', deleteError);
+      return false;
+    }
+    return true;
   } catch (error) {
-    console.error('Error in deleteUserFromSupabase:', error);
-    throw error;
+    console.error('Unexpected error deleting user:', error);
+    return false;
   }
 }
 
 export async function POST(req: Request) {
-  console.log('Webhook received at:', new Date().toISOString());
-  
+  // Get the headers
+  const headerPayload = headers();
+  const svix_id = headerPayload.get("svix-id");
+  const svix_timestamp = headerPayload.get("svix-timestamp");
+  const svix_signature = headerPayload.get("svix-signature");
+
+  // If there are no headers, error out
+  if (!svix_id || !svix_timestamp || !svix_signature) {
+    return new Response('Error occured -- no svix headers', {
+      status: 400
+    });
+  }
+
+  // Get the body
+  const payload = await req.json();
+  const body = JSON.stringify(payload);
+
+  // Create a new Svix instance with your webhook secret
+  const wh = new Webhook(webhookSecret);
+
+  let evt: WebhookEvent;
+
+  // Verify the payload with the headers
   try {
-    // Get the headers
-    const headersList = headers();
-    const svix_id = headersList.get("svix-id");
-    const svix_timestamp = headersList.get("svix-timestamp");
-    const svix_signature = headersList.get("svix-signature");
-
-    console.log('Webhook headers:', { svix_id, svix_timestamp, svix_signature });
-
-    if (!svix_id || !svix_timestamp || !svix_signature) {
-      console.error('Missing svix headers');
-      return new Response("Error occurred -- missing svix headers", {
-        status: 400,
-      });
-    }
-
-    // Get the body
-    const payload = await req.json();
-    const body = JSON.stringify(payload);
-    console.log('Webhook payload:', payload);
-
-    // Verify the webhook
-    const headerPayload = {
+    evt = wh.verify(body, {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
-    };
+    }) as WebhookEvent;
+  } catch (err) {
+    console.error('Error verifying webhook:', err);
+    return new Response('Error occured', {
+      status: 400
+    });
+  }
 
-    const wh = new Webhook(webhookSecret);
-    let evt: WebhookEvent;
-
-    try {
-      evt = wh.verify(body, headerPayload) as WebhookEvent;
-      console.log('Webhook verified successfully');
-    } catch (err) {
-      console.error("Error verifying webhook:", err);
-      return new Response("Error verifying webhook signature", {
-        status: 400,
-      });
-    }
-
-    const { id } = evt.data;
+  // Handle the webhook
+  try {
     const eventType = evt.type;
+    console.log(`Processing webhook event: ${eventType}`);
 
-    console.log('Processing webhook event:', { eventType, id, data: evt.data });
+    let success = false;
 
     switch (eventType) {
-      case "user.created":
-      case "user.updated": {
-        const { email_addresses, first_name, last_name, image_url } = evt.data;
-        const email = email_addresses?.[0]?.email_address;
-
-        console.log('Processing user create/update:', { email, first_name, last_name });
-
-        await syncUserToSupabase(id, {
-          email,
-          firstName: first_name,
-          lastName: last_name,
-          imageUrl: image_url,
-        });
+      case 'user.created':
+        success = await handleUserCreated(evt);
         break;
-      }
-      
-      case "user.deleted": {
-        console.log('Processing user deletion:', id);
-        await deleteUserFromSupabase(id);
+      case 'user.updated':
+        success = await handleUserUpdated(evt);
         break;
-      }
-
+      case 'user.deleted':
+        success = await handleUserDeleted(evt);
+        break;
       default:
-        console.log('Ignoring unhandled event type:', eventType);
+        console.log(`Unhandled webhook event type: ${eventType}`);
+        success = true; // Mark as success for events we don't handle
     }
 
-    console.log('Webhook processed successfully');
-    return new Response("Webhook processed successfully", { status: 200 });
+    if (!success) {
+      return new Response('Webhook processing failed', { status: 500 });
+    }
+
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('Unexpected error in webhook handler:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' }), 
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    console.error('Error processing webhook:', error);
+    return new Response('Webhook processing failed', { status: 500 });
   }
 }
