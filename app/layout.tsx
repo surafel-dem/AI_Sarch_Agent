@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { Sidebar } from '@/components/sidebar'
 import { Navbar } from '@/components/navbar'
 import { Toaster } from 'sonner'
+import { clerkConfig } from '@/lib/clerk-config'
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -36,7 +37,10 @@ export default function RootLayout({
           "font-poppins text-gray-900"
         )}
       >
-        <ClerkProvider>
+        <ClerkProvider 
+          {...clerkConfig}
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        >
           <div className="min-h-screen">
             <Sidebar />
             <Navbar />
