@@ -48,7 +48,7 @@ export function AIAssistant() {
         <div className="p-3">
           {/* Header */}
           <div className="flex items-center mb-3">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-sm mr-2">
+            <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shadow-sm mr-2">
               <span className="text-white text-xs font-bold">A</span>
             </div>
             <h2 className="text-sm font-medium text-foreground">Assistant</h2>

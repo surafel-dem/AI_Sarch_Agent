@@ -18,7 +18,7 @@ export function Navigation() {
   }
 
   return (
-    <nav className="z-[50] flex items-center justify-between px-6 py-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent h-20 backdrop-blur-[2px] text-white">
+    <nav className="z-[50] flex items-center justify-between px-6 py-3 bg-black/80 h-20 backdrop-blur-[2px] text-white">
       {/* Centered menu items */}
       <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-8">
         <button 

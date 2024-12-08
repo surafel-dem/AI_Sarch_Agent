@@ -9,6 +9,7 @@ export interface Car {
   model: string;
   year: number;
   price: number;
+  mileage?: number;
   location: string;
   description: string;
   transmission: string | null;
