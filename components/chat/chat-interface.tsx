@@ -97,13 +97,17 @@ export function ChatInterface({
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <>
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto pb-36">
-        <div className="max-w-3xl mx-auto px-4 py-4">
+      <div className="w-full h-[calc(100vh-144px)] overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-4 py-4 mb-32">
           {messages.map((message, index) => (
             <div key={index} className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
-              <div className={`max-w-[85%] ${message.role === 'user' ? 'bg-blue-50' : 'bg-white'} rounded-xl border border-gray-200 p-4 my-2`}>
+              <div className={`max-w-[85%] ${
+                message.role === 'user' 
+                  ? 'bg-orange-50 border-orange-100' 
+                  : 'bg-white'
+              } rounded-xl border border-gray-200 p-4 my-2 shadow-sm`}>
                 {message.role === 'assistant' ? (
                   message.response ? (
                     <SearchOutput response={message.response} />
@@ -119,14 +123,10 @@ export function ChatInterface({
 
           {/* AI Typing Indicator */}
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="max-w-[85%] bg-white rounded-xl border border-gray-200 p-4 my-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-75" />
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-150" />
-                </div>
-              </div>
+            <div className="flex items-center gap-1 px-4 py-2">
+              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse delay-75" />
+              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse delay-150" />
             </div>
           )}
           
@@ -135,9 +135,12 @@ export function ChatInterface({
       </div>
       
       {/* Fixed Chat Input */}
-      <div className="fixed bottom-0 left-0 right-0 z-50">
-        <div className="bg-gradient-to-t from-white via-white to-transparent h-32 pointer-events-none absolute inset-x-0 -top-32" />
-        <div className="bg-white border-t border-gray-200 shadow-lg">
+      <div className="fixed inset-x-0 bottom-0 bg-white z-50">
+        <div 
+          className="absolute inset-x-0 -top-32 h-32 bg-gradient-to-t from-white via-white to-transparent pointer-events-none"
+          style={{ maskImage: 'linear-gradient(to top, white, transparent)' }}
+        />
+        <div className="border-t border-gray-200">
           <div className="max-w-3xl mx-auto px-4 py-4">
             <form onSubmit={handleSubmit} className="flex gap-2">
               <input
@@ -145,13 +148,13 @@ export function ChatInterface({
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Ask about cars..."
-                className="flex-1 rounded-lg border border-gray-200 p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 rounded-lg border border-gray-200 p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 disabled={isLoading}
               />
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 transition-colors duration-200"
+                className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg px-4 py-2 transition-colors duration-200"
               >
                 Send
               </Button>
@@ -159,6 +162,6 @@ export function ChatInterface({
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

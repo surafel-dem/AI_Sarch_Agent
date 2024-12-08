@@ -26,15 +26,12 @@ export default function Home() {
   return (
     <main className="flex-1 pt-16">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-100/5 to-purple-300/10 blur-3xl" />
-        <div className="relative px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl py-20">
-            <div className="text-center">
-              <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-purple-400 to-purple-300 animate-gradient-x pb-2">
-                Find Your Perfect Car
-              </h1>
-            </div>
+      <div className="relative px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl py-20">
+          <div className="text-center">
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl text-gray-800">
+              Find Your Perfect Car
+            </h1>
           </div>
         </div>
       </div>

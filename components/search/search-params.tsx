@@ -1,114 +1,62 @@
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { SearchSelections } from '@/types/search';
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/card";
 
 interface SearchParamsProps {
-  selections: Record<string, any>;
-  onEdit?: () => void;
+  selections: SearchSelections;
 }
 
-export function SearchParams({ selections, onEdit }: SearchParamsProps) {
-  const groupedSelections = {
-    vehicle: {
-      title: "Vehicle Details",
-      items: [
-        { key: "location", label: "Location" },
-        { key: "make", label: "Make" },
-        { key: "model", label: "Model" },
-        { key: "year", label: "Year" },
-        { key: "transmission", label: "Transmission" },
-        { key: "fuelType", label: "Fuel Type" },
-      ],
-    },
-    price: {
-      title: "Price Range",
-      items: [
-        { key: "minPrice", label: "Min Price", prefix: "€" },
-        { key: "maxPrice", label: "Max Price", prefix: "€" },
-      ],
-    },
-    priorities: {
-      title: "Priorities",
-      items: [
-        { key: "priorities", label: "Priorities", isArray: true },
-      ],
-    },
-    mustHave: {
-      title: "Must Have Features",
-      items: [
-        { key: "mustHaveFeatures", label: "Features", isArray: true },
-      ],
-    },
-    additional: {
-      title: "Additional Requirements",
-      items: [
-        { key: "usage", label: "Usage" },
-        { key: "customFeature", label: "Custom Feature" },
-      ],
-    },
+export function SearchParams({ selections }: SearchParamsProps) {
+  const router = useRouter();
+
+  const selectionGroups = {
+    vehicle: ['make', 'model', 'year', 'vehicle_type'],
+    price: ['price_range', 'budget', 'price_min', 'price_max'],
+    location: ['location', 'distance'],
+    features: ['features', 'must_have_features', 'safety_features'],
+    preferences: ['fuel_efficiency', 'performance', 'comfort', 'style']
+  };
+
+  const getGroupValues = (fields: string[]) => {
+    return fields.flatMap(field => {
+      const value = selections[field as keyof SearchSelections];
+      if (!value || (Array.isArray(value) && value.length === 0)) return [];
+      return Array.isArray(value) ? value : [value];
+    });
   };
 
   return (
-    <div className="relative">
-      {onEdit && (
-        <Button
-          onClick={onEdit}
-          variant="outline"
-          size="sm"
-          className="absolute right-2 top-2 text-gray-500 hover:text-gray-700 bg-white border-gray-200"
+    <div className="bg-white border-b border-gray-200 py-2">
+      <div className="max-w-3xl mx-auto px-4 flex items-center gap-3">
+        <div className="flex-1 flex items-center gap-3 overflow-x-auto pb-1">
+          {Object.entries(selectionGroups).map(([group, fields]) => {
+            const values = getGroupValues(fields);
+            if (values.length === 0) return null;
+
+            return (
+              <div key={group} className="flex items-center gap-1.5 shrink-0">
+                {values.map((value, index) => (
+                  <Badge
+                    key={`${group}-${index}`}
+                    variant="secondary"
+                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm whitespace-nowrap"
+                  >
+                    {value}
+                  </Badge>
+                ))}
+                <div className="w-px h-4 bg-gray-200 last:hidden" />
+              </div>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => router.push('/')}
+          className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 hover:text-gray-900 rounded hover:bg-gray-100 transition-colors shrink-0"
         >
-          Edit
-        </Button>
-      )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {Object.entries(groupedSelections).map(([group, config]) => {
-          const hasValues = config.items.some((item) => {
-            const value = selections[item.key];
-            if (item.isArray) {
-              return Array.isArray(value) && value.length > 0;
-            }
-            return value && value !== "";
-          });
-
-          if (!hasValues) return null;
-
-          return (
-            <Card key={group} className="p-3 bg-white shadow-sm hover:shadow-md transition-shadow w-full">
-              <div className="mb-2">
-                <h3 className="text-sm font-medium text-gray-700">{config.title}</h3>
-              </div>
-              <div className="space-y-2">
-                {config.items.map((item) => {
-                  const value = selections[item.key];
-                  if (!value || (typeof value === "string" && value === "")) return null;
-                  
-                  if (item.isArray && Array.isArray(value)) {
-                    return (
-                      <div key={item.key} className="flex flex-wrap gap-1.5">
-                        {value.map((v, index) => (
-                          <Badge
-                            key={`${item.key}-${index}`}
-                            variant="secondary"
-                            className="bg-gray-50 text-gray-600 text-xs px-2 py-1 hover:bg-gray-100"
-                          >
-                            {v}
-                          </Badge>
-                        ))}
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div key={item.key} className="text-sm text-gray-600">
-                      <span className="font-medium">{item.label}:</span>{' '}
-                      <span>{item.prefix || ''}{value}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          );
-        })}
+          <PencilSquareIcon className="w-4 h-4" />
+          <span className="sr-only">Edit preferences</span>
+        </button>
       </div>
     </div>
   );

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SearchParams } from '@/components/search/search-params';
-import { useRouter } from 'next/navigation';
 import { ChatInterface } from '@/components/chat/chat-interface';
+import { useRouter } from 'next/navigation';
 import { ChatMessage, CarSpecs, SearchResponse } from '@/types/search';
 import { invokeSearchAgent } from '@/lib/search-api';
 import { v4 as uuidv4 } from 'uuid';
@@ -163,42 +163,22 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col">
-      {/* Initial Loading Indicator */}
-      {isLoading && !messages.length && (
-        <div className="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-50">
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-75" />
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-150" />
-            </div>
-            <span className="text-sm text-gray-600">Finding the best matches...</span>
-          </div>
+    <div className="flex flex-col h-screen">
+      {/* Header with Search Parameters */}
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <SearchParams selections={selections} />
         </div>
-      )}
+      </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto pb-24">
-        <div className="max-w-4xl mx-auto px-4 flex flex-col min-h-full">
-          {/* Search Params - Always Visible */}
-          <div className="sticky top-0 z-10 bg-white pt-6 pb-4 border-b">
-            <SearchParams 
-              selections={selections}
-              onEdit={() => router.push('/')}
-            />
-          </div>
-
-          {/* Chat Interface */}
-          <div className="flex-1 pt-4">
-            <ChatInterface
-              initialSpecs={selections}
-              messages={messages}
-              isLoading={isLoading}
-              onMessage={handleMessage}
-            />
-          </div>
-        </div>
+      {/* Chat Interface */}
+      <div className="flex-1">
+        <ChatInterface
+          initialSpecs={selections}
+          messages={messages}
+          isLoading={isLoading}
+          onMessage={handleMessage}
+        />
       </div>
     </div>
   );
