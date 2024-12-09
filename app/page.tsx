@@ -30,13 +30,12 @@ export default function Home() {
         <div className="mx-auto max-w-4xl py-12">
           <div className="text-center">
             <h1 className="text-[2.75rem] font-bold tracking-tight leading-tight">
-              <span className="[color:rgb(17,24,39)]">Build A Clear Path To</span>
+              <span className="[color:rgb(17,24,39)]">Find Your Best Car </span>
               <br />
-              <span className="text-[#2563EB]">Financial Freedom</span>
+              <span className="text-[#2563EB]">With AI Search Assistant</span>
             </h1>
             <p className="mt-4 text-lg leading-7 text-[#6B7280] max-w-3xl mx-auto">
-              Gain clear insights into your earnings, spending, and time. See how freelancers and agency owners
-              are making smarter decisions to reach their goals with Dashh.
+              Let Agents support your search and get the right car for you.
             </p>
           </div>
         </div>

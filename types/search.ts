@@ -38,16 +38,20 @@ export type SearchResponse = {
   type: 'car_listing' | 'text';
   message: string;
   results: Car[];
+  loading?: boolean;
 }
 
 export interface CarSpecs {
   make?: string;
   model?: string;
-  year?: number;
+  minYear?: number;
+  maxYear?: number;
   minPrice?: number;
   maxPrice?: number;
   location?: string;
   transmission?: string;
+  bodyType?: string;
+  fuelType?: string;
   keywords?: string[];
 }
 
@@ -58,12 +62,14 @@ export interface Source {
 }
 
 export interface ChatMessage {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
-  timestamp: number;
-  userId: string;
-  sessionId: string;
+  timestamp?: number;
+  userId?: string;
+  sessionId?: string;
   response?: SearchResponse;
+  isLoading?: boolean;
 }
 
 export interface WebhookPayload {
@@ -72,6 +78,8 @@ export interface WebhookPayload {
   chatInput?: string;
   carSpecs?: CarSpecs;
   timestamp: number;
+  searchResults?: any[];
+  initialSearch?: boolean;
 }
 
 export interface WebhookResponse {
@@ -105,11 +113,13 @@ export interface AIInsight {
 export interface SearchSession {
   session_id: string;
   clerk_id: string | null;
+  user_id: string;
   search_params: CarSpecs;
-  results: Car[] | null;
+  results?: any[];
   ai_insights: AIInsight | null;
   status: SearchSessionStatus;
   total_results: number | null;
   created_at: string;
   updated_at: string;
+  error_message?: string;
 }
