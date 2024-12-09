@@ -9,6 +9,29 @@
 :root {
   --font-poppins: 'Poppins', sans-serif;
   --radius: 0.5rem;
+  
+  /* Light theme variables with monochromatic colors */
+  --background: #ffffff;
+  --foreground: #111827;
+  --primary: #4B5563;
+  --primary-hover: #374151;
+  --secondary: #F3F4F6;
+  --border: #E5E7EB;
+  --text-secondary: #6B7280;
+  --card: 0 0% 100%;
+  --card-foreground: 215 25% 27%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 215 25% 27%;
+  --muted: 220 17% 97%;
+  --muted-foreground: 215 25% 27%;
+  --accent: 220 17% 97%;
+  --accent-foreground: 215 25% 27%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: #9CA3AF;
+  --foreground-rgb: 17, 24, 39;
+  --background-start-rgb: 249, 250, 251;
+  --background-end-rgb: 255, 255, 255;
 }
 
 .dark {
@@ -53,7 +76,6 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  color: rgb(var(--foreground));
   background: rgb(var(--background));
   font-family: var(--font-poppins);
   font-weight: 400;

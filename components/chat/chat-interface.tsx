@@ -105,17 +105,17 @@ export function ChatInterface({
             <div key={index} className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
               <div className={`max-w-[85%] ${
                 message.role === 'user' 
-                  ? 'bg-orange-50 border-orange-100' 
-                  : 'bg-white'
-              } rounded-xl border border-gray-200 p-4 my-2 shadow-sm`}>
+                  ? 'bg-[#2563EB]/10 border-[#2563EB]/20' 
+                  : 'bg-[#f8f8f8] border-gray-100'
+              } rounded-xl border p-4 my-2 shadow-sm`}>
                 {message.role === 'assistant' ? (
                   message.response ? (
                     <SearchOutput response={message.response} />
                   ) : (
-                    <p className="text-gray-700">{message.content}</p>
+                    <p className="text-[#14162E]">{message.content}</p>
                   )
                 ) : (
-                  <p className="text-gray-700">{message.content}</p>
+                  <p className="text-[#14162E]">{message.content}</p>
                 )}
               </div>
             </div>
@@ -124,9 +124,9 @@ export function ChatInterface({
           {/* AI Typing Indicator */}
           {isLoading && (
             <div className="flex items-center gap-1 px-4 py-2">
-              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
-              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse delay-75" />
-              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse delay-150" />
+              <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse delay-75" />
+              <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse delay-150" />
             </div>
           )}
           
@@ -148,13 +148,13 @@ export function ChatInterface({
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Ask about cars..."
-                className="flex-1 rounded-lg border border-gray-200 p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="flex-1 rounded-lg border border-gray-100 bg-[#f8f8f8] p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent text-[#14162E] placeholder:text-[#6B7280]"
                 disabled={isLoading}
               />
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg px-4 py-2 transition-colors duration-200"
+                className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-white rounded-lg px-4 py-2 transition-colors duration-200"
               >
                 Send
               </Button>

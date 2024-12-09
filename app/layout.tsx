@@ -29,12 +29,9 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen antialiased",
-          "bg-white",
-          "bg-[linear-gradient(to_bottom,rgba(247,247,255,1),rgba(255,255,255,1))]",
-          "-webkit-font-smoothing: antialiased",
-          "-moz-osx-font-smoothing: grayscale",
+          "bg-gradient-to-b from-[rgb(247,247,255)] to-white",
           poppins.variable,
-          "font-poppins text-gray-900"
+          "font-poppins"
         )}
       >
         <ClerkProvider 

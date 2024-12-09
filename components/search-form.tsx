@@ -56,9 +56,9 @@ const carModels = {
 type CarMake = keyof typeof carModels;
 
 // Styles for dropdowns
-const selectTriggerStyles = "h-9 px-3 bg-white rounded-lg border border-gray-200 shadow-sm data-[placeholder]:text-gray-500 text-sm relative [&>svg]:hidden hover:border-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-const selectContentStyles = "bg-white min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg shadow-md border border-gray-200 fixed"
-const selectItemStyles = "py-2 px-3 text-sm cursor-pointer data-[highlighted]:bg-blue-50 data-[highlighted]:text-blue-900"
+const selectTriggerStyles = "h-9 px-3 bg-[#f8f8f8] rounded-lg border border-gray-100 shadow-sm data-[placeholder]:text-[#6B7280] text-[#14162E] text-sm relative [&>svg]:hidden hover:border-[#2563EB] focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+const selectContentStyles = "bg-[#f8f8f8] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg shadow-md border border-gray-100 fixed"
+const selectItemStyles = "py-2 px-3 text-sm text-[#14162E] cursor-pointer data-[highlighted]:bg-[#2563EB]/10 data-[highlighted]:text-[#2563EB]"
 
 const locations = ["dublin", "cork", "galway", "limerick", "waterford", "belfast", "kilkenny"];
 const makes = ["volkswagen", "toyota", "bmw", "audi", "mercedes"];
@@ -251,8 +251,8 @@ export function SearchForm() {
                   className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
                     currentStep === num
-                      ? "bg-gray-600 text-white"
-                      : "bg-gray-50 text-gray-600"
+                      ? "bg-[#2563EB] text-white"
+                      : "bg-[#f8f8f8] text-[#6B7280]"
                   )}
                 >
                   {num}
@@ -261,7 +261,7 @@ export function SearchForm() {
                   <div
                     className={cn(
                       "w-12 h-0.5 mx-2",
-                      num < currentStep ? "bg-gray-600" : "bg-gray-200"
+                      num < currentStep ? "bg-[#2563EB]" : "bg-gray-100"
                     )}
                   />
                 )}
@@ -387,15 +387,15 @@ export function SearchForm() {
               {currentStep === 2 && (
                 <div className="space-y-4">
                   {/* Tab Headers */}
-                  <div className="flex space-x-1 border-b border-gray-200">
+                  <div className="flex space-x-1 border-b border-gray-100">
                     <button
                       type="button"
                       onClick={() => setActiveTab('priorities')}
                       className={cn(
-                        "px-3 py-1.5 text-sm font-medium rounded-t-lg",
+                        "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
                         activeTab === 'priorities'
-                          ? "bg-gray-100 text-gray-900 border-b-2 border-gray-900"
-                          : "text-gray-500 hover:text-gray-700"
+                          ? "bg-[#2563EB]/10 text-[#2563EB] border-b-2 border-[#2563EB]"
+                          : "bg-transparent text-[#6B7280] hover:text-[#2563EB]/70"
                       )}
                     >
                       Priorities
@@ -404,10 +404,10 @@ export function SearchForm() {
                       type="button"
                       onClick={() => setActiveTab('mustHave')}
                       className={cn(
-                        "px-3 py-1.5 text-sm font-medium rounded-t-lg",
+                        "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
                         activeTab === 'mustHave'
-                          ? "bg-gray-100 text-gray-900 border-b-2 border-gray-900"
-                          : "text-gray-500 hover:text-gray-700"
+                          ? "bg-[#2563EB]/10 text-[#2563EB] border-b-2 border-[#2563EB]"
+                          : "bg-transparent text-[#6B7280] hover:text-[#2563EB]/70"
                       )}
                     >
                       Must Have
@@ -427,9 +427,9 @@ export function SearchForm() {
                               type="checkbox"
                               checked={formData.priorities.includes(priority)}
                               onChange={() => handleCheckboxChange('priorities', priority)}
-                              className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              className="h-3 w-3 rounded border-[#2563EB]/30 text-[#2563EB] focus:ring-[#2563EB]/20"
                             />
-                            <span className="text-gray-600">{priority}</span>
+                            <span className="text-[#14162E]">{priority}</span>
                           </label>
                         ))}
                       </div>
@@ -446,9 +446,9 @@ export function SearchForm() {
                               type="checkbox"
                               checked={formData.mustHaveFeatures.includes(feature)}
                               onChange={() => handleCheckboxChange('mustHave', feature)}
-                              className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              className="h-3 w-3 rounded border-[#2563EB]/30 text-[#2563EB] focus:ring-[#2563EB]/20"
                             />
-                            <span className="text-gray-600">{feature}</span>
+                            <span className="text-[#14162E]">{feature}</span>
                           </label>
                         ))}
                       </div>
@@ -492,9 +492,10 @@ export function SearchForm() {
                   <Button
                     type="button"
                     onClick={prevStep}
-                    className="bg-gray-900 text-white hover:bg-gray-800 px-6"
+                    variant="outline"
+                    className="flex items-center gap-2"
                   >
-                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    <ChevronLeft className="w-4 h-4" />
                     Back
                   </Button>
                 )}
@@ -510,18 +511,18 @@ export function SearchForm() {
                     nextStep();
                   }
                 }}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-6"
+                className="flex items-center gap-2 bg-[#2563EB] text-white hover:bg-[#2563EB]/90"
                 disabled={!isFormValid()}
               >
                 {currentStep === 3 ? (
                   <>
                     Apply Filters
-                    <ChevronRight className="w-4 h-4 ml-2" />
+                    <ChevronRight className="w-4 h-4" />
                   </>
                 ) : (
                   <>
                     Next
-                    <ChevronRight className="w-4 h-4 ml-2" />
+                    <ChevronRight className="w-4 h-4" />
                   </>
                 )}
               </Button>

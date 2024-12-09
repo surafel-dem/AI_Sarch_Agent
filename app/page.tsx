@@ -27,18 +27,24 @@ export default function Home() {
     <main className="flex-1 pt-16">
       {/* Hero Section */}
       <div className="relative px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl py-20">
+        <div className="mx-auto max-w-4xl py-12">
           <div className="text-center">
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl text-gray-800">
-              Find Your Perfect Car
+            <h1 className="text-[2.75rem] font-bold tracking-tight leading-tight">
+              <span className="[color:rgb(17,24,39)]">Build A Clear Path To</span>
+              <br />
+              <span className="text-[#2563EB]">Financial Freedom</span>
             </h1>
+            <p className="mt-4 text-lg leading-7 text-[#6B7280] max-w-3xl mx-auto">
+              Gain clear insights into your earnings, spending, and time. See how freelancers and agency owners
+              are making smarter decisions to reach their goals with Dashh.
+            </p>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full">
-        <div className="container mx-auto px-4 py-8">
+      <div className="relative z-10 w-full -mt-4">
+        <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto space-y-8">
             <SearchForm />
             <QuickLinks />

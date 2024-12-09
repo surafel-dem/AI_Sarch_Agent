@@ -51,7 +51,7 @@ export function Sidebar() {
       >
         <div className="h-full pt-16 px-2 flex flex-col items-center">
           {/* Navigation */}
-          <nav className="space-y-4">
+          <nav className="flex flex-col gap-1 px-2 mt-24">
             {menuItems.map((item) => (
               <Link
                 key={item.label}
