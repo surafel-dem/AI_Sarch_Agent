@@ -5,15 +5,14 @@ import { config } from './config'
 const supabaseUrl = config.supabase.url
 const supabaseAnonKey = config.supabase.anonKey
 
-// Create Supabase client without auth
+// Create Supabase client
 export const supabase = createClient<Database>(
   supabaseUrl, 
   supabaseAnonKey,
   {
     auth: {
-      persistSession: false, // Disable Supabase auth persistence
-      autoRefreshToken: false,
-      detectSessionInUrl: false
+      persistSession: false,
+      autoRefreshToken: false
     }
   }
 )

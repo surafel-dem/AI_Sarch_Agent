@@ -22,10 +22,29 @@ export default function SearchPage() {
   const [tempUserId] = useState(() => generateCleanId());
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [chatInput, setChatInput] = useState('');
   const searchResultsRef = useRef<HTMLDivElement>(null);
   const aiAnalysisRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const updateAuth = async () => {
+      if (user) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          try {
+            await supabase.auth.setSession({
+              access_token: session.access_token,
+              refresh_token: session.refresh_token || ''
+            });
+            console.log('Auth session updated');
+          } catch (error) {
+            console.error('Failed to set auth session:', error);
+          }
+        }
+      }
+    };
+    
+    updateAuth();
+  }, [user]);
 
   const scrollToBottom = (container: HTMLDivElement | null) => {
     if (container) {
@@ -42,262 +61,114 @@ export default function SearchPage() {
     let searchSessionId = null;
 
     try {
+      console.log('Starting search with filters:', filters);
+
+      // Build the query
+      let query = supabase
+        .from('car_list')
+        .select('*');
+
+      // Apply filters
+      if (filters.make) {
+        query = query.ilike('make', `%${filters.make}%`);
+      }
+      if (filters.model) {
+        query = query.ilike('model', `%${filters.model}%`);
+      }
+      if (filters.minYear) {
+        query = query.gte('year', filters.minYear);
+      }
+      if (filters.maxYear) {
+        query = query.lte('year', filters.maxYear);
+      }
+      if (filters.minPrice) {
+        query = query.gte('price', filters.minPrice);
+      }
+      if (filters.maxPrice) {
+        query = query.lte('price', filters.maxPrice);
+      }
+
+      // Execute query
+      const { data: cars, error: queryError } = await query;
+
+      if (queryError) {
+        console.error('Query error:', queryError);
+        throw queryError;
+      }
+
+      console.log('Query results:', {
+        count: cars?.length || 0,
+        firstResult: cars?.[0],
+        filters
+      });
+
       // Create initial search session
       const initialSession = {
         clerk_id: user?.id || null,
         search_params: filters,
-        status: 'pending',
-        total_results: null,
-        results: null,
+        status: 'completed',
+        total_results: cars?.length || 0,
+        results: cars || [],
         ai_insights: null
       };
 
-      console.log('Creating search session:', initialSession);
-
+      // Create search session
       const { data: sessionData, error: sessionError } = await supabase
         .from('search_sessions')
         .insert([initialSession])
-        .select('*')
+        .select()
         .single();
 
       if (sessionError) {
-        console.error('Failed to create search session:', sessionError);
-        throw new Error(`Failed to create search session: ${sessionError.message}`);
+        console.error('Session creation error:', sessionError);
+      } else {
+        searchSessionId = sessionData.session_id;
+        console.log('Search session created:', { session_id: searchSessionId });
       }
 
-      searchSessionId = sessionData.session_id;
-      console.log('Created search session:', { session_id: searchSessionId });
-
-      // Create a new message for this search with loading state
+      // Create and add message
       const newMessage: ChatMessage = {
         id: generateCleanId(),
         role: 'user',
-        content: 'Search initiated',
+        content: `Found ${cars?.length || 0} matching vehicles`,
         timestamp: Date.now(),
         userId: user?.id || tempUserId,
-        sessionId: searchSessionId, // Use the actual session ID
+        sessionId: searchSessionId,
         carSpecs: filters,
-        isLoading: true,
+        isLoading: false,
         response: {
           type: 'car_listing',
           message: '',
-          results: [],
-          loading: true
+          results: cars || [],
+          loading: false
         }
       };
 
-      // Add the new message to the list
       setMessages(prev => [...prev, newMessage]);
-
-      // Scroll to show the loading state
-      setTimeout(() => scrollToBottom(searchResultsRef.current), 100);
-
-      // Build Supabase query based on car specs
-      let query = supabase
-        .from('car_list')
-        .select('*');  // Start with selecting all columns for debugging
-
-      console.log('Initial query built');
-
-      // Debug log the filters
-      console.log('Raw filters received:', filters);
-
-      if (filters) {
-        // Add filters based on carSpecs
-        if (filters.make && filters.make !== 'all') {
-          console.log('Adding make filter:', filters.make);
-          query = query.ilike('make', `%${filters.make}%`);
-        }
-        if (filters.model && filters.model !== 'all') {
-          console.log('Adding model filter:', filters.model);
-          query = query.ilike('model', `%${filters.model}%`);
-        }
-        if (filters.location && filters.location !== 'all') {
-          console.log('Adding location filter:', filters.location);
-          query = query.ilike('location', `%${filters.location}%`);
-        }
-        if (filters.minYear) {
-          const minYear = parseInt(filters.minYear);
-          if (!isNaN(minYear)) {
-            console.log('Adding minYear filter:', minYear);
-            query = query.gte('year', minYear);
-          }
-        }
-        if (filters.maxYear) {
-          const maxYear = parseInt(filters.maxYear);
-          if (!isNaN(maxYear)) {
-            console.log('Adding maxYear filter:', maxYear);
-            query = query.lte('year', maxYear);
-          }
-        }
-        if (filters.minPrice) {
-          const minPrice = parseFloat(filters.minPrice);
-          if (!isNaN(minPrice)) {
-            console.log('Adding minPrice filter:', minPrice);
-            query = query.gte('price', minPrice);
-          }
-        }
-        if (filters.maxPrice) {
-          const maxPrice = parseFloat(filters.maxPrice);
-          if (!isNaN(maxPrice)) {
-            console.log('Adding maxPrice filter:', maxPrice);
-            query = query.lte('price', maxPrice);
-          }
-        }
-      }
-
-      // Execute query
-      console.log('Executing Supabase query...');
-      const { data: cars, error: supabaseError } = await query
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (supabaseError) {
-        console.error('Supabase query error:', {
-          message: supabaseError.message,
-          details: supabaseError.details,
-          hint: supabaseError.hint,
-          code: supabaseError.code
-        });
-        throw new Error(`Supabase query failed: ${supabaseError.message}`);
-      }
-
-      // Debug log the results
-      console.log('Query results:', {
-        count: cars?.length || 0,
-        firstResult: cars?.[0],
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      });
-
       searchResults = cars;
-
-      // Update search session with results
-      const { error: updateError } = await supabase
-        .from('search_sessions')
-        .update({
-          results: cars,
-          total_results: cars?.length || 0,
-          status: 'completed'
-        })
-        .eq('session_id', searchSessionId);
-
-      if (updateError) {
-        console.error('Failed to update search session:', updateError);
-      }
-
-      // Update the message with the response
-      setMessages(prev => prev.map(msg => 
-        msg.id === newMessage.id 
-          ? {
-              ...msg,
-              response: {
-                type: 'car_listing',
-                message: `Found ${cars?.length || 0} matching vehicles`,
-                results: cars || [],
-                loading: false
-              },
-              isLoading: false
-            }
-          : msg
-      ));
-
-      try {
-        // Trigger AI analysis
-        console.log('Sending AI analysis request with data:', {
-          sessionId,
-          resultsCount: cars?.length,
-          userId: user?.id || tempUserId,
-          filters
-        });
-
-        const aiResponse = await fetch('https://n8n.yotor.co/webhook/invoke_agent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_AGENT_TOKEN}`,
-            'X-Session-ID': sessionId
-          },
-          body: JSON.stringify({
-            sessionId,
-            searchResults: cars,
-            userId: user?.id || tempUserId,
-            timestamp: Date.now(),
-            carSpecs: filters,
-            token: process.env.NEXT_PUBLIC_AGENT_TOKEN
-          }),
-        });
-
-        if (!aiResponse.ok) {
-          console.error('AI analysis failed:', {
-            status: aiResponse.status,
-            statusText: aiResponse.statusText,
-            url: aiResponse.url,
-            token: process.env.NEXT_PUBLIC_AGENT_TOKEN ? 'Present' : 'Missing'
-          });
-          
-          // Add a message to inform the user
-          setMessages(prev => prev.map(msg => 
-            msg.id === newMessage.id 
-              ? {
-                  ...msg,
-                  content: `Found ${cars?.length || 0} matching vehicles. AI analysis is currently unavailable.`
-                }
-              : msg
-          ));
-          return;
-        }
-
-        const aiData = await aiResponse.json();
-        console.log('AI analysis response:', aiData);
-
-        // Update the message with AI analysis
-        setMessages(prev => prev.map(msg => 
-          msg.id === newMessage.id 
-            ? {
-                ...msg,
-                content: aiData.content || `Found ${cars?.length || 0} matching vehicles`
-              }
-            : msg
-        ));
-      } catch (aiError) {
-        console.error('AI analysis error:', aiError);
-        // Don't throw the error, just log it
-      }
 
     } catch (error) {
       console.error('Search failed:', error);
       
-      // Update session status to failed if we have a session ID
-      if (searchSessionId) {
-        try {
-          await supabase
-            .from('search_sessions')
-            .update({
-              status: 'failed'
-            })
-            .eq('session_id', searchSessionId);
-        } catch (updateError) {
-          console.error('Failed to update session status:', updateError);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: generateCleanId(),
+          role: 'system',
+          content: 'Search failed. Please try again.',
+          timestamp: Date.now(),
+          userId: user?.id || tempUserId,
+          sessionId: null,
+          carSpecs: filters,
+          isLoading: false,
+          response: {
+            type: 'car_listing',
+            message: 'Error occurred',
+            results: [],
+            loading: false
+          }
         }
-      }
-
-      // Handle error state
-      setMessages(prev => prev.map(msg => 
-        msg.id === newMessage.id 
-          ? {
-              ...msg,
-              content: 'Search failed. Please try again.',
-              response: {
-                type: 'car_listing',
-                message: 'Search failed',
-                results: [],
-                loading: false
-              },
-              isLoading: false
-            }
-          : msg
-      ));
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -373,11 +244,11 @@ export default function SearchPage() {
               <form onSubmit={handleChatSubmit} className="flex gap-2">
                 <Input
                   placeholder="Ask about the search results..."
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
+                  value=""
+                  onChange={(e) => {}}
                   className="flex-1"
                 />
-                <Button type="submit" size="sm" disabled={isLoading || isAiLoading}>
+                <Button type="submit" size="sm" disabled={isLoading}>
                   Send
                 </Button>
               </form>
