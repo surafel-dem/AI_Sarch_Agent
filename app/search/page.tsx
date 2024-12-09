@@ -85,36 +85,52 @@ export default function SearchPage() {
     let searchSessionId = null;
 
     try {
-      console.log('Starting search with filters:', filters);
+      console.log('=== Starting new search ===');
+      console.log('Filters received:', JSON.stringify(filters, null, 2));
 
       // Get user identifier
       const userInfo = getUserIdentifier();
-      console.log('Search initiated by:', userInfo);
+      console.log('User info:', JSON.stringify(userInfo, null, 2));
 
       // Build the query for car search
       let query = supabase
         .from('car_list')
         .select('*');
 
-      // Apply filters
-      if (filters.make) {
-        query = query.ilike('make', `%${filters.make}%`);
+      // Apply non-empty filters
+      const appliedFilters: Record<string, any> = {};
+
+      if (filters.make && filters.make.trim() !== '') {
+        appliedFilters.make = filters.make.trim();
+        query = query.ilike('make', `%${appliedFilters.make}%`);
       }
-      if (filters.model) {
-        query = query.ilike('model', `%${filters.model}%`);
+      
+      if (filters.model && filters.model.trim() !== '') {
+        appliedFilters.model = filters.model.trim();
+        query = query.ilike('model', `%${appliedFilters.model}%`);
       }
-      if (filters.minYear) {
-        query = query.gte('year', filters.minYear);
+      
+      if (filters.minYear && !isNaN(Number(filters.minYear))) {
+        appliedFilters.minYear = Number(filters.minYear);
+        query = query.gte('year', appliedFilters.minYear);
       }
-      if (filters.maxYear) {
-        query = query.lte('year', filters.maxYear);
+      
+      if (filters.maxYear && !isNaN(Number(filters.maxYear))) {
+        appliedFilters.maxYear = Number(filters.maxYear);
+        query = query.lte('year', appliedFilters.maxYear);
       }
-      if (filters.minPrice) {
-        query = query.gte('price', filters.minPrice);
+      
+      if (filters.minPrice && !isNaN(Number(filters.minPrice))) {
+        appliedFilters.minPrice = Number(filters.minPrice);
+        query = query.gte('price', appliedFilters.minPrice);
       }
-      if (filters.maxPrice) {
-        query = query.lte('price', filters.maxPrice);
+      
+      if (filters.maxPrice && !isNaN(Number(filters.maxPrice))) {
+        appliedFilters.maxPrice = Number(filters.maxPrice);
+        query = query.lte('price', appliedFilters.maxPrice);
       }
+
+      console.log('Applied filters:', JSON.stringify(appliedFilters, null, 2));
 
       // Execute query
       const { data: cars, error: queryError } = await query;
@@ -125,46 +141,68 @@ export default function SearchPage() {
       }
 
       console.log('Query results:', {
-        count: cars?.length || 0,
-        firstResult: cars?.[0],
-        filters
+        totalResults: cars?.length || 0,
+        appliedFilters: Object.keys(appliedFilters),
+        results: cars?.map(car => ({
+          id: car.id,
+          make: car.make,
+          model: car.model,
+          year: car.year,
+          price: car.price
+        }))
       });
 
       // Create initial search session
-      const initialSession = {
-        clerk_id: userInfo.clerk_id,
-        user_type: userInfo.user_type,
-        user_email: userInfo.email,
-        search_params: filters,
-        status: 'completed',
-        total_results: cars?.length || 0,
-        results: cars || [],
-        ai_insights: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      // Create search session - for anonymous users or when user exists
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('search_sessions')
-        .insert([initialSession])
-        .select()
-        .single();
-
-      if (sessionError) {
-        console.error('Session creation error:', sessionError);
-        // If the error is about the user not existing, we can ignore it for anonymous users
-        if (userInfo.user_type === 'anonymous' || sessionError.code !== '23503') {
-          throw sessionError;
+      try {
+        const userInfo = getUserIdentifier();
+        console.log('User info for session:', userInfo);
+        
+        // Skip session creation for anonymous users for now
+        if (userInfo.user_type === 'anonymous') {
+          console.log('Skipping session creation for anonymous user');
+          searchResults = cars;
+          return;
         }
-      } else {
-        searchSessionId = sessionData.session_id;
-        console.log('Search session created:', { 
-          session_id: searchSessionId,
-          user_type: userInfo.user_type,
-          clerk_id: userInfo.clerk_id
-        });
+
+        // Prepare session data with proper typing
+        const sessionData = {
+          id: crypto.randomUUID(), // Add an id field
+          clerk_id: userInfo.clerk_id,
+          filters: appliedFilters || {},
+          results_count: cars?.length || 0,
+          created_at: new Date().toISOString(),
+          status: 'completed' as const // Add status field
+        };
+
+        console.log('Creating search session with data:', JSON.stringify(sessionData, null, 2));
+
+        // Create the search session
+        const { data: session, error: sessionError } = await supabase
+          .from('search_sessions')
+          .insert([sessionData]) // Wrap in array as per Supabase requirements
+          .select('*')
+          .single();
+
+        if (sessionError) {
+          console.error('Error creating search session:', {
+            error: sessionError,
+            data: sessionData
+          });
+          // Continue execution even if session creation fails
+        } else {
+          searchSessionId = session.id;
+          console.log('Search session created successfully:', {
+            sessionId: session.id,
+            filters: appliedFilters,
+            resultsCount: cars?.length || 0
+          });
+        }
+      } catch (error) {
+        console.error('Error in session creation:', error);
       }
+
+      // Set the results regardless of session creation success
+      searchResults = cars;
 
       // Create and add message
       const newMessage: ChatMessage = {
@@ -185,7 +223,6 @@ export default function SearchPage() {
       };
 
       setMessages(prev => [...prev, newMessage]);
-      searchResults = cars;
 
     } catch (error) {
       console.error('Search failed:', error);

@@ -46,3 +46,21 @@ export const createAdminSupabase = () => {
 };
 
 export type User = Database['public']['Tables']['users']['Row'];
+
+/*
+-- Check table structure
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'car_list';
+
+-- Check sample data
+SELECT DISTINCT make, model 
+FROM car_list 
+ORDER BY make, model;
+
+-- Check data case sensitivity
+SELECT make, COUNT(*) 
+FROM car_list 
+GROUP BY make 
+ORDER BY make;
+*/
