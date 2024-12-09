@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 
 interface FilterFormProps {
-  onSubmit: (filters: {
+  onSearch: (filters: {
     location?: string;
     make?: string;
     model?: string;
@@ -21,9 +21,10 @@ interface FilterFormProps {
     minYear?: string;
     maxYear?: string;
   }) => void;
+  isLoading?: boolean;
 }
 
-export function FilterForm({ onSubmit }: FilterFormProps) {
+export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
   const [filters, setFilters] = useState({
     location: '',
     make: '',
@@ -36,7 +37,7 @@ export function FilterForm({ onSubmit }: FilterFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(filters);
+    onSearch(filters);
   };
 
   return (
@@ -119,8 +120,8 @@ export function FilterForm({ onSubmit }: FilterFormProps) {
             onChange={(e) => setFilters({ ...filters, maxYear: e.target.value })}
           />
         </div>
-        <Button type="submit" size="sm" className="h-9">
-          Apply
+        <Button type="submit" size="sm" className="h-9" disabled={isLoading}>
+          {isLoading ? 'Searching...' : 'Apply'}
         </Button>
       </div>
     </form>

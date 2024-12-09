@@ -9,7 +9,6 @@ import { SearchOutput } from '@/components/search/search-output';
 import { FilterForm } from "@/components/filter-form";
 import { SearchDivider } from '@/components/search/search-divider';
 import { ChatMessage, CarSpecs } from '@/types/search';
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/lib/supabase';
 
@@ -265,77 +264,56 @@ export default function SearchPage() {
   }, []);
 
   return (
-    <main className="flex min-h-screen flex-col">
-      {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel - Search Results and Filter */}
-        <div className="w-[60%] border-r border-gray-200 flex flex-col relative">
-          {/* Search Results */}
+    <div className="flex h-screen">
+      {/* Left Panel - Search Results */}
+      <div className="w-1/2 relative">
+        <div className="h-screen flex flex-col relative">
+          {/* Scrollable Results */}
           <div 
             ref={searchResultsRef}
-            className="flex-1 overflow-y-auto pb-32"
+            className="flex-grow overflow-y-auto px-4 py-4"
+            style={{ paddingBottom: '180px' }} // Space for the filter form
           >
-            <div className="container mx-auto p-4 space-y-4">
-              {messages.map((message, index) => (
-                <div key={message.id || index}>
-                  {message.response && (
-                    <>
-                      <SearchDivider 
-                        filters={message.carSpecs || {}} 
-                        timestamp={message.timestamp}
-                      />
-                      <SearchOutput message={message} />
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
+            {messages.map((message) => (
+              <div key={message.id} className="mb-4">
+                <SearchOutput message={message} />
+              </div>
+            ))}
           </div>
 
-          {/* Search Filter Form - Floating at Bottom */}
-          <div className="absolute bottom-4 left-0 right-0 mx-4">
-            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg shadow-sm">
-              <FilterForm onSubmit={handleSearch} isLoading={isLoading} />
+          {/* Fixed Filter Form at Bottom */}
+          <div className="fixed bottom-4 left-0 w-[50%] px-4 z-10">
+            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg shadow-lg p-4">
+              <FilterForm onSearch={handleSearch} isLoading={isLoading} />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Right Panel - AI Analysis */}
-        <div className="w-[40%] flex flex-col relative">
+      {/* Right Panel - AI Analysis */}
+      <div className="w-1/2 border-l relative">
+        <div className="h-screen flex flex-col relative">
           <div 
             ref={aiAnalysisRef}
-            className="flex-1 overflow-y-auto pb-32"
+            className="flex-grow overflow-y-auto px-4 py-4"
+            style={{ paddingBottom: '100px' }} // Space for the chat input
           >
-            <div className="container mx-auto p-4">
-              {messages.map((message, index) => (
-                message.response?.type === 'car_listing' ? (
-                  <div key={`analysis-${index}`} className="space-y-4">
-                    {message.response.loading ? (
-                      <div className="animate-pulse space-y-4">
-                        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                        <div className="space-y-2">
-                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-[#f8f8f8] rounded-lg p-4">
-                        <h3 className="font-medium text-[#14162E] mb-2">Analysis</h3>
-                        <div className="space-y-2 text-sm text-gray-600">
-                          <p>• {message.response.message}</p>
-                          {message.content && <p>{message.content}</p>}
-                        </div>
-                      </div>
-                    )}
+            {messages.map((message) => (
+              <div key={message.id} className="mb-4">
+                {message.response?.aiResponse && (
+                  <div className="bg-white rounded-lg shadow p-4">
+                    <ReactMarkdown>
+                      {message.response.aiResponse}
+                    </ReactMarkdown>
                   </div>
-                ) : null
-              ))}
-            </div>
+                )}
+              </div>
+            ))}
           </div>
 
-          {/* Chat Input - Floating at Bottom */}
-          <div className="absolute bottom-4 left-0 right-0 mx-4">
-            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg shadow-sm p-4">
+          {/* Fixed Chat Input at Bottom */}
+          <div className="fixed bottom-4 right-0 w-[50%] px-4 z-10">
+            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg shadow-lg p-4">
               <form onSubmit={handleChatSubmit} className="flex gap-2">
                 <Input
                   placeholder="Ask about the search results..."
@@ -343,7 +321,7 @@ export default function SearchPage() {
                   onChange={(e) => setChatInput(e.target.value)}
                   className="flex-1"
                 />
-                <Button type="submit" size="sm" disabled={isLoading}>
+                <Button type="submit" size="sm" disabled={isLoading || isAiLoading}>
                   Send
                 </Button>
               </form>
@@ -351,6 +329,6 @@ export default function SearchPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
