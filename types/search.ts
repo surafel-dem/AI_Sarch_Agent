@@ -1,20 +1,25 @@
-export interface CarDetails {
-  fuel_type: string | null;
-  body_type: string | null;
-}
-
 export interface Car {
   listing_id: string;
   make: string;
-  model: string;
-  year: number;
-  price: number;
-  mileage?: number;
+  model: string | null;
+  year: number | null;
+  price: number | null;
+  engine: number | null;
   location: string;
-  description: string;
+  seller: string | null;
+  description: string | null;
+  url: string | null;
+  created_at: string | null;
+  updated_at: string | null;
   transmission: string | null;
   listing_status: string | null;
-  details: CarDetails;
+  processed_for_details: boolean | null;
+  first_seen: string | null;
+}
+
+export interface CarDetails {
+  fuel_type: string | null;
+  body_type: string | null;
 }
 
 export interface CarListingResponse {
@@ -29,22 +34,21 @@ export interface TextResponse {
   content: string;
 }
 
-export type SearchResponse = CarListingResponse | TextResponse;
+export type SearchResponse = {
+  type: 'car_listing' | 'text';
+  message: string;
+  results: Car[];
+}
 
 export interface CarSpecs {
   make?: string;
   model?: string;
-  minYear?: number;
-  maxYear?: number;
+  year?: number;
   minPrice?: number;
   maxPrice?: number;
   location?: string;
-  mileage?: number;
-  features?: string[];
-  priorities?: string[];
-  mustHaveFeatures?: string[];
-  usage?: string;
-  customFeature?: string;
+  transmission?: string;
+  keywords?: string[];
 }
 
 export interface Source {
@@ -65,7 +69,7 @@ export interface ChatMessage {
 export interface WebhookPayload {
   userId?: string;
   sessionId: string;
-  chatInput: string;
+  chatInput?: string;
   carSpecs?: CarSpecs;
   timestamp: number;
 }
@@ -75,4 +79,37 @@ export interface WebhookResponse {
   message: string;
   results?: Car[];
   output?: string;  // For responses that contain JSON wrapped in code blocks
+}
+
+export type SearchSessionStatus = 
+  | 'pending'      // Initial state
+  | 'searching'    // Querying database
+  | 'ai_processing' // AI generating insights
+  | 'completed'    // Everything done
+  | 'failed';      // Error occurred
+
+export interface AIInsight {
+  summary: string;
+  priceAnalysis?: {
+    marketPosition: string;
+    priceRange: {
+      min: number;
+      max: number;
+      average: number;
+    };
+  };
+  recommendations?: string[];
+  marketTrends?: string[];
+}
+
+export interface SearchSession {
+  session_id: string;
+  clerk_id: string | null;
+  search_params: CarSpecs;
+  results: Car[] | null;
+  ai_insights: AIInsight | null;
+  status: SearchSessionStatus;
+  total_results: number | null;
+  created_at: string;
+  updated_at: string;
 }

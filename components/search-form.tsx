@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -17,6 +17,7 @@ import { WebhookPayload, CarSpecs } from '@/types/search'
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";  
+import debounce from 'lodash/debounce';
 
 // Car makes and models data
 const carModels = {
@@ -134,83 +135,79 @@ export function SearchForm() {
     return step1Fields.some(value => Boolean(value));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Prevent automatic submission
-    if (!autoSubmitted) {
-      setAutoSubmitted(true);
-      return;
-    }
-    
-    // Only validate step 1 fields
-    if (!isFormValid()) {
-      setError('Please make at least one selection in step 1 before searching.');
-      setCurrentStep(1); // Return to step 1 if validation fails
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-    
-    try {
-      const sessionId = uuidv4();
-      
-      // Build search URL with parameters
-      const searchParams = new URLSearchParams();
-      
-      // Add session and user IDs
-      searchParams.append('sessionId', sessionId);
-      if (user?.id) {
-        searchParams.append('userId', user.id);
+  const debouncedSubmit = useCallback(
+    debounce(async (formData: FormData) => {
+      setError('');
+      if (!isFormValid()) {
+        setError('Please make at least one selection in step 1 before searching.');
+        return;
       }
 
-      // Prepare webhook payload with only selected values
-      const selectedValues = Object.entries(formData)
-        .filter(([key, value]) => {
-          if (!value) return false;
-          if (Array.isArray(value)) return value.length > 0;
-          return true;
-        })
-        .reduce((acc, [key, value]) => {
-          acc[key] = value;
-          return acc;
-        }, {} as Record<string, any>);
-
-      // Create chat input from selected values
-      const chatInput = Object.entries(selectedValues)
-        .map(([key, value]) => {
-          if (key === 'make') return `Make: ${value}`;
-          if (key === 'model') return `Model: ${value}`;
-          if (key === 'location') return `Location: ${value}`;
-          if (key === 'minPrice') return `Min Price: €${value}`;
-          if (key === 'maxPrice') return `Max Price: €${value}`;
-          if (key === 'minYear') return `Min Year: ${value}`;
-          if (key === 'maxYear') return `Max Year: ${value}`;
-          if (key === 'features') return `Features: ${(value as string[]).join(', ')}`;
-          if (key === 'usage') return `Usage: ${value}`;
-          return '';
-        })
-        .filter(Boolean)
-        .join(', ');
-
-      // Add chatInput and all selected values to URL params
-      searchParams.append('chatInput', chatInput);
-      Object.entries(selectedValues).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          searchParams.append(key, value.join(','));
-        } else {
-          searchParams.append(key, String(value));
+      try {
+        const sessionId = uuidv4();
+        
+        // Build search URL with parameters
+        const searchParams = new URLSearchParams();
+        
+        // Add session and user IDs
+        searchParams.append('sessionId', sessionId);
+        if (user?.id) {
+          searchParams.append('userId', user.id);
         }
-      });
 
-      // Navigate to search page with all parameters
-      window.location.href = `/search?${searchParams.toString()}`;
-    } catch (error) {
-      console.error('Error during form submission:', error);
-      setError('An error occurred while processing your request. Please try again.');
-      setIsSubmitting(false);
-    }
+        // Prepare webhook payload with only selected values
+        const selectedValues = Object.entries(formData)
+          .filter(([key, value]) => {
+            if (!value) return false;
+            if (Array.isArray(value)) return value.length > 0;
+            return true;
+          })
+          .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          }, {} as Record<string, any>);
+
+        // Create chat input from selected values
+        const chatInput = Object.entries(selectedValues)
+          .map(([key, value]) => {
+            if (key === 'make') return `Make: ${value}`;
+            if (key === 'model') return `Model: ${value}`;
+            if (key === 'location') return `Location: ${value}`;
+            if (key === 'minPrice') return `Min Price: €${value}`;
+            if (key === 'maxPrice') return `Max Price: €${value}`;
+            if (key === 'minYear') return `Min Year: ${value}`;
+            if (key === 'maxYear') return `Max Year: ${value}`;
+            if (key === 'features') return `Features: ${(value as string[]).join(', ')}`;
+            if (key === 'usage') return `Usage: ${value}`;
+            return '';
+          })
+          .filter(Boolean)
+          .join(', ');
+
+        // Add chatInput and all selected values to URL params
+        searchParams.append('chatInput', chatInput);
+        Object.entries(selectedValues).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            searchParams.append(key, value.join(','));
+          } else {
+            searchParams.append(key, String(value));
+          }
+        });
+
+        // Navigate to search page with all parameters
+        window.location.href = `/search?${searchParams.toString()}`;
+      } catch (error) {
+        console.error('Error during form submission:', error);
+        setError('An error occurred while processing your request. Please try again.');
+      }
+    }, 500),
+    [formData, user]
+  );
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    debouncedSubmit(formData);
   };
 
   const nextStep = () => {
