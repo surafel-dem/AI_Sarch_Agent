@@ -1,20 +1,48 @@
-import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/types/supabase'
-import { config } from './config'
+import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/types/supabase';
 
-const supabaseUrl = config.supabase.url
-const supabaseAnonKey = config.supabase.anonKey
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL');
+}
 
-// Create Supabase client
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY');
+}
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Regular client for normal operations
 export const supabase = createClient<Database>(
   supabaseUrl, 
   supabaseAnonKey,
   {
     auth: {
       persistSession: false,
-      autoRefreshToken: false
+      autoRefreshToken: false,
+      detectSessionInUrl: false
     }
   }
-)
+);
 
-export type User = Database['public']['Tables']['users']['Row']
+// Admin client for user operations (only in server context)
+export const createAdminSupabase = () => {
+  if (typeof window !== 'undefined') {
+    throw new Error('Admin client cannot be used in browser context');
+  }
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    throw new Error('Missing env.SUPABASE_SERVICE_ROLE_KEY');
+  }
+
+  return createClient<Database>(supabaseUrl, serviceKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  });
+};
+
+export type User = Database['public']['Tables']['users']['Row'];

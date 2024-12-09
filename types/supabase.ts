@@ -57,35 +57,41 @@ export interface Database {
         Row: {
           session_id: string
           clerk_id: string | null
+          user_type: 'authenticated' | 'anonymous'
+          user_email: string | null
           search_params: Json
+          status: 'pending' | 'completed' | 'failed'
+          total_results: number | null
           results: Json | null
           ai_insights: Json | null
-          status: string
-          total_results: number | null
-          created_at: string | null
-          updated_at: string | null
+          created_at: string
+          updated_at: string
         }
         Insert: {
           session_id?: string
           clerk_id?: string | null
+          user_type: 'authenticated' | 'anonymous'
+          user_email?: string | null
           search_params: Json
+          status?: 'pending' | 'completed' | 'failed'
+          total_results?: number | null
           results?: Json | null
           ai_insights?: Json | null
-          status?: string
-          total_results?: number | null
-          created_at?: string | null
-          updated_at?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           session_id?: string
           clerk_id?: string | null
+          user_type?: 'authenticated' | 'anonymous'
+          user_email?: string | null
           search_params?: Json
+          status?: 'pending' | 'completed' | 'failed'
+          total_results?: number | null
           results?: Json | null
           ai_insights?: Json | null
-          status?: string
-          total_results?: number | null
-          created_at?: string | null
-          updated_at?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
     }
