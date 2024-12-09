@@ -53,6 +53,41 @@ export interface Database {
           subscription_status?: string | null
         }
       }
+      search_sessions: {
+        Row: {
+          session_id: string
+          clerk_id: string | null
+          search_params: Json
+          results: Json | null
+          ai_insights: Json | null
+          status: string
+          total_results: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          session_id?: string
+          clerk_id?: string | null
+          search_params: Json
+          results?: Json | null
+          ai_insights?: Json | null
+          status?: string
+          total_results?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          session_id?: string
+          clerk_id?: string | null
+          search_params?: Json
+          results?: Json | null
+          ai_insights?: Json | null
+          status?: string
+          total_results?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never

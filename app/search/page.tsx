@@ -39,8 +39,35 @@ export default function SearchPage() {
   const handleSearch = async (filters: CarSpecs) => {
     setIsLoading(true);
     let searchResults = null;
+    let searchSessionId = null;
 
     try {
+      // Create initial search session
+      const initialSession = {
+        clerk_id: user?.id || null,
+        search_params: filters,
+        status: 'pending',
+        total_results: null,
+        results: null,
+        ai_insights: null
+      };
+
+      console.log('Creating search session:', initialSession);
+
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('search_sessions')
+        .insert([initialSession])
+        .select('*')
+        .single();
+
+      if (sessionError) {
+        console.error('Failed to create search session:', sessionError);
+        throw new Error(`Failed to create search session: ${sessionError.message}`);
+      }
+
+      searchSessionId = sessionData.session_id;
+      console.log('Created search session:', { session_id: searchSessionId });
+
       // Create a new message for this search with loading state
       const newMessage: ChatMessage = {
         id: generateCleanId(),
@@ -48,7 +75,7 @@ export default function SearchPage() {
         content: 'Search initiated',
         timestamp: Date.now(),
         userId: user?.id || tempUserId,
-        sessionId,
+        sessionId: searchSessionId, // Use the actual session ID
         carSpecs: filters,
         isLoading: true,
         response: {
@@ -145,6 +172,20 @@ export default function SearchPage() {
 
       searchResults = cars;
 
+      // Update search session with results
+      const { error: updateError } = await supabase
+        .from('search_sessions')
+        .update({
+          results: cars,
+          total_results: cars?.length || 0,
+          status: 'completed'
+        })
+        .eq('session_id', searchSessionId);
+
+      if (updateError) {
+        console.error('Failed to update search session:', updateError);
+      }
+
       // Update the message with the response
       setMessages(prev => prev.map(msg => 
         msg.id === newMessage.id 
@@ -226,6 +267,21 @@ export default function SearchPage() {
 
     } catch (error) {
       console.error('Search failed:', error);
+      
+      // Update session status to failed if we have a session ID
+      if (searchSessionId) {
+        try {
+          await supabase
+            .from('search_sessions')
+            .update({
+              status: 'failed'
+            })
+            .eq('session_id', searchSessionId);
+        } catch (updateError) {
+          console.error('Failed to update session status:', updateError);
+        }
+      }
+
       // Handle error state
       setMessages(prev => prev.map(msg => 
         msg.id === newMessage.id 
