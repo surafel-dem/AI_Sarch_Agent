@@ -92,6 +92,32 @@ export default function SearchPage() {
       const userInfo = getUserIdentifier();
       console.log('User info:', JSON.stringify(userInfo, null, 2));
 
+      // Create initial search session with all context
+      const searchSession = {
+        clerk_id: userInfo.clerk_id,
+        filters: {
+          ...filters,
+          user_type: userInfo.user_type,
+          user_email: userInfo.email,
+          timestamp: new Date().toISOString(),
+        },
+        status: 'searching'
+      };
+
+      // Insert the search session
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('search_sessions')
+        .insert([searchSession])
+        .select()
+        .single();
+
+      if (sessionError) {
+        console.error('Error creating search session:', sessionError);
+      } else {
+        searchSessionId = sessionData.id;
+        console.log('Search session created:', searchSessionId);
+      }
+
       // Build the query for car search
       let query = supabase
         .from('car_list')
@@ -137,6 +163,18 @@ export default function SearchPage() {
 
       if (queryError) {
         console.error('Query error:', queryError);
+        
+        // Update session status if session was created
+        if (searchSessionId) {
+          await supabase
+            .from('search_sessions')
+            .update({ 
+              status: 'failed',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', searchSessionId);
+        }
+        
         throw queryError;
       }
 
@@ -152,77 +190,41 @@ export default function SearchPage() {
         }))
       });
 
-      // Create initial search session
-      try {
-        const userInfo = getUserIdentifier();
-        console.log('User info for session:', userInfo);
-        
-        // Skip session creation for anonymous users for now
-        if (userInfo.user_type === 'anonymous') {
-          console.log('Skipping session creation for anonymous user');
-          searchResults = cars;
-          return;
-        }
-
-        // Prepare session data with proper typing
-        const sessionData = {
-          id: crypto.randomUUID(), // Add an id field
-          clerk_id: userInfo.clerk_id,
-          filters: appliedFilters || {},
-          results_count: cars?.length || 0,
-          created_at: new Date().toISOString(),
-          status: 'completed' as const // Add status field
-        };
-
-        console.log('Creating search session with data:', JSON.stringify(sessionData, null, 2));
-
-        // Create the search session
-        const { data: session, error: sessionError } = await supabase
+      // Update search session with results
+      if (searchSessionId) {
+        await supabase
           .from('search_sessions')
-          .insert([sessionData]) // Wrap in array as per Supabase requirements
-          .select('*')
-          .single();
-
-        if (sessionError) {
-          console.error('Error creating search session:', {
-            error: sessionError,
-            data: sessionData
-          });
-          // Continue execution even if session creation fails
-        } else {
-          searchSessionId = session.id;
-          console.log('Search session created successfully:', {
-            sessionId: session.id,
-            filters: appliedFilters,
-            resultsCount: cars?.length || 0
-          });
-        }
-      } catch (error) {
-        console.error('Error in session creation:', error);
+          .update({ 
+            results: cars || [],
+            results_count: cars?.length || 0,
+            status: 'completed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', searchSessionId);
       }
 
-      // Set the results regardless of session creation success
+      // Set the search results
       searchResults = cars;
 
       // Create and add message
       const newMessage: ChatMessage = {
         id: generateCleanId(),
-        role: 'user',
+        role: 'assistant',
         content: `Found ${cars?.length || 0} matching vehicles`,
         timestamp: Date.now(),
         userId: userInfo.clerk_id,
-        sessionId: searchSessionId,
         carSpecs: filters,
         isLoading: false,
         response: {
           type: 'car_listing',
           message: '',
           results: cars || [],
-          loading: false
+          loading: false,
+          sessionId: searchSessionId
         }
       };
 
-      setMessages(prev => [...prev, newMessage]);
+      setMessages([newMessage]);
 
     } catch (error) {
       console.error('Search failed:', error);
@@ -236,7 +238,6 @@ export default function SearchPage() {
           content: 'Search failed. Please try again.',
           timestamp: Date.now(),
           userId: userInfo.clerk_id,
-          sessionId: null,
           carSpecs: filters,
           isLoading: false,
           response: {
@@ -276,7 +277,7 @@ export default function SearchPage() {
           {/* Scrollable Results */}
           <div 
             ref={searchResultsRef}
-            className="flex-grow overflow-y-auto px-4 py-4"
+            className="flex-grow overflow-y-auto px-4 py-4 pl-16"
             style={{ paddingBottom: '180px' }} // Space for the filter form
           >
             {messages.map((message) => (

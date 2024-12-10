@@ -39,6 +39,7 @@ export type SearchResponse = {
   message: string;
   results: Car[];
   loading?: boolean;
+  sessionId?: string; // Add sessionId to track searches
 }
 
 export interface CarSpecs {

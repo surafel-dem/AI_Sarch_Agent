@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
-import { WebhookPayload, SearchResponse, SearchSession, SearchSessionStatus } from '@/types/search';
+import { SearchResponse } from '@/types/search';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -13,96 +13,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     persistSession: false
   }
 });
-
-async function updateSessionStatus(
-  sessionId: string, 
-  status: SearchSessionStatus, 
-  error?: string
-) {
-  const { error: updateError } = await supabase
-    .from('search_sessions')
-    .update({ 
-      status,
-      ...(error && { error_message: error })
-    })
-    .eq('session_id', sessionId);
-
-  if (updateError) {
-    console.error('Failed to update session status:', updateError);
-  }
-}
-
-async function normalizeSearchParams(params: any) {
-  // Create a stable representation of search parameters
-  const normalized = {};
-  const keys = Object.keys(params).sort();
-  
-  for (const key of keys) {
-    if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
-      normalized[key] = params[key];
-    }
-  }
-  
-  return normalized;
-}
-
-async function checkRecentDuplicateSearch(
-  clerkId: string,
-  searchParams: any
-): Promise<string | null> {
-  try {
-    // Check for identical search in the last 30 seconds
-    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString();
-    
-    const { data: recentSearches, error } = await supabase
-      .from('search_sessions')
-      .select('session_id, search_params, status')
-      .eq('clerk_id', clerkId)
-      .in('status', ['completed', 'searching'])
-      .gt('created_at', thirtySecondsAgo)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error checking for duplicate searches:', error);
-      return null;
-    }
-
-    if (!recentSearches?.length) {
-      return null;
-    }
-
-    // Normalize current search parameters
-    const normalizedCurrent = await normalizeSearchParams(searchParams);
-    const currentParamsString = JSON.stringify(normalizedCurrent);
-
-    // Look for a matching search
-    for (const search of recentSearches) {
-      const normalizedExisting = await normalizeSearchParams(search.search_params);
-      if (JSON.stringify(normalizedExisting) === currentParamsString) {
-        // If it's a completed search, return it immediately
-        if (search.status === 'completed') {
-          return search.session_id;
-        }
-        
-        // If it's still searching, wait briefly for it to complete
-        const { data: updatedSearch } = await supabase
-          .from('search_sessions')
-          .select('*')
-          .eq('session_id', search.session_id)
-          .single();
-          
-        if (updatedSearch?.status === 'completed') {
-          return updatedSearch.session_id;
-        }
-      }
-    }
-
-    return null;
-  } catch (error) {
-    console.error('Error in checkRecentDuplicateSearch:', error);
-    return null;
-  }
-}
 
 export async function POST(request: Request) {
   try {
@@ -124,67 +34,24 @@ export async function POST(request: Request) {
       requestBody: body
     });
 
-    // Check for recent duplicate search
-    const duplicateSessionId = await checkRecentDuplicateSearch(userId, body.carSpecs);
-    if (duplicateSessionId) {
-      console.log('Found duplicate search, reusing results:', duplicateSessionId);
-      const { data: existingSession } = await supabase
-        .from('search_sessions')
-        .select('*')
-        .eq('session_id', duplicateSessionId)
-        .single();
+    // Create initial search session
+    const searchSession = {
+      clerk_id: userId,
+      filters: body.carSpecs || {},
+      status: 'searching'
+    };
 
-      if (existingSession?.results) {
-        return NextResponse.json({
-          type: 'car_listing',
-          message: '',
-          results: existingSession.results,
-          sessionId: existingSession.session_id,
-          reused: true
-        });
-      }
-    }
-
-    // Check for too many active sessions
-    const { count } = await supabase
+    // Insert the search session
+    const { data: sessionData, error: sessionError } = await supabase
       .from('search_sessions')
-      .select('*', { count: 'exact' })
-      .eq('clerk_id', userId)
-      .in('status', ['pending', 'searching', 'ai_processing'])
-      .single();
-
-    if (count >= 5) { // Maximum 5 active sessions per user
-      return NextResponse.json(
-        { error: 'Too many active searches. Please wait for some to complete.' },
-        { status: 429 }
-      );
-    }
-
-    // Create search session - Postgres will generate the UUID
-    const { data: searchSession, error: sessionError } = await supabase
-      .from('search_sessions')
-      .insert({
-        clerk_id: userId,
-        search_params: body.carSpecs || {},
-        status: 'pending'
-        // No need to specify created_at, it has a default value
-      })
+      .insert([searchSession])
       .select()
       .single();
 
     if (sessionError) {
-      console.error('Failed to create search session:', sessionError);
-      return NextResponse.json(
-        { error: 'Failed to create search session' },
-        { status: 500 }
-      );
+      console.error('Error creating search session:', sessionError);
+      // Continue with search even if session creation fails
     }
-
-    // Now we have the auto-generated session_id
-    const sessionId = searchSession.session_id;
-
-    // Update status to searching
-    await updateSessionStatus(sessionId, 'searching');
 
     // Build Supabase query based on car specs
     let query = supabase
@@ -194,73 +61,145 @@ export async function POST(request: Request) {
     const { carSpecs } = body;
 
     if (carSpecs) {
-      // Add filters based on carSpecs
-      if (carSpecs.make) {
-        query = query.ilike('make', `%${carSpecs.make}%`);
+      // Enhanced make/model search with fuzzy matching
+      if (carSpecs.make || carSpecs.model) {
+        const terms = [carSpecs.make, carSpecs.model]
+          .filter(Boolean)
+          .map(term => term.toLowerCase().trim());
+        
+        if (terms.length > 0) {
+          const searchConditions = terms.map(term => 
+            `make.ilike.%${term}%,model.ilike.%${term}%`
+          ).join(',');
+          query = query.or(searchConditions);
+        }
       }
-      if (carSpecs.model) {
-        query = query.ilike('model', `%${carSpecs.model}%`);
+
+      // Enhanced year range handling
+      if (carSpecs.minYear) {
+        const minYear = parseInt(carSpecs.minYear);
+        if (!isNaN(minYear)) {
+          query = query.gte('year', minYear);
+        }
       }
-      if (carSpecs.year) {
-        query = query.eq('year', carSpecs.year);
+      if (carSpecs.maxYear) {
+        const maxYear = parseInt(carSpecs.maxYear);
+        if (!isNaN(maxYear)) {
+          query = query.lte('year', maxYear);
+        }
       }
+
+      // Keep existing transmission filter
       if (carSpecs.transmission) {
         query = query.eq('transmission', carSpecs.transmission);
       }
+
+      // Enhanced price range handling with validation
       if (carSpecs.minPrice) {
-        query = query.gte('price', carSpecs.minPrice);
+        const minPrice = parseFloat(carSpecs.minPrice);
+        if (!isNaN(minPrice)) {
+          query = query.gte('price', minPrice);
+        }
       }
       if (carSpecs.maxPrice) {
-        query = query.lte('price', carSpecs.maxPrice);
+        const maxPrice = parseFloat(carSpecs.maxPrice);
+        if (!isNaN(maxPrice)) {
+          query = query.lte('price', maxPrice);
+        }
       }
+
+      // Enhanced location search
       if (carSpecs.location) {
-        query = query.ilike('location', `%${carSpecs.location}%`);
+        const locationTerm = carSpecs.location.trim();
+        if (locationTerm) {
+          query = query.or(
+            `location.ilike.%${locationTerm}%,county.ilike.%${locationTerm}%,city.ilike.%${locationTerm}%`
+          );
+        }
       }
+
+      // Enhanced keyword search in description
       if (carSpecs.keywords) {
-        // Search in description using text search
-        query = query.textSearch('description', carSpecs.keywords.join(' & '));
+        const keywords = Array.isArray(carSpecs.keywords) ? carSpecs.keywords : [carSpecs.keywords];
+        const searchTerms = keywords
+          .filter(term => term && term.length > 2)
+          .map(term => term.trim())
+          .join(' & ');
+        
+        if (searchTerms) {
+          query = query.textSearch('description', searchTerms, {
+            config: 'english',
+            type: 'plain'
+          });
+        }
+      }
+
+      // Add sorting options
+      const sortBy = carSpecs.sortBy || 'newest';
+      switch (sortBy) {
+        case 'price_low':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price_high':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'year_new':
+          query = query.order('year', { ascending: false });
+          break;
+        case 'year_old':
+          query = query.order('year', { ascending: true });
+          break;
+        default:
+          // Default sort by newest listings first
+          query = query.order('created_at', { ascending: false });
       }
     }
 
-    // Execute query
-    const { data: cars, error } = await query
-      .order('created_at', { ascending: false })
-      .limit(50);
+    // Execute query with limit
+    const { data: cars, error } = await query.limit(50);
 
     if (error) {
       console.error('Supabase query error:', error);
-      await updateSessionStatus(sessionId, 'failed', error.message);
+      
+      // Update session status if session was created
+      if (sessionData?.id) {
+        await supabase
+          .from('search_sessions')
+          .update({ 
+            status: 'failed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', sessionData.id);
+      }
+      
       return NextResponse.json(
         { error: 'Failed to search cars' },
         { status: 500 }
       );
     }
 
-    // Update search session with results
-    const { error: updateError } = await supabase
-      .from('search_sessions')
-      .update({ 
-        results: cars,
-        total_results: cars.length,
-        status: 'completed'
-      })
-      .eq('session_id', sessionId);
-
-    if (updateError) {
-      console.error('Failed to update search results:', updateError);
+    // Update search session with results if session was created
+    if (sessionData?.id) {
+      await supabase
+        .from('search_sessions')
+        .update({ 
+          results: cars || [],
+          results_count: cars?.length || 0,
+          status: 'completed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', sessionData.id);
     }
 
     // Format the response
     const formattedResponse: SearchResponse = {
       type: 'car_listing',
       message: '',
-      results: cars
+      results: cars,
+      sessionId: sessionData?.id // Include session ID in response
     };
 
-    return NextResponse.json({
-      ...formattedResponse,
-      sessionId // Return the auto-generated session_id to the client
-    });
+    return NextResponse.json(formattedResponse);
   } catch (error) {
     console.error('Error in search:', {
       error: error instanceof Error ? error.message : 'Unknown error',

@@ -27,7 +27,7 @@ export function SearchResults({ results, onResultClick, onSaveClick, onAskAI }: 
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4 space-y-4">
+    <div className="w-full max-w-5xl mx-auto p-4 pl-16 space-y-4">
       <h2 className="text-xl font-semibold mb-4">Found {results.length} match{results.length !== 1 ? 'es' : ''}</h2>
       <div className="grid grid-cols-1 gap-4">
         {results.map((car) => (
