@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     const session = auth();
     const body = await request.json();
 
-    // Extract user ID from session or use temporary ID
-    const userId = session.userId || body.userId;
+    // Extract user ID from session or use provided ID
+    const userId = session.userId || body.clerk_id;
     
     if (!userId) {
       console.error('No user ID provided in request:', { body });
@@ -33,6 +33,20 @@ export async function POST(request: Request) {
       authenticated: !!session.userId,
       requestBody: body
     });
+
+    // Check if this search has already been logged
+    if (body.search_id) {
+      const { data: existingSearch } = await supabase
+        .from('search_logs')
+        .select('id')
+        .eq('search_id', body.search_id)
+        .maybeSingle();
+
+      if (existingSearch) {
+        console.log('Search already logged:', body.search_id);
+        return NextResponse.json({ message: 'Search already logged' });
+      }
+    }
 
     // Create initial search session
     const searchSession = {
@@ -189,6 +203,30 @@ export async function POST(request: Request) {
           updated_at: new Date().toISOString()
         })
         .eq('id', sessionData.id);
+    }
+
+    // Create search log entry
+    const searchLog = {
+      clerk_id: userId,
+      filters: body.carSpecs || {},
+      results: cars || [],
+      results_count: cars?.length || 0,
+      status: 'completed',
+      session_id: sessionData?.id,
+      search_id: body.search_id // Include the unique search ID
+    };
+
+    // Insert the search log
+    const { error: logError } = await supabase
+      .from('search_logs')
+      .insert([searchLog]);
+
+    if (logError) {
+      console.error('Error creating search log:', logError);
+      return NextResponse.json(
+        { error: 'Failed to log search' },
+        { status: 500 }
+      );
     }
 
     // Format the response

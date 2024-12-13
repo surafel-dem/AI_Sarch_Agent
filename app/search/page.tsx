@@ -6,6 +6,7 @@ import { useUser } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
 import { CarSpecs } from '@/types/car';
 import { ChatMessage } from '@/types/chat';
+import { v4 as uuidv4 } from 'uuid';
 import { generateCleanId } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { SearchOutput } from '@/components/search/search-output';
@@ -17,12 +18,19 @@ export default function SearchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useUser();
-  const [sessionId] = useState(generateCleanId);  // Use function reference
-  const [tempUserId] = useState(generateCleanId); // Use function reference
+  const [sessionId] = useState(() => uuidv4());  // Generate proper UUID for session
+  const [tempUserId] = useState(() => generateCleanId()); // Call the function
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const searchResultsRef = useRef<HTMLDivElement>(null);
-  const aiAnalysisRef = useRef<HTMLDivElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const lastSearchRef = useRef<{
+    id: string;
+    filters: CarSpecs;
+    timestamp: number;
+  } | null>(null);
+  const searchLoggedRef = useRef<string | null>(null);
 
   // Helper function to get user identifier
   const getUserIdentifier = () => {
@@ -81,8 +89,6 @@ export default function SearchPage() {
 
   const handleSearch = async (filters: CarSpecs) => {
     setIsLoading(true);
-    let searchResults = null;
-    let searchSessionId = null;
 
     try {
       console.log('=== Starting new search ===');
@@ -92,33 +98,10 @@ export default function SearchPage() {
       const userInfo = getUserIdentifier();
       console.log('User info:', JSON.stringify(userInfo, null, 2));
 
-      // Create initial search session with all context
-      const searchSession = {
-        clerk_id: userInfo.clerk_id,
-        filters: {
-          ...filters,
-          user_type: userInfo.user_type,
-          user_email: userInfo.email,
-          timestamp: new Date().toISOString(),
-        },
-        status: 'searching'
-      };
+      // Create a unique search ID
+      const searchId = uuidv4();
 
-      // Insert the search session
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('search_sessions')
-        .insert([searchSession])
-        .select()
-        .single();
-
-      if (sessionError) {
-        console.error('Error creating search session:', sessionError);
-      } else {
-        searchSessionId = sessionData.id;
-        console.log('Search session created:', searchSessionId);
-      }
-
-      // Build the query for car search
+      // Build and execute the search query
       let query = supabase
         .from('car_list')
         .select('*');
@@ -156,59 +139,53 @@ export default function SearchPage() {
         query = query.lte('price', appliedFilters.maxPrice);
       }
 
-      console.log('Applied filters:', JSON.stringify(appliedFilters, null, 2));
-
       // Execute query
       const { data: cars, error: queryError } = await query;
 
       if (queryError) {
         console.error('Query error:', queryError);
-        
-        // Update session status if session was created
-        if (searchSessionId) {
-          await supabase
-            .from('search_sessions')
-            .update({ 
-              status: 'failed',
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', searchSessionId);
-        }
-        
         throw queryError;
       }
 
-      console.log('Query results:', {
-        totalResults: cars?.length || 0,
-        appliedFilters: Object.keys(appliedFilters),
-        results: cars?.map(car => ({
-          id: car.id,
-          make: car.make,
-          model: car.model,
-          year: car.year,
-          price: car.price
-        }))
-      });
+      // Log the search with exact table structure
+      if (userInfo?.clerk_id) {
+        console.log('Attempting to log search...');
+        
+        const searchLog = {
+          clerk_id: userInfo.clerk_id,
+          filters: filters,
+          results: cars,
+          results_count: cars?.length || 0,
+          status: 'pending',
+          session_id: sessionId, // We already have this from earlier in the code
+        };
 
-      // Update search session with results
-      if (searchSessionId) {
-        await supabase
-          .from('search_sessions')
-          .update({ 
-            results: cars || [],
-            results_count: cars?.length || 0,
-            status: 'completed',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', searchSessionId);
+        console.log('Search log payload:', searchLog);
+
+        fetch('/api/search/log', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(searchLog),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Search logged successfully:', data);
+        })
+        .catch(error => {
+          console.error('Search logging failed:', error);
+        });
       }
-
-      // Set the search results
-      searchResults = cars;
 
       // Create and add message
       const newMessage: ChatMessage = {
-        id: generateCleanId(),
+        id: searchId, // Use the same ID for consistency
         role: 'assistant',
         content: `Found ${cars?.length || 0} matching vehicles`,
         timestamp: Date.now(),
@@ -219,8 +196,7 @@ export default function SearchPage() {
           type: 'car_listing',
           message: '',
           results: cars || [],
-          loading: false,
-          sessionId: searchSessionId
+          loading: false
         }
       };
 
@@ -233,7 +209,7 @@ export default function SearchPage() {
       setMessages(prev => [
         ...prev,
         {
-          id: generateCleanId(),
+          id: uuidv4(),
           role: 'system',
           content: 'Search failed. Please try again.',
           timestamp: Date.now(),
@@ -250,6 +226,7 @@ export default function SearchPage() {
       ]);
     } finally {
       setIsLoading(false);
+      scrollToBottom(searchResultsRef.current);
     }
   };
 
@@ -300,7 +277,7 @@ export default function SearchPage() {
       <div className="w-1/2 border-l relative">
         <div className="h-screen flex flex-col relative">
           <div 
-            ref={aiAnalysisRef}
+            ref={chatRef}
             className="flex-grow overflow-y-auto px-4 py-4"
             style={{ paddingBottom: '100px' }} // Space for the chat input
           >
