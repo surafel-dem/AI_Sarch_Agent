@@ -135,9 +135,9 @@ export default function SearchPage() {
           {/* Filter Form - Compact one-line style */}
           <div className="sticky bottom-0 left-0 w-full pl-12">
             <div className="mx-4 mb-4">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_0_24px_rgba(0,0,0,0.05)] border border-gray-100">
+              <div className="bg-white border-t border-gray-200 shadow-sm">
                 <div className="py-2.5 px-4">
-                  <div className="flex items-center gap-3 max-w-full overflow-x-auto no-scrollbar">
+                  <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar">
                     <FilterForm onSearch={handleSearch} isLoading={isLoading} />
                   </div>
                 </div>

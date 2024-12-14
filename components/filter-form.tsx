@@ -46,10 +46,10 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         value={filters.location}
         onValueChange={(value) => setFilters({ ...filters, location: value })}
       >
-        <SelectTrigger className="w-[100px] h-9 text-sm">
+        <SelectTrigger className="w-[100px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
           <SelectValue placeholder="Location" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white border border-gray-200">
           <SelectItem value="dublin">Dublin</SelectItem>
           <SelectItem value="cork">Cork</SelectItem>
           <SelectItem value="galway">Galway</SelectItem>
@@ -61,10 +61,10 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         value={filters.make}
         onValueChange={(value) => setFilters({ ...filters, make: value })}
       >
-        <SelectTrigger className="w-[90px] h-9 text-sm">
+        <SelectTrigger className="w-[90px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
           <SelectValue placeholder="Make" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white border border-gray-200">
           <SelectItem value="toyota">Toyota</SelectItem>
           <SelectItem value="volkswagen">VW</SelectItem>
           <SelectItem value="bmw">BMW</SelectItem>
@@ -77,10 +77,10 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         onValueChange={(value) => setFilters({ ...filters, model: value })}
         disabled={!filters.make}
       >
-        <SelectTrigger className="w-[90px] h-9 text-sm">
+        <SelectTrigger className="w-[90px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
           <SelectValue placeholder="Model" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white border border-gray-200">
           <SelectItem value="corolla">Corolla</SelectItem>
           <SelectItem value="golf">Golf</SelectItem>
           <SelectItem value="3-series">3 Series</SelectItem>
@@ -94,14 +94,14 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
           placeholder="Min €"
           value={filters.minPrice}
           onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-          className="w-[80px] h-9 text-sm"
+          className="w-[80px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
         <Input
           type="number"
           placeholder="Max €"
           value={filters.maxPrice}
           onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
-          className="w-[80px] h-9 text-sm"
+          className="w-[80px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
       </div>
 
@@ -111,21 +111,21 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
           placeholder="Min Yr"
           value={filters.minYear}
           onChange={(e) => setFilters({ ...filters, minYear: e.target.value })}
-          className="w-[70px] h-9 text-sm"
+          className="w-[70px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
         <Input
           type="number"
           placeholder="Max Yr"
           value={filters.maxYear}
           onChange={(e) => setFilters({ ...filters, maxYear: e.target.value })}
-          className="w-[70px] h-9 text-sm"
+          className="w-[70px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
       </div>
 
       <Button 
         type="submit" 
         disabled={isLoading}
-        className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white h-9 px-4 rounded-xl ml-auto text-sm"
+        className="bg-[#0066FF] hover:bg-[#0052CC] text-white h-9 px-4 rounded-lg ml-auto text-sm"
       >
         {isLoading ? (
           <div className="flex items-center gap-2">
