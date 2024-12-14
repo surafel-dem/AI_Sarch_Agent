@@ -55,13 +55,6 @@ const carModels = {
 
 type CarMake = keyof typeof carModels;
 
-// Styles for dropdowns
-const selectTriggerStyles = "h-10 px-3 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A] shadow-sm data-[placeholder]:text-gray-400 text-gray-200 text-sm relative [&>svg]:hidden hover:border-[#4A4A4A] focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]"
-const selectContentStyles = "bg-[#2A2A2A] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg shadow-md border border-[#3A3A3A] fixed"
-const selectItemStyles = "py-2 px-3 text-sm text-gray-200 cursor-pointer data-[highlighted]:bg-[#3A3A3A] data-[highlighted]:text-gray-100"
-
-const inputStyles = "h-10 px-3 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A] shadow-sm text-gray-200 text-sm placeholder:text-gray-400 hover:border-[#4A4A4A] focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]"
-
 const locations = ["dublin", "cork", "galway", "limerick", "waterford", "belfast", "kilkenny"];
 const makes = ["volkswagen", "toyota", "bmw", "audi", "mercedes"];
 const models = ["Golf", "Passat", "Tiguan", "Polo", "ID.4", "T-Roc", "Arteon"];
@@ -243,14 +236,11 @@ export function SearchForm() {
 
   return (
     <div className="w-full">
-      <div className="max-w-xl mx-auto bg-[#1A1A1A] border border-[#2D2D2D] p-6 rounded-xl shadow-lg relative overflow-hidden">
-        {/* Top lighting effect */}
-        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-50" />
-        <div className="absolute inset-x-0 top-0 h-[100px] bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-        
-        {/* Border light effect */}
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-20" />
-        <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-t from-white/5 via-transparent to-transparent blur-sm" />
+      <div className="w-full max-w-xl mx-auto relative bg-black/5 backdrop-blur-xl rounded-[20px] border border-white/10 p-6">
+        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="absolute inset-y-0 -left-px w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" />
+        <div className="absolute inset-y-0 -right-px w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" />
         
         <form onSubmit={handleSubmit} className="space-y-6 relative">
           {/* Step indicator */}
@@ -288,12 +278,12 @@ export function SearchForm() {
                   {/* First row: Location, Make, Model */}
                   <div className="flex justify-center gap-3 mb-4 w-full max-w-[600px]">
                     <Select name="location" onValueChange={(value) => handleSelectChange("location", value)}>
-                      <SelectTrigger className={`w-[120px] ${selectTriggerStyles}`}>
+                      <SelectTrigger className="w-[120px]">
                         <SelectValue placeholder="Location" />
                       </SelectTrigger>
-                      <SelectContent className={selectContentStyles}>
+                      <SelectContent>
                         {locations.map((location) => (
-                          <SelectItem key={location} value={location} className={selectItemStyles}>
+                          <SelectItem key={location} value={location}>
                             {location}
                           </SelectItem>
                         ))}
@@ -301,12 +291,12 @@ export function SearchForm() {
                     </Select>
 
                     <Select name="make" onValueChange={(value) => handleSelectChange("make", value)}>
-                      <SelectTrigger className={`w-[120px] ${selectTriggerStyles}`}>
+                      <SelectTrigger className="w-[120px]">
                         <SelectValue placeholder="Make" />
                       </SelectTrigger>
-                      <SelectContent className={selectContentStyles}>
+                      <SelectContent>
                         {makes.map((make) => (
-                          <SelectItem key={make} value={make} className={selectItemStyles}>
+                          <SelectItem key={make} value={make}>
                             {make}
                           </SelectItem>
                         ))}
@@ -318,12 +308,12 @@ export function SearchForm() {
                       onValueChange={(value) => handleSelectChange("model", value)}
                       disabled={!formData.make}
                     >
-                      <SelectTrigger className={`w-[120px] ${selectTriggerStyles}`}>
+                      <SelectTrigger className="w-[120px]">
                         <SelectValue placeholder="Model" />
                       </SelectTrigger>
-                      <SelectContent className={selectContentStyles}>
+                      <SelectContent>
                         {formData.make && carModels[formData.make as CarMake].map((model) => (
-                          <SelectItem key={model} value={model} className={selectItemStyles}>
+                          <SelectItem key={model} value={model}>
                             {model}
                           </SelectItem>
                         ))}
@@ -335,12 +325,12 @@ export function SearchForm() {
                   <div className="flex justify-center gap-6 w-full max-w-[600px]">
                     <div className="flex gap-2">
                       <Select name="minPrice" onValueChange={(value) => handleSelectChange("minPrice", value)}>
-                        <SelectTrigger className={`w-[100px] ${selectTriggerStyles}`}>
+                        <SelectTrigger className="w-[100px]">
                           <SelectValue placeholder="Min €" />
                         </SelectTrigger>
-                        <SelectContent className={selectContentStyles}>
+                        <SelectContent>
                           {priceRanges.map((price) => (
-                            <SelectItem key={price} value={price} className={selectItemStyles}>
+                            <SelectItem key={price} value={price}>
                               €{price}
                             </SelectItem>
                           ))}
@@ -348,12 +338,12 @@ export function SearchForm() {
                       </Select>
 
                       <Select name="maxPrice" onValueChange={(value) => handleSelectChange("maxPrice", value)}>
-                        <SelectTrigger className={`w-[100px] ${selectTriggerStyles}`}>
+                        <SelectTrigger className="w-[100px]">
                           <SelectValue placeholder="Max €" />
                         </SelectTrigger>
-                        <SelectContent className={selectContentStyles}>
+                        <SelectContent>
                           {priceRanges.map((price) => (
-                            <SelectItem key={price} value={price} className={selectItemStyles}>
+                            <SelectItem key={price} value={price}>
                               €{price}
                             </SelectItem>
                           ))}
@@ -363,12 +353,12 @@ export function SearchForm() {
 
                     <div className="flex gap-2">
                       <Select name="minYear" onValueChange={(value) => handleSelectChange("minYear", value)}>
-                        <SelectTrigger className={`w-[90px] ${selectTriggerStyles}`}>
+                        <SelectTrigger className="w-[90px]">
                           <SelectValue placeholder="Min Year" />
                         </SelectTrigger>
-                        <SelectContent className={selectContentStyles}>
+                        <SelectContent>
                           {yearRanges.map((year) => (
-                            <SelectItem key={year} value={year.toString()} className={selectItemStyles}>
+                            <SelectItem key={year} value={year.toString()}>
                               {year}
                             </SelectItem>
                           ))}
@@ -376,12 +366,12 @@ export function SearchForm() {
                       </Select>
 
                       <Select name="maxYear" onValueChange={(value) => handleSelectChange("maxYear", value)}>
-                        <SelectTrigger className={`w-[90px] ${selectTriggerStyles}`}>
+                        <SelectTrigger className="w-[90px]">
                           <SelectValue placeholder="Max Year" />
                         </SelectTrigger>
-                        <SelectContent className={selectContentStyles}>
+                        <SelectContent>
                           {yearRanges.map((year) => (
-                            <SelectItem key={year} value={year.toString()} className={selectItemStyles}>
+                            <SelectItem key={year} value={year.toString()}>
                               {year}
                             </SelectItem>
                           ))}
@@ -467,12 +457,12 @@ export function SearchForm() {
                 <div className="space-y-4 flex flex-col items-center">
                   <div className="flex justify-center w-full max-w-[600px]">
                     <Select name="usage" onValueChange={(value) => handleSelectChange("usage", value)}>
-                      <SelectTrigger className={`w-64 ${selectTriggerStyles}`}>
+                      <SelectTrigger className="w-64">
                         <SelectValue placeholder="How will you use this car?" />
                       </SelectTrigger>
-                      <SelectContent className={selectContentStyles}>
+                      <SelectContent>
                         {usageOptions.map((option) => (
-                          <SelectItem key={option} value={option} className={selectItemStyles}>
+                          <SelectItem key={option} value={option}>
                             {option}
                           </SelectItem>
                         ))}
@@ -485,7 +475,7 @@ export function SearchForm() {
                       placeholder="Any must have feature?"
                       value={formData.customFeature}
                       onChange={(e) => setFormData(prev => ({ ...prev, customFeature: e.target.value }))}
-                      className={inputStyles}
+                      className="h-10 px-3 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A] shadow-sm text-gray-200 text-sm placeholder:text-gray-400 hover:border-[#4A4A4A] focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]"
                     />
                   </div>
                 </div>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from './ui/button';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -26,43 +25,47 @@ export function Sidebar() {
   return (
     <>
       {/* Toggle Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-3 left-3 z-50 h-8 w-8 rounded-lg bg-blue-600/50 hover:bg-blue-700/50 p-0"
+      <button
+        type="button"
+        className="fixed top-3 left-3 z-50 text-white appearance-none bg-transparent border-0 p-0 outline-none"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? (
-          <ChevronLeft className="h-4 w-4 text-white/90" />
+          <ChevronLeft className="h-5 w-5" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-white/90" />
+          <ChevronRight className="h-5 w-5" />
         )}
-      </Button>
+      </button>
 
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen w-16 bg-transparent border-r border-white/5",
-          "transition-transform duration-200 ease-in-out",
-          "-webkit-transform-style: preserve-3d",
-          "transform-style: preserve-3d",
-          isOpen ? "translate-x-0 -webkit-translate-x-0" : "-translate-x-full -webkit-translate-x-full"
+          "fixed top-0 left-0 z-40 h-screen",
+          "transition-all duration-300 ease-in-out",
+          isOpen ? "w-48" : "w-12"
         )}
       >
-        <div className="h-full pt-16 px-2 flex flex-col items-center">
-          {/* Navigation */}
-          <nav className="flex flex-col gap-1 px-2 mt-24">
-            {menuItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="p-2 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 block"
-                title={item.label}
-              >
-                <item.icon className="h-5 w-5" />
-              </Link>
-            ))}
-          </nav>
+        <div className="flex h-full flex-col gap-4 py-4">
+          <div className="px-2 py-2">
+            <div className="space-y-1">
+              {menuItems.map((item) => (
+                <Link 
+                  key={item.href} 
+                  href={item.href}
+                  className={cn(
+                    "flex items-center p-2 text-white hover:text-white/80 transition-colors",
+                    !isOpen && "justify-center"
+                  )}
+                >
+                  <item.icon className={cn(
+                    "h-5 w-5",
+                    isOpen && "mr-2"
+                  )} />
+                  {isOpen && <span>{item.label}</span>}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </aside>
     </>

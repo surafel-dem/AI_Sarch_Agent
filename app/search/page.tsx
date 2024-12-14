@@ -120,75 +120,84 @@ export default function SearchPage() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-white">
-      {/* Left Panel - Search Results */}
-      <div className="w-[65%] border-r border-gray-200 relative">
-        <div className="h-screen flex flex-col pt-6"> 
-          {/* Search Results Area */}
-          <div 
-            ref={searchResultsRef}
-            className="flex-grow overflow-y-auto pl-16 pr-6"
-            style={{ paddingBottom: '120px' }} 
-          >
-            <SearchOutput 
-              message={messages[messages.length - 1] || { isLoading: true }}
-              loading={isLoading}
-            />
-          </div>
+    <div className="min-h-screen w-full bg-[#0A0A0A] relative">
+      <div className="absolute inset-0">
+        <div className="absolute top-[5%] -left-[20%] w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px]" />
+        <div className="absolute top-[20%] -right-[20%] w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px]" />
+      </div>
+      
+      <div className="relative">
+        <div className="flex h-screen bg-white">
+          {/* Left Panel - Search Results */}
+          <div className="w-[65%] border-r border-gray-200 relative">
+            <div className="h-screen flex flex-col pt-6"> 
+              {/* Search Results Area */}
+              <div 
+                ref={searchResultsRef}
+                className="flex-grow overflow-y-auto pl-16 pr-6"
+                style={{ paddingBottom: '120px' }} 
+              >
+                <SearchOutput 
+                  message={messages[messages.length - 1] || { isLoading: true }}
+                  loading={isLoading}
+                />
+              </div>
 
-          {/* Filter Form - Fixed at bottom */}
-          <div className="sticky bottom-0 left-0 w-full pl-16">
-            <div className="mx-4 mb-4">
-              <div className="bg-white border-t border-gray-200 shadow-sm">
-                <div className="py-2.5 px-4">
-                  <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar">
-                    <FilterForm onSearch={handleSearch} isLoading={isLoading} />
+              {/* Filter Form - Fixed at bottom */}
+              <div className="sticky bottom-0 left-0 w-full pl-16">
+                <div className="mx-4 mb-4">
+                  <div className="bg-white border-t border-gray-200 shadow-sm">
+                    <div className="py-2.5 px-4">
+                      <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar">
+                        <FilterForm onSearch={handleSearch} isLoading={isLoading} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Right Panel - AI Assistant */}
-      <div className="w-[35%] relative">
-        <div className="h-screen flex flex-col pt-6 px-6">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">AI Assistant</h2>
-            <p className="text-sm text-gray-600">Ask questions about the search results</p>
-          </div>
-          
-          <div 
-            ref={chatRef}
-            className="flex-grow overflow-y-auto"
-            style={{ paddingBottom: '120px' }} 
-          >
-            {messages.map((message) => (
-              <div key={message.id} className="space-y-2">
-                {message.response?.aiResponse && (
-                  <AgentResponse response={message.response.aiResponse} />
-                )}
+          {/* Right Panel - AI Assistant */}
+          <div className="w-[35%] relative">
+            <div className="h-screen flex flex-col pt-6 px-6">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-800">AI Assistant</h2>
+                <p className="text-sm text-gray-600">Ask questions about the search results</p>
               </div>
-            ))}
-          </div>
+              
+              <div 
+                ref={chatRef}
+                className="flex-grow overflow-y-auto"
+                style={{ paddingBottom: '120px' }} 
+              >
+                {messages.map((message) => (
+                  <div key={message.id} className="space-y-2">
+                    {message.response?.aiResponse && (
+                      <AgentResponse response={message.response.aiResponse} />
+                    )}
+                  </div>
+                ))}
+              </div>
 
-          {/* Chat Input */}
-          <div className="sticky bottom-0 w-full bg-white border-t border-gray-100 p-4">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <textarea
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask about the search results..."
-                className="w-full px-4 py-3 text-sm bg-transparent border-none focus:ring-0 resize-none"
-                rows={1}
-                style={{
-                  minHeight: '44px',
-                  maxHeight: '44px'
-                }}
-              />
+              {/* Chat Input */}
+              <div className="sticky bottom-0 w-full bg-white border-t border-gray-100 p-4">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                  <textarea
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask about the search results..."
+                    className="w-full px-4 py-3 text-sm bg-transparent border-none focus:ring-0 resize-none"
+                    rows={1}
+                    style={{
+                      minHeight: '44px',
+                      maxHeight: '44px'
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

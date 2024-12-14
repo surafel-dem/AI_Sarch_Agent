@@ -41,21 +41,24 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full relative bg-black/5 backdrop-blur-xl rounded-lg border border-white/20 px-4 py-2">
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full relative bg-black/5 backdrop-blur-xl rounded-[20px] border border-white/20 px-4 py-3">
       <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
-      
+      <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-violet-500/10 to-transparent" />
+      <div className="absolute inset-y-0 -left-px w-px bg-gradient-to-b from-transparent via-violet-500/10 to-transparent" />
+      <div className="absolute inset-y-0 -right-px w-px bg-gradient-to-b from-transparent via-violet-500/10 to-transparent" />
+
       <Select
         value={filters.location}
         onValueChange={(value) => setFilters({ ...filters, location: value })}
       >
-        <SelectTrigger className="w-[100px] h-9 text-sm bg-white/70 backdrop-blur-sm text-gray-900 border-gray-200 hover:border-violet-200 focus:ring-2 focus:ring-violet-400 focus:border-transparent transition-all">
-          <SelectValue placeholder="Location" className="placeholder:text-gray-500" />
+        <SelectTrigger className="w-[100px]" variant="default">
+          <SelectValue placeholder="Location" />
         </SelectTrigger>
-        <SelectContent className="bg-white/90 backdrop-blur-sm border border-gray-200">
-          <SelectItem value="dublin">Dublin</SelectItem>
-          <SelectItem value="cork">Cork</SelectItem>
-          <SelectItem value="galway">Galway</SelectItem>
-          <SelectItem value="limerick">Limerick</SelectItem>
+        <SelectContent variant="default">
+          <SelectItem value="dublin" variant="default">Dublin</SelectItem>
+          <SelectItem value="cork" variant="default">Cork</SelectItem>
+          <SelectItem value="galway" variant="default">Galway</SelectItem>
+          <SelectItem value="limerick" variant="default">Limerick</SelectItem>
         </SelectContent>
       </Select>
 
@@ -63,14 +66,14 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         value={filters.make}
         onValueChange={(value) => setFilters({ ...filters, make: value })}
       >
-        <SelectTrigger className="w-[90px] h-9 text-sm bg-white/70 backdrop-blur-sm text-gray-900 border-gray-200 hover:border-violet-200 focus:ring-2 focus:ring-violet-400 focus:border-transparent transition-all">
-          <SelectValue placeholder="Make" className="placeholder:text-gray-500" />
+        <SelectTrigger className="w-[90px]" variant="default">
+          <SelectValue placeholder="Make" />
         </SelectTrigger>
-        <SelectContent className="bg-white/90 backdrop-blur-sm border border-gray-200">
-          <SelectItem value="toyota">Toyota</SelectItem>
-          <SelectItem value="volkswagen">VW</SelectItem>
-          <SelectItem value="bmw">BMW</SelectItem>
-          <SelectItem value="audi">Audi</SelectItem>
+        <SelectContent variant="default">
+          <SelectItem value="toyota" variant="default">Toyota</SelectItem>
+          <SelectItem value="volkswagen" variant="default">VW</SelectItem>
+          <SelectItem value="bmw" variant="default">BMW</SelectItem>
+          <SelectItem value="audi" variant="default">Audi</SelectItem>
         </SelectContent>
       </Select>
 
@@ -79,49 +82,83 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         onValueChange={(value) => setFilters({ ...filters, model: value })}
         disabled={!filters.make}
       >
-        <SelectTrigger className="w-[90px] h-9 text-sm bg-white/70 backdrop-blur-sm text-gray-900 border-gray-200 hover:border-violet-200 focus:ring-2 focus:ring-violet-400 focus:border-transparent transition-all">
-          <SelectValue placeholder="Model" className="placeholder:text-gray-500" />
+        <SelectTrigger className="w-[90px]" variant="default">
+          <SelectValue placeholder="Model" />
         </SelectTrigger>
-        <SelectContent className="bg-white/90 backdrop-blur-sm border border-gray-200">
-          <SelectItem value="corolla">Corolla</SelectItem>
-          <SelectItem value="golf">Golf</SelectItem>
-          <SelectItem value="3-series">3 Series</SelectItem>
-          <SelectItem value="a4">A4</SelectItem>
+        <SelectContent variant="default">
+          <SelectItem value="corolla" variant="default">Corolla</SelectItem>
+          <SelectItem value="golf" variant="default">Golf</SelectItem>
+          <SelectItem value="3-series" variant="default">3 Series</SelectItem>
+          <SelectItem value="a4" variant="default">A4</SelectItem>
         </SelectContent>
       </Select>
 
-      <div className="flex items-center gap-1">
-        <Input
-          type="number"
-          placeholder="Min €"
+      <div className="flex gap-2">
+        <Select
           value={filters.minPrice}
-          onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-          className="w-[80px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
-        />
-        <Input
-          type="number"
-          placeholder="Max €"
+          onValueChange={(value) => setFilters({ ...filters, minPrice: value })}
+        >
+          <SelectTrigger className="w-[100px]" variant="default">
+            <SelectValue placeholder="Min €" />
+          </SelectTrigger>
+          <SelectContent variant="default">
+            {[5000, 10000, 15000, 20000, 25000, 30000, 40000, 50000].map((price) => (
+              <SelectItem key={price} value={price.toString()} variant="default">
+                €{price.toLocaleString()}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
           value={filters.maxPrice}
-          onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
-          className="w-[80px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
-        />
+          onValueChange={(value) => setFilters({ ...filters, maxPrice: value })}
+        >
+          <SelectTrigger className="w-[100px]" variant="default">
+            <SelectValue placeholder="Max €" />
+          </SelectTrigger>
+          <SelectContent variant="default">
+            {[10000, 20000, 30000, 40000, 50000, 75000, 100000].map((price) => (
+              <SelectItem key={price} value={price.toString()} variant="default">
+                €{price.toLocaleString()}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="flex items-center gap-1">
-        <Input
-          type="number"
-          placeholder="Min Year"
+      <div className="flex gap-2">
+        <Select
           value={filters.minYear}
-          onChange={(e) => setFilters({ ...filters, minYear: e.target.value })}
-          className="w-[90px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
-        />
-        <Input
-          type="number"
-          placeholder="Max Year"
+          onValueChange={(value) => setFilters({ ...filters, minYear: value })}
+        >
+          <SelectTrigger className="w-[90px]" variant="default">
+            <SelectValue placeholder="Min Year" />
+          </SelectTrigger>
+          <SelectContent variant="default">
+            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 9 + i).map((year) => (
+              <SelectItem key={year} value={year.toString()} variant="default">
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
           value={filters.maxYear}
-          onChange={(e) => setFilters({ ...filters, maxYear: e.target.value })}
-          className="w-[90px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
-        />
+          onValueChange={(value) => setFilters({ ...filters, maxYear: value })}
+        >
+          <SelectTrigger className="w-[90px]" variant="default">
+            <SelectValue placeholder="Max Year" />
+          </SelectTrigger>
+          <SelectContent variant="default">
+            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 9 + i).map((year) => (
+              <SelectItem key={year} value={year.toString()} variant="default">
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <Button 
