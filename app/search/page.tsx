@@ -3,14 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { supabase } from '@/lib/supabase';
-import { CarSpecs } from '@/types/car';
+import { CarSpecs } from '@/types/search';
 import { ChatMessage } from '@/types/chat';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
 import { SearchOutput } from '@/components/search/search-output';
 import { FilterForm } from "@/components/filter-form";
 import { Input } from '@/components/ui/input';
+import ReactMarkdown from 'react-markdown';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -32,81 +32,71 @@ export default function SearchPage() {
 
   const handleSearch = async (filters: CarSpecs) => {
     setIsLoading(true);
+    const searchId = uuidv4();
+    console.log('Frontend: Starting search with filters:', filters);
 
     try {
-      let query = supabase
-        .from('car_list')
-        .select('*');
+      console.log('Frontend: Sending search request to API...');
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          filters,
+          searchId 
+        }),
+      });
 
-      // Apply filters
-      if (filters.make?.trim()) {
-        query = query.ilike('make', `%${filters.make.trim()}%`);
-      }
-      
-      if (filters.model?.trim()) {
-        query = query.ilike('model', `%${filters.model.trim()}%`);
-      }
-      
-      if (filters.minYear) {
-        query = query.gte('year', filters.minYear);
-      }
-      if (filters.maxYear) {
-        query = query.lte('year', filters.maxYear);
-      }
-      
-      if (filters.minPrice) {
-        query = query.gte('price', filters.minPrice);
-      }
-      if (filters.maxPrice) {
-        query = query.lte('price', filters.maxPrice);
+      console.log('Frontend: Received response with status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Frontend: Search failed with error:', errorData);
+        throw new Error(errorData.error || 'Search failed');
       }
 
-      // Execute query
-      const { data: cars, error: queryError } = await query;
-
-      if (queryError) {
-        throw queryError;
-      }
+      const data = await response.json();
+      console.log('Frontend: Received search results:', data);
 
       const newMessage: ChatMessage = {
-        id: uuidv4(),
+        id: searchId,
         role: 'assistant',
-        content: `Found ${cars?.length || 0} matching vehicles`,
+        content: data.message || `Found ${data.results?.length || 0} matching vehicles`,
         timestamp: Date.now(),
         response: {
           type: 'car_listing',
-          message: '',
-          results: cars || [],
-          loading: false
+          message: data.message || '',
+          results: data.results || [],
+          loading: false,
+          aiResponse: data.agentResponse
         }
       };
 
+      console.log('Frontend: Updating messages with search results');
       setMessages([newMessage]);
 
-    } catch (error) {
-      console.error('Search failed:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('Frontend: Search failed:', errorMessage);
       
       setMessages([{
-        id: uuidv4(),
+        id: searchId,
         role: 'system',
         content: 'Search failed. Please try again.',
         timestamp: Date.now(),
         response: {
           type: 'car_listing',
-          message: 'Error occurred',
+          message: errorMessage,
           results: [],
           loading: false
         }
       }]);
     } finally {
+      console.log('Frontend: Search completed');
       setIsLoading(false);
       scrollToBottom(searchResultsRef.current);
     }
-  };
-
-  const handleChatSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Handle chat input submission
   };
 
   // Run initial search from URL params if present
@@ -156,11 +146,31 @@ export default function SearchPage() {
           >
             {messages.map((message) => (
               <div key={message.id} className="mb-4">
-                {message.response?.aiResponse && (
+                {message.response?.aiResponse ? (
                   <div className="bg-white rounded-lg shadow p-4">
-                    {message.response.aiResponse}
+                    {message.response.aiResponse.error ? (
+                      <div className="text-red-500">
+                        {message.response.aiResponse.error}
+                      </div>
+                    ) : (
+                      <div className="prose">
+                        <ReactMarkdown>
+                          {typeof message.response.aiResponse === 'string' 
+                            ? message.response.aiResponse 
+                            : typeof message.response.aiResponse.content === 'string'
+                              ? message.response.aiResponse.content
+                              : JSON.stringify(message.response.aiResponse, null, 2)}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </div>
-                )}
+                ) : message.response?.loading ? (
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
@@ -168,7 +178,7 @@ export default function SearchPage() {
           {/* Fixed Chat Input at Bottom */}
           <div className="fixed bottom-4 right-0 w-[50%] px-4 z-10">
             <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg shadow-lg p-4">
-              <form onSubmit={handleChatSubmit} className="flex gap-2">
+              <form onSubmit={(e) => { e.preventDefault(); }} className="flex gap-2">
                 <Input
                   placeholder="Ask about the search results..."
                   value=""

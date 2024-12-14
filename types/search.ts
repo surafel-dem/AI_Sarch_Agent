@@ -34,12 +34,24 @@ export interface TextResponse {
   content: string;
 }
 
+export interface AgentResponse {
+  content?: string;
+  error?: string;
+  suggestions?: string[];
+  analysis?: {
+    price?: string;
+    market?: string;
+    features?: string[];
+  };
+}
+
 export type SearchResponse = {
   type: 'car_listing' | 'text';
   message: string;
   results: Car[];
   loading?: boolean;
-  sessionId?: string; // Add sessionId to track searches
+  aiResponse?: AgentResponse | string;
+  sessionId?: string;
 }
 
 export interface CarSpecs {
