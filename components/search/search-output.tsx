@@ -1,15 +1,25 @@
 import { SearchResponse } from '@/types/search';
 import Link from 'next/link';
+import { LoadingDots } from '@/components/ui/loading-dots';
 
 interface SearchOutputProps {
   message: {
     response?: SearchResponse;
     isLoading?: boolean;
   };
+  loading?: boolean;
 }
 
-export function SearchOutput({ message }: SearchOutputProps) {
-  if (message.isLoading) {
+export function SearchOutput({ message, loading }: SearchOutputProps) {
+  if (loading) {
+    return (
+      <div className="absolute top-4 left-4">
+        <LoadingDots />
+      </div>
+    );
+  }
+
+  if (message?.isLoading) {
     return (
       <div className="space-y-3">
         <div className="animate-pulse space-y-3">
@@ -24,7 +34,8 @@ export function SearchOutput({ message }: SearchOutputProps) {
     );
   }
 
-  if (!message.response?.results?.length) {
+  // Only show no results message if we have a response but no results
+  if (message?.response && !message.response.results?.length) {
     return (
       <div className="py-8 text-center">
         <p className="text-gray-600">No results found. Try adjusting your search criteria.</p>
@@ -32,8 +43,13 @@ export function SearchOutput({ message }: SearchOutputProps) {
     );
   }
 
+  // Don't render anything if we don't have a response yet
+  if (!message?.response) {
+    return null;
+  }
+
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col space-y-4">
       {message.response.results.map((car, index) => (
         <div 
           key={index} 

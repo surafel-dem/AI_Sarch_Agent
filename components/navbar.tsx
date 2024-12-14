@@ -1,21 +1,26 @@
 'use client';
 
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
+import { usePathname } from 'next/navigation';
 
 export function Navbar() {
   const { isSignedIn, isLoaded } = useUser();
+  const pathname = usePathname();
+  const isSearchPage = pathname === '/search';
 
   return (
     <nav className="fixed top-4 right-4 z-50 flex items-center gap-6">
-      {/* Text Menu Items */}
-      <div className="flex items-center gap-6">
-        <a href="#" className="text-[#A3A5AC] hover:text-white transition-colors duration-200 text-[15px]">
-          About
-        </a>
-        <a href="#" className="text-[#A3A5AC] hover:text-white transition-colors duration-200 text-[15px]">
-          Contact
-        </a>
-      </div>
+      {/* Text Menu Items - Hide on search page */}
+      {!isSearchPage && (
+        <div className="flex items-center gap-6">
+          <a href="#" className="text-[#A3A5AC] hover:text-white transition-colors duration-200 text-[15px]">
+            About
+          </a>
+          <a href="#" className="text-[#A3A5AC] hover:text-white transition-colors duration-200 text-[15px]">
+            Contact
+          </a>
+        </div>
+      )}
 
       {/* Auth Buttons Group */}
       {!isLoaded ? (

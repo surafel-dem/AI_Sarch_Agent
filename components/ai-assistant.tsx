@@ -84,7 +84,7 @@ export function AIAssistant() {
                 className="w-full pl-4 pr-12 py-3 text-sm bg-[#27272a]/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 text-white/80 placeholder:text-white/40 transition-all duration-200"
               />
               <button 
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-white/40 hover:text-white/80 transition-colors disabled:opacity-30 disabled:hover:text-white/40"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:hover:bg-blue-600"
                 disabled={!inputValue.trim()}
               >
                 <Send className="w-4 h-4" />

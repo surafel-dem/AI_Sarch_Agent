@@ -46,8 +46,8 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         value={filters.location}
         onValueChange={(value) => setFilters({ ...filters, location: value })}
       >
-        <SelectTrigger className="w-[100px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
-          <SelectValue placeholder="Location" />
+        <SelectTrigger className="w-[100px] h-9 text-sm bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
+          <SelectValue placeholder="Location" className="placeholder:text-gray-500" />
         </SelectTrigger>
         <SelectContent className="bg-white border border-gray-200">
           <SelectItem value="dublin">Dublin</SelectItem>
@@ -61,8 +61,8 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         value={filters.make}
         onValueChange={(value) => setFilters({ ...filters, make: value })}
       >
-        <SelectTrigger className="w-[90px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
-          <SelectValue placeholder="Make" />
+        <SelectTrigger className="w-[90px] h-9 text-sm bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
+          <SelectValue placeholder="Make" className="placeholder:text-gray-500" />
         </SelectTrigger>
         <SelectContent className="bg-white border border-gray-200">
           <SelectItem value="toyota">Toyota</SelectItem>
@@ -77,8 +77,8 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         onValueChange={(value) => setFilters({ ...filters, model: value })}
         disabled={!filters.make}
       >
-        <SelectTrigger className="w-[90px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
-          <SelectValue placeholder="Model" />
+        <SelectTrigger className="w-[90px] h-9 text-sm bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
+          <SelectValue placeholder="Model" className="placeholder:text-gray-500" />
         </SelectTrigger>
         <SelectContent className="bg-white border border-gray-200">
           <SelectItem value="corolla">Corolla</SelectItem>
@@ -94,14 +94,14 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
           placeholder="Min €"
           value={filters.minPrice}
           onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-          className="w-[80px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[80px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-500 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
         <Input
           type="number"
           placeholder="Max €"
           value={filters.maxPrice}
           onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
-          className="w-[80px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[80px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-500 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
       </div>
 
@@ -111,30 +111,23 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
           placeholder="Min Year"
           value={filters.minYear}
           onChange={(e) => setFilters({ ...filters, minYear: e.target.value })}
-          className="w-[90px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[90px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-500 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
         <Input
           type="number"
           placeholder="Max Year"
           value={filters.maxYear}
           onChange={(e) => setFilters({ ...filters, maxYear: e.target.value })}
-          className="w-[90px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[90px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-500 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
       </div>
 
       <Button 
         type="submit" 
         disabled={isLoading}
-        className="h-9"
+        className="h-9 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 rounded-lg transition-colors"
       >
-        {isLoading ? (
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            <span>...</span>
-          </div>
-        ) : (
-          'Search'
-        )}
+        Search
       </Button>
     </form>
   );

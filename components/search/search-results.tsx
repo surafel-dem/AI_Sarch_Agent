@@ -2,15 +2,30 @@ import { Car } from '@/types/search';
 import { Button } from '@/components/ui/button';
 import { Car as CarIcon, Heart, MessageCircle, ExternalLink, CalendarIcon, MapPinIcon, Gauge } from 'lucide-react';
 import Image from 'next/image';
+import { LoadingDots } from '@/components/ui/loading-dots';
 
 interface SearchResultsProps {
-  results: Car[];
+  results: Car[] | null;
+  loading?: boolean;
   onResultClick?: (car: Car) => void;
   onSaveClick?: (car: Car) => void;
   onAskAI?: (car: Car) => void;
 }
 
-export function SearchResults({ results, onResultClick, onSaveClick, onAskAI }: SearchResultsProps) {
+export function SearchResults({ results, loading = false, onResultClick, onSaveClick, onAskAI }: SearchResultsProps) {
+  if (loading) {
+    return (
+      <div className="w-full max-w-7xl mx-auto p-4">
+        <div className="bg-white/5 backdrop-blur rounded-xl border border-gray-200/20 p-6">
+          <div className="flex flex-col items-center space-y-2">
+            <LoadingDots />
+            <p className="text-gray-500 text-sm">Searching for cars</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!results?.length) {
     return (
       <div className="w-full max-w-7xl mx-auto p-4">
@@ -27,9 +42,9 @@ export function SearchResults({ results, onResultClick, onSaveClick, onAskAI }: 
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4 pl-16 space-y-4">
+    <div className="w-full h-full overflow-auto px-4 py-6">
       <h2 className="text-xl font-semibold mb-4">Found {results.length} match{results.length !== 1 ? 'es' : ''}</h2>
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-4 max-w-5xl mx-auto">
         {results.map((car) => (
           <div
             key={car.listing_id}

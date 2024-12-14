@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { SearchOutput } from '@/components/search/search-output';
 import { CarSpecs } from '@/types/search';
 import { ChatMessage } from '@/types/chat';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/ui/button";
-import { SearchOutput } from '@/components/search/search-output';
 import { FilterForm } from "@/components/filter-form";
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
@@ -15,12 +14,12 @@ import { AgentResponse } from '@/components/chat/agent-response';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const { user } = useUser();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const searchResultsRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [inputValue, setInputValue] = useState('');
 
   const scrollToBottom = (container: HTMLDivElement | null) => {
     if (container) {
@@ -100,6 +99,13 @@ export default function SearchPage() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Handle send message logic here
+    }
+  };
+
   // Run initial search from URL params if present
   useEffect(() => {
     const selections = searchParams.get('selections') 
@@ -108,6 +114,8 @@ export default function SearchPage() {
 
     if (Object.keys(selections).length > 0) {
       handleSearch(selections);
+    } else {
+      setIsLoading(false);
     }
   }, []);
 
@@ -115,25 +123,21 @@ export default function SearchPage() {
     <div className="flex h-screen bg-white">
       {/* Left Panel - Search Results */}
       <div className="w-[65%] border-r border-gray-200 relative">
-        {/* Side Panel Icons */}
-        <div className="fixed left-0 top-0 bottom-0 w-12 flex flex-col items-center py-4 bg-white z-10">
-          <div className="space-y-4">
-            {/* Your side panel icons here */}
-          </div>
-        </div>
-
-        <div className="h-screen flex flex-col pl-12"> 
+        <div className="h-screen flex flex-col pt-6"> 
+          {/* Search Results Area */}
           <div 
-            className="flex-grow overflow-y-auto px-6 pt-4"
+            ref={searchResultsRef}
+            className="flex-grow overflow-y-auto pl-16 pr-6"
             style={{ paddingBottom: '120px' }} 
           >
             <SearchOutput 
-              message={messages[messages.length - 1] || { isLoading: false }}
+              message={messages[messages.length - 1] || { isLoading: true }}
+              loading={isLoading}
             />
           </div>
 
-          {/* Filter Form - Compact one-line style */}
-          <div className="sticky bottom-0 left-0 w-full pl-12">
+          {/* Filter Form - Fixed at bottom */}
+          <div className="sticky bottom-0 left-0 w-full pl-16">
             <div className="mx-4 mb-4">
               <div className="bg-white border-t border-gray-200 shadow-sm">
                 <div className="py-2.5 px-4">
@@ -147,9 +151,9 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* Right Panel - AI Analysis */}
-      <div className="w-[35%]">
-        <div className="h-screen flex flex-col">
+      {/* Right Panel - AI Assistant */}
+      <div className="w-[35%] relative">
+        <div className="h-screen flex flex-col pt-6 px-6">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800">AI Assistant</h2>
             <p className="text-sm text-gray-600">Ask questions about the search results</p>
@@ -157,40 +161,34 @@ export default function SearchPage() {
           
           <div 
             ref={chatRef}
-            className="flex-grow overflow-y-auto px-6 py-4 space-y-6"
+            className="flex-grow overflow-y-auto"
             style={{ paddingBottom: '120px' }} 
           >
             {messages.map((message) => (
               <div key={message.id} className="space-y-2">
                 {message.response?.aiResponse && (
-                  <AgentResponse 
-                    response={message.response.aiResponse}
-                    isLoading={message.response.loading}
-                  />
+                  <AgentResponse response={message.response.aiResponse} />
                 )}
               </div>
             ))}
           </div>
 
-          {/* Chat Input - Claude style */}
-          <div className="sticky bottom-0 w-full">
-            <div className="mx-4 mb-4 bg-white rounded-2xl shadow-[0_0_24px_rgba(0,0,0,0.05)] border border-gray-100">
-              <form onSubmit={(e) => { e.preventDefault(); }} className="flex items-center gap-2 py-3 px-4">
-                <Input
-                  placeholder="Ask me anything about these cars..."
-                  value=""
-                  onChange={(e) => {}}
-                  className="flex-1 bg-transparent border-0 focus:ring-0 focus:border-0 px-0 h-10 text-base outline-none focus:outline-none"
-                />
-                <Button 
-                  type="submit" 
-                  size="sm" 
-                  disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-5 py-2 text-sm font-medium transition-colors"
-                >
-                  Send
-                </Button>
-              </form>
+          {/* Chat Input */}
+          <div className="sticky bottom-0 w-full bg-white border-t border-gray-100 p-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <textarea
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask about the search results..."
+                className="w-full px-4 py-3 text-sm bg-transparent border-none focus:ring-0 resize-none"
+                rows={1}
+                style={{
+                  minHeight: '44px',
+                  maxHeight: '44px'
+                }}
+              />
             </div>
           </div>
         </div>
