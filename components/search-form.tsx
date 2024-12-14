@@ -56,9 +56,11 @@ const carModels = {
 type CarMake = keyof typeof carModels;
 
 // Styles for dropdowns
-const selectTriggerStyles = "h-9 px-3 bg-[#f8f8f8] rounded-lg border border-gray-100 shadow-sm data-[placeholder]:text-[#6B7280] text-[#14162E] text-sm relative [&>svg]:hidden hover:border-[#2563EB] focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-const selectContentStyles = "bg-[#f8f8f8] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg shadow-md border border-gray-100 fixed"
-const selectItemStyles = "py-2 px-3 text-sm text-[#14162E] cursor-pointer data-[highlighted]:bg-[#2563EB]/10 data-[highlighted]:text-[#2563EB]"
+const selectTriggerStyles = "h-10 px-3 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A] shadow-sm data-[placeholder]:text-gray-400 text-gray-200 text-sm relative [&>svg]:hidden hover:border-[#4A4A4A] focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]"
+const selectContentStyles = "bg-[#2A2A2A] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg shadow-md border border-[#3A3A3A] fixed"
+const selectItemStyles = "py-2 px-3 text-sm text-gray-200 cursor-pointer data-[highlighted]:bg-[#3A3A3A] data-[highlighted]:text-gray-100"
+
+const inputStyles = "h-10 px-3 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A] shadow-sm text-gray-200 text-sm placeholder:text-gray-400 hover:border-[#4A4A4A] focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]"
 
 const locations = ["dublin", "cork", "galway", "limerick", "waterford", "belfast", "kilkenny"];
 const makes = ["volkswagen", "toyota", "bmw", "audi", "mercedes"];
@@ -241,7 +243,7 @@ export function SearchForm() {
 
   return (
     <div className="w-full">
-      <div className="max-w-xl mx-auto bg-white border border-gray-200 p-6 rounded-xl shadow-sm">
+      <div className="max-w-xl mx-auto bg-[#1A1A1A] border border-[#2D2D2D] p-6 rounded-xl shadow-lg">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Step indicator */}
           <div className="flex justify-center items-center gap-2 mb-6">
@@ -251,8 +253,8 @@ export function SearchForm() {
                   className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
                     currentStep === num
-                      ? "bg-[#2563EB] text-white"
-                      : "bg-[#f8f8f8] text-[#6B7280]"
+                      ? "bg-[#6366f1] text-white"
+                      : "bg-[#2A2A2A] text-gray-400"
                   )}
                 >
                   {num}
@@ -261,7 +263,7 @@ export function SearchForm() {
                   <div
                     className={cn(
                       "w-12 h-0.5 mx-2",
-                      num < currentStep ? "bg-[#2563EB]" : "bg-gray-100"
+                      num < currentStep ? "bg-[#6366f1]" : "bg-[#2A2A2A]"
                     )}
                   />
                 )}
@@ -274,13 +276,12 @@ export function SearchForm() {
             {/* Form content */}
             <div className="h-full">
               {currentStep === 1 && (
-                <div className="space-y-8">
-                  {/* Location, Make, and Model in one row */}
-                  <div className="flex w-full gap-2 mb-3">
-                    {/* Location */}
+                <div className="space-y-4 flex flex-col items-center">
+                  {/* First row: Location, Make, Model */}
+                  <div className="flex justify-center gap-3 mb-4 w-full max-w-[600px]">
                     <Select name="location" onValueChange={(value) => handleSelectChange("location", value)}>
-                      <SelectTrigger className={`w-[320px] ${selectTriggerStyles}`}>
-                        <SelectValue placeholder="Select Location" />
+                      <SelectTrigger className={`w-[120px] ${selectTriggerStyles}`}>
+                        <SelectValue placeholder="Location" />
                       </SelectTrigger>
                       <SelectContent className={selectContentStyles}>
                         {locations.map((location) => (
@@ -291,111 +292,109 @@ export function SearchForm() {
                       </SelectContent>
                     </Select>
 
-                    <div className="flex gap-2 flex-1">
-                      {/* Make */}
-                      <Select name="make" onValueChange={(value) => handleSelectChange("make", value)}>
-                        <SelectTrigger className={`w-[150px] ${selectTriggerStyles}`}>
-                          <SelectValue placeholder="Make" />
+                    <Select name="make" onValueChange={(value) => handleSelectChange("make", value)}>
+                      <SelectTrigger className={`w-[120px] ${selectTriggerStyles}`}>
+                        <SelectValue placeholder="Make" />
+                      </SelectTrigger>
+                      <SelectContent className={selectContentStyles}>
+                        {makes.map((make) => (
+                          <SelectItem key={make} value={make} className={selectItemStyles}>
+                            {make}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      name="model"
+                      onValueChange={(value) => handleSelectChange("model", value)}
+                      disabled={!formData.make}
+                    >
+                      <SelectTrigger className={`w-[120px] ${selectTriggerStyles}`}>
+                        <SelectValue placeholder="Model" />
+                      </SelectTrigger>
+                      <SelectContent className={selectContentStyles}>
+                        {formData.make && carModels[formData.make as CarMake].map((model) => (
+                          <SelectItem key={model} value={model} className={selectItemStyles}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Second row: Price and Year ranges */}
+                  <div className="flex justify-center gap-6 w-full max-w-[600px]">
+                    <div className="flex gap-2">
+                      <Select name="minPrice" onValueChange={(value) => handleSelectChange("minPrice", value)}>
+                        <SelectTrigger className={`w-[100px] ${selectTriggerStyles}`}>
+                          <SelectValue placeholder="Min €" />
                         </SelectTrigger>
                         <SelectContent className={selectContentStyles}>
-                          {makes.map((make) => (
-                            <SelectItem key={make} value={make} className={selectItemStyles}>
-                              {make}
+                          {priceRanges.map((price) => (
+                            <SelectItem key={price} value={price} className={selectItemStyles}>
+                              €{price}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
 
-                      {/* Model */}
-                      <Select
-                        name="model"
-                        onValueChange={(value) => handleSelectChange("model", value)}
-                        disabled={!formData.make}
-                      >
-                        <SelectTrigger className={`w-[150px] ${selectTriggerStyles}`}>
-                          <SelectValue placeholder="Model" />
+                      <Select name="maxPrice" onValueChange={(value) => handleSelectChange("maxPrice", value)}>
+                        <SelectTrigger className={`w-[100px] ${selectTriggerStyles}`}>
+                          <SelectValue placeholder="Max €" />
                         </SelectTrigger>
                         <SelectContent className={selectContentStyles}>
-                          {formData.make && carModels[formData.make as CarMake].map((model) => (
-                            <SelectItem key={model} value={model} className={selectItemStyles}>
-                              {model}
+                          {priceRanges.map((price) => (
+                            <SelectItem key={price} value={price} className={selectItemStyles}>
+                              €{price}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Select name="minYear" onValueChange={(value) => handleSelectChange("minYear", value)}>
+                        <SelectTrigger className={`w-[90px] ${selectTriggerStyles}`}>
+                          <SelectValue placeholder="Min Year" />
+                        </SelectTrigger>
+                        <SelectContent className={selectContentStyles}>
+                          {yearRanges.map((year) => (
+                            <SelectItem key={year} value={year.toString()} className={selectItemStyles}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select name="maxYear" onValueChange={(value) => handleSelectChange("maxYear", value)}>
+                        <SelectTrigger className={`w-[90px] ${selectTriggerStyles}`}>
+                          <SelectValue placeholder="Max Year" />
+                        </SelectTrigger>
+                        <SelectContent className={selectContentStyles}>
+                          {yearRanges.map((year) => (
+                            <SelectItem key={year} value={year.toString()} className={selectItemStyles}>
+                              {year}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
-
-                  {/* Price Range and Year Range in one row */}
-                  <div className="flex w-full gap-2">
-                    {/* Price Range */}
-                    <Select name="minPrice" onValueChange={(value) => handleSelectChange("minPrice", value)}>
-                      <SelectTrigger className={`w-[150px] ${selectTriggerStyles}`}>
-                        <SelectValue placeholder="Min Price" />
-                      </SelectTrigger>
-                      <SelectContent className={selectContentStyles}>
-                        {priceRanges.map((price) => (
-                          <SelectItem key={price} value={price} className={selectItemStyles}>
-                            €{price}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select name="maxPrice" onValueChange={(value) => handleSelectChange("maxPrice", value)}>
-                      <SelectTrigger className={`w-[150px] ${selectTriggerStyles}`}>
-                        <SelectValue placeholder="Max Price" />
-                      </SelectTrigger>
-                      <SelectContent className={selectContentStyles}>
-                        {priceRanges.map((price) => (
-                          <SelectItem key={price} value={price} className={selectItemStyles}>
-                            €{price}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {/* Year Range */}
-                    <Select name="minYear" onValueChange={(value) => handleSelectChange("minYear", value)}>
-                      <SelectTrigger className={`w-[150px] ${selectTriggerStyles}`}>
-                        <SelectValue placeholder="Min Year" />
-                      </SelectTrigger>
-                      <SelectContent className={selectContentStyles}>
-                        {yearRanges.map((year) => (
-                          <SelectItem key={year} value={year.toString()} className={selectItemStyles}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select name="maxYear" onValueChange={(value) => handleSelectChange("maxYear", value)}>
-                      <SelectTrigger className={`w-[150px] ${selectTriggerStyles}`}>
-                        <SelectValue placeholder="Max Year" />
-                      </SelectTrigger>
-                      <SelectContent className={selectContentStyles}>
-                        {yearRanges.map((year) => (
-                          <SelectItem key={year} value={year.toString()} className={selectItemStyles}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
               )}
               {currentStep === 2 && (
-                <div className="space-y-4">
+                <div className="space-y-4 flex flex-col items-center">
                   {/* Tab Headers */}
-                  <div className="flex space-x-1 border-b border-gray-100">
+                  <div className="flex space-x-1 border-b border-[#2D2D2D] w-full max-w-[600px] justify-center">
                     <button
                       type="button"
                       onClick={() => setActiveTab('priorities')}
                       className={cn(
                         "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
                         activeTab === 'priorities'
-                          ? "bg-[#2563EB]/10 text-[#2563EB] border-b-2 border-[#2563EB]"
-                          : "bg-transparent text-[#6B7280] hover:text-[#2563EB]/70"
+                          ? "bg-[#6366f1]/10 text-[#6366f1] border-b-2 border-[#6366f1]"
+                          : "bg-transparent text-gray-400 hover:text-[#6366f1]/70"
                       )}
                     >
                       Priorities
@@ -406,8 +405,8 @@ export function SearchForm() {
                       className={cn(
                         "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
                         activeTab === 'mustHave'
-                          ? "bg-[#2563EB]/10 text-[#2563EB] border-b-2 border-[#2563EB]"
-                          : "bg-transparent text-[#6B7280] hover:text-[#2563EB]/70"
+                          ? "bg-[#6366f1]/10 text-[#6366f1] border-b-2 border-[#6366f1]"
+                          : "bg-transparent text-gray-400 hover:text-[#6366f1]/70"
                       )}
                     >
                       Must Have
@@ -415,9 +414,9 @@ export function SearchForm() {
                   </div>
 
                   {/* Tab Content */}
-                  <div className="pt-2">
+                  <div className="pt-2 w-full max-w-[600px]">
                     {activeTab === 'priorities' && (
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 justify-center">
                         {priorities.map((priority) => (
                           <label
                             key={priority}
@@ -427,16 +426,16 @@ export function SearchForm() {
                               type="checkbox"
                               checked={formData.priorities.includes(priority)}
                               onChange={() => handleCheckboxChange('priorities', priority)}
-                              className="h-3 w-3 rounded border-[#2563EB]/30 text-[#2563EB] focus:ring-[#2563EB]/20"
+                              className="h-3 w-3 rounded border-[#6366f1]/30 text-[#6366f1] focus:ring-[#6366f1]/20"
                             />
-                            <span className="text-[#14162E]">{priority}</span>
+                            <span className="text-gray-200">{priority}</span>
                           </label>
                         ))}
                       </div>
                     )}
 
                     {activeTab === 'mustHave' && (
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 justify-center">
                         {mustHaveFeatures.map((feature) => (
                           <label
                             key={feature}
@@ -446,9 +445,9 @@ export function SearchForm() {
                               type="checkbox"
                               checked={formData.mustHaveFeatures.includes(feature)}
                               onChange={() => handleCheckboxChange('mustHave', feature)}
-                              className="h-3 w-3 rounded border-[#2563EB]/30 text-[#2563EB] focus:ring-[#2563EB]/20"
+                              className="h-3 w-3 rounded border-[#6366f1]/30 text-[#6366f1] focus:ring-[#6366f1]/20"
                             />
-                            <span className="text-[#14162E]">{feature}</span>
+                            <span className="text-gray-200">{feature}</span>
                           </label>
                         ))}
                       </div>
@@ -457,8 +456,8 @@ export function SearchForm() {
                 </div>
               )}
               {currentStep === 3 && (
-                <div className="space-y-4">
-                  <div className="flex justify-center">
+                <div className="space-y-4 flex flex-col items-center">
+                  <div className="flex justify-center w-full max-w-[600px]">
                     <Select name="usage" onValueChange={(value) => handleSelectChange("usage", value)}>
                       <SelectTrigger className={`w-64 ${selectTriggerStyles}`}>
                         <SelectValue placeholder="How will you use this car?" />
@@ -472,13 +471,13 @@ export function SearchForm() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex justify-center">
+                  <div className="flex justify-center w-full max-w-[600px]">
                     <Input
                       type="text"
                       placeholder="Any must have feature?"
                       value={formData.customFeature}
                       onChange={(e) => setFormData(prev => ({ ...prev, customFeature: e.target.value }))}
-                      className="w-64 h-9 px-3 bg-white/5 border border-white/10 text-gray-200 text-sm rounded-lg placeholder:text-gray-400"
+                      className={inputStyles}
                     />
                   </div>
                 </div>
@@ -493,7 +492,7 @@ export function SearchForm() {
                     type="button"
                     onClick={prevStep}
                     variant="outline"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 bg-[#2A2A2A] text-gray-200 border-[#3A3A3A] hover:bg-[#3A3A3A] hover:text-white"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Back
@@ -511,7 +510,7 @@ export function SearchForm() {
                     nextStep();
                   }
                 }}
-                className="flex items-center gap-2 bg-[#2563EB] text-white hover:bg-[#2563EB]/90"
+                className="flex items-center gap-2 bg-[#6366f1] hover:bg-[#4F46E5] text-white"
                 disabled={!isFormValid()}
               >
                 {currentStep === 3 ? (

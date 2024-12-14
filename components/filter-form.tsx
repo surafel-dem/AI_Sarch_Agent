@@ -108,24 +108,24 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
       <div className="flex items-center gap-1">
         <Input
           type="number"
-          placeholder="Min Yr"
+          placeholder="Min Year"
           value={filters.minYear}
           onChange={(e) => setFilters({ ...filters, minYear: e.target.value })}
-          className="w-[70px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[90px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
         <Input
           type="number"
-          placeholder="Max Yr"
+          placeholder="Max Year"
           value={filters.maxYear}
           onChange={(e) => setFilters({ ...filters, maxYear: e.target.value })}
-          className="w-[70px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[90px] h-9 text-sm bg-white border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
       </div>
 
       <Button 
         type="submit" 
         disabled={isLoading}
-        className="bg-[#0066FF] hover:bg-[#0052CC] text-white h-9 px-4 rounded-lg ml-auto text-sm"
+        className="h-9"
       >
         {isLoading ? (
           <div className="flex items-center gap-2">

@@ -25,13 +25,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="dark">
       <body
         className={cn(
           "min-h-screen antialiased",
-          "bg-gradient-to-b from-[rgb(247,247,255)] to-white",
+          "bg-[#0a0a0f] bg-gradient-to-br from-[#0a0a0f] via-[#1a1a2e] to-[#2d1b4d]",
           poppins.variable,
-          "font-poppins"
+          "font-poppins text-white"
         )}
       >
         <ClerkProvider 

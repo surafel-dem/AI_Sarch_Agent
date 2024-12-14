@@ -6,15 +6,25 @@ export function Navbar() {
   const { isSignedIn, isLoaded } = useUser();
 
   return (
-    <nav className="fixed top-4 right-4 z-50 bg-purple-100/20 backdrop-blur-sm border border-purple-100/20 rounded-lg">
+    <nav className="fixed top-4 right-4 z-50 flex items-center gap-6">
+      {/* Text Menu Items */}
+      <div className="flex items-center gap-6">
+        <a href="#" className="text-[#A3A5AC] hover:text-white transition-colors duration-200 text-[15px]">
+          About
+        </a>
+        <a href="#" className="text-[#A3A5AC] hover:text-white transition-colors duration-200 text-[15px]">
+          Contact
+        </a>
+      </div>
+
+      {/* Auth Buttons Group */}
       {!isLoaded ? (
-        // Loading state
         <div className="h-10 w-24 animate-pulse bg-white/5 rounded-lg" />
       ) : !isSignedIn ? (
-        <div className="flex gap-2 p-1">
+        <div className="flex items-center gap-2">
           <SignInButton mode="modal">
-            <button className="bg-white/5 hover:bg-white/10 backdrop-blur-sm text-slate-700 hover:text-slate-900 px-4 py-2 rounded-lg transition duration-200">
-              Sign in
+            <button className="bg-[#1A1A1A] hover:bg-[#2A2A2A] text-gray-300 hover:text-white px-4 py-2 rounded-lg transition duration-200">
+              Login
             </button>
           </SignInButton>
           <SignUpButton 
@@ -22,9 +32,9 @@ export function Navbar() {
             afterSignUpUrl="/dashboard"
             appearance={{
               elements: {
-                formButtonPrimary: "bg-purple-500 hover:bg-purple-600 text-white",
-                formFieldInput: "h-11 px-4 bg-white rounded-xl border border-gray-200",
-                card: "bg-white shadow-none p-8 rounded-xl",
+                formButtonPrimary: "bg-white hover:bg-gray-100 text-gray-900",
+                formFieldInput: "h-11 px-4 bg-[#1A1A1A] text-white rounded-xl border border-[#2D2D2D]",
+                card: "bg-[#1A1A1A] shadow-none p-8 rounded-xl",
                 header: "hidden",
                 footer: "hidden",
                 dividerRow: "hidden",
@@ -32,7 +42,7 @@ export function Navbar() {
               }
             }}
           >
-            <button className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition duration-200">
+            <button className="bg-white hover:bg-gray-100 text-gray-900 px-4 py-2 rounded-lg transition duration-200 font-medium shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
               Sign up
             </button>
           </SignUpButton>
@@ -43,10 +53,10 @@ export function Navbar() {
           appearance={{
             elements: {
               avatarBox: "w-8 h-8",
-              userButtonPopoverCard: "bg-white/5 backdrop-blur-sm border border-purple-100/20 rounded-lg w-52 p-1",
-              userButtonPopoverActionButton: "hover:bg-white/10 text-slate-700 hover:text-slate-900 rounded-md px-2 py-1.5",
+              userButtonPopoverCard: "bg-[#1A1A1A] backdrop-blur-sm border border-[#2D2D2D] rounded-lg w-52 p-1",
+              userButtonPopoverActionButton: "hover:bg-[#2A2A2A] text-gray-300 hover:text-white rounded-md px-2 py-1.5",
               userButtonPopoverActionButtonText: "text-sm",
-              userPreviewMainIdentifier: "text-sm truncate max-w-[160px]",
+              userPreviewMainIdentifier: "text-sm text-gray-300 truncate max-w-[160px]",
               userButtonPopoverActionButtonIcon: "hidden",
               userButtonPopoverFooter: "hidden",
             }

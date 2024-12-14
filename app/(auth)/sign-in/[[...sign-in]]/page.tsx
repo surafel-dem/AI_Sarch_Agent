@@ -5,16 +5,16 @@ import Link from "next/link";
 
 export default function SignInPage() {
   return (
-    <>
+    <div className="min-h-screen bg-black flex items-center justify-center">
       {/* Close button */}
       <Link 
         href="/" 
-        className="absolute -right-2 -top-2 w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-md text-gray-400 hover:text-gray-600 z-50"
+        className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center bg-[#111111] rounded-full text-gray-400 hover:text-gray-300 border border-gray-800"
       >
         <X className="w-4 h-4" />
       </Link>
 
-      <div className="px-5 py-6">
+      <div className="w-full max-w-md">
         <SignIn 
           {...clerkConfig}
           path="/sign-in"
@@ -23,6 +23,6 @@ export default function SignInPage() {
           afterSignInUrl="/"
         />
       </div>
-    </>
+    </div>
   );
 }

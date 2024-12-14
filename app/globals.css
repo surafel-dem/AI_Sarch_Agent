@@ -10,11 +10,11 @@
   --font-poppins: 'Poppins', sans-serif;
   --radius: 0.5rem;
   
-  /* Light theme variables with monochromatic colors */
+  /* Light theme variables */
   --background: #ffffff;
   --foreground: #111827;
-  --primary: #4B5563;
-  --primary-hover: #374151;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
   --secondary: #F3F4F6;
   --border: #E5E7EB;
   --text-secondary: #6B7280;
@@ -29,33 +29,27 @@
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
   --ring: #9CA3AF;
-  --foreground-rgb: 17, 24, 39;
-  --background-start-rgb: 249, 250, 251;
-  --background-end-rgb: 255, 255, 255;
 }
 
 .dark {
-  --background: #0a0a0a;
+  --background: #0a0a0f;
   --foreground: #ffffff;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --secondary: #1e293b;
-  --border: #334155;
-  --text-secondary: #94a3b8;
-  --card: 0 0% 3.9%;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --secondary: #1a1a23;
+  --border: #2d2d3d;
+  --text-secondary: #a1a1aa;
+  --card: 240 17% 12%;
   --card-foreground: 0 0% 98%;
-  --popover: 0 0% 3.9%;
+  --popover: 240 17% 12%;
   --popover-foreground: 0 0% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
+  --muted: 240 17% 12%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 17% 12%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
-  --ring: #3b82f6;
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 10, 10, 10;
-  --background-end-rgb: 10, 10, 10;
+  --ring: #2d2d3d;
 }
 
 /* Default border color */
@@ -240,11 +234,28 @@ body {
 }
 
 .gradient-text-warm {
-  background-image: linear-gradient(90deg, #1e293b, #0f172a);
+  background-image: linear-gradient(90deg, #6366f1, #8b5cf6);
 }
 
 .gradient-text-cool {
-  background-image: linear-gradient(90deg, #1e293b, #0f172a);
+  background-image: linear-gradient(90deg, #8b5cf6, #6366f1);
+}
+
+/* Metallic text gradients */
+.gradient-text-metallic {
+  background: linear-gradient(180deg, #FFFFFF 0%, #ADADAD 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.15);
+}
+
+.gradient-text-metallic-dark {
+  background: linear-gradient(180deg, #D4D4D4 0%, #737373 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.15);
 }
 
 /* Gradient borders */

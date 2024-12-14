@@ -29,13 +29,13 @@ export default function Home() {
       <div className="relative px-6 lg:px-8">
         <div className="mx-auto max-w-4xl py-12">
           <div className="text-center">
-            <h1 className="text-[2.75rem] font-bold tracking-tight leading-tight">
-              <span className="[color:rgb(17,24,39)]">Find Your Best Car </span>
+            <h1 className="text-[3.5rem] font-bold tracking-tight leading-tight">
+              <span className="bg-gradient-to-b from-white to-gray-300 text-transparent bg-clip-text">Control Spend With</span>
               <br />
-              <span className="text-[#2563EB]">With AI Search Assistant</span>
+              <span className="bg-gradient-to-b from-gray-300 to-gray-500 text-transparent bg-clip-text">AI Assisted Intake</span>
             </h1>
-            <p className="mt-4 text-lg leading-7 text-[#6B7280] max-w-3xl mx-auto">
-              Let Agents support your search and get the right car for you.
+            <p className="mt-6 text-lg leading-7 text-gray-400 max-w-2xl mx-auto">
+              Axe is your AI-powered procurement assistant that streamlines requests through a simple chat interface.
             </p>
           </div>
         </div>
@@ -51,9 +51,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="fixed bottom-6 right-6">
-        <AIAssistant />
-      </div>
+      {/* AI Assistant */}
+      <AIAssistant />
     </main>
   );
 }

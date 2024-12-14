@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react'
-import { Send } from 'lucide-react'
+import { Send, ChevronDown, ChevronUp } from 'lucide-react'
 import { invokeSearchAgent } from '@/lib/search-api'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -25,6 +25,7 @@ const options = [
 
 export function AIAssistant() {
   const [inputValue, setInputValue] = useState('')
+  const [isOpen, setIsOpen] = useState(true)
   const sessionId = uuidv4()
 
   const handleOptionClick = async (query: string) => {
@@ -35,7 +36,6 @@ export function AIAssistant() {
         carSpecs: {}
       });
       console.log('Search response:', response);
-      // Update the input value after sending the query
       setInputValue(query);
     } catch (error) {
       console.error('Error sending suggestion query:', error);
@@ -43,49 +43,66 @@ export function AIAssistant() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4">
-      <div className="w-[240px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 rounded-xl shadow-lg border border-white/10">
-        <div className="p-3">
-          {/* Header */}
-          <div className="flex items-center mb-3">
-            <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shadow-sm mr-2">
-              <span className="text-white text-xs font-bold">A</span>
+    <div className="fixed bottom-6 right-6 z-50">
+      {/* Main Panel */}
+      <div className={`${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0 pointer-events-none'} transition-all duration-200 ease-in-out`}>
+        <div className="w-[280px] bg-[#1a1a1a]/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 transition-all duration-200">
+          <div className="p-4">
+            {/* Header */}
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 rounded-xl bg-[#27272a] border border-white/10 flex items-center justify-center shadow-lg mr-3">
+                <span className="text-white/90 text-sm font-medium">AI</span>
+              </div>
+              <h2 className="text-base font-medium text-white/80">AI Assistant</h2>
             </div>
-            <h2 className="text-sm font-medium text-foreground">Assistant</h2>
-          </div>
 
-          {/* Options Grid */}
-          <div className="grid grid-cols-1 gap-2 mb-3">
-            {options.map((option) => (
-              <button
-                key={option.label}
-                onClick={() => handleOptionClick(option.query)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left text-xs text-foreground border border-white/10"
+            {/* Options Grid */}
+            <div className="grid grid-cols-1 gap-2.5 mb-4">
+              {options.map((option) => (
+                <button
+                  key={option.label}
+                  onClick={() => handleOptionClick(option.query)}
+                  className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#27272a]/50 hover:bg-[#27272a]/80 transition-all duration-200 text-left border border-white/10 hover:border-white/20"
+                >
+                  <span className="text-white/60 group-hover:text-white/80 transition-colors">
+                    {option.icon}
+                  </span>
+                  <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">
+                    {option.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Input Area */}
+            <div className="relative">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Ask a question..."
+                className="w-full pl-4 pr-12 py-3 text-sm bg-[#27272a]/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 text-white/80 placeholder:text-white/40 transition-all duration-200"
+              />
+              <button 
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-white/40 hover:text-white/80 transition-colors disabled:opacity-30 disabled:hover:text-white/40"
+                disabled={!inputValue.trim()}
               >
-                <span>{option.icon}</span>
-                <span>{option.label}</span>
+                <Send className="w-4 h-4" />
               </button>
-            ))}
-          </div>
-
-          {/* Input Area */}
-          <div className="relative">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask a question..."
-              className="w-full pl-3 pr-10 py-2 text-sm bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-foreground placeholder:text-muted-foreground"
-            />
-            <button 
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-blue-500 transition-colors disabled:opacity-50"
-              disabled={!inputValue.trim()}
-            >
-              <Send className="w-4 h-4" />
-            </button>
+            </div>
           </div>
         </div>
       </div>
+      
+      {/* AI Icon */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`${isOpen ? 'translate-y-0' : '-translate-y-2'} cursor-pointer w-14 h-14 bg-[#1a1a1a] rounded-2xl flex items-center justify-center transition-transform duration-200 hover:scale-105 shadow-lg backdrop-blur-sm`}
+      >
+        <div className="w-full h-full bg-[#27272a]/80 rounded-2xl flex items-center justify-center border border-white/10">
+          <span className="text-white/90 text-lg font-medium tracking-wide">AI</span>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
