@@ -243,8 +243,16 @@ export function SearchForm() {
 
   return (
     <div className="w-full">
-      <div className="max-w-xl mx-auto bg-[#1A1A1A] border border-[#2D2D2D] p-6 rounded-xl shadow-lg">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="max-w-xl mx-auto bg-[#1A1A1A] border border-[#2D2D2D] p-6 rounded-xl shadow-lg relative overflow-hidden">
+        {/* Top lighting effect */}
+        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-50" />
+        <div className="absolute inset-x-0 top-0 h-[100px] bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+        
+        {/* Border light effect */}
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-20" />
+        <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-t from-white/5 via-transparent to-transparent blur-sm" />
+        
+        <form onSubmit={handleSubmit} className="space-y-6 relative">
           {/* Step indicator */}
           <div className="flex justify-center items-center gap-2 mb-6">
             {[1, 2, 3].map((num) => (

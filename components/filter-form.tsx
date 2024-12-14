@@ -41,15 +41,17 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full relative bg-black/5 backdrop-blur-xl rounded-lg border border-white/20 px-4 py-2">
+      <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
+      
       <Select
         value={filters.location}
         onValueChange={(value) => setFilters({ ...filters, location: value })}
       >
-        <SelectTrigger className="w-[100px] h-9 text-sm bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
+        <SelectTrigger className="w-[100px] h-9 text-sm bg-white/70 backdrop-blur-sm text-gray-900 border-gray-200 hover:border-violet-200 focus:ring-2 focus:ring-violet-400 focus:border-transparent transition-all">
           <SelectValue placeholder="Location" className="placeholder:text-gray-500" />
         </SelectTrigger>
-        <SelectContent className="bg-white border border-gray-200">
+        <SelectContent className="bg-white/90 backdrop-blur-sm border border-gray-200">
           <SelectItem value="dublin">Dublin</SelectItem>
           <SelectItem value="cork">Cork</SelectItem>
           <SelectItem value="galway">Galway</SelectItem>
@@ -61,10 +63,10 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         value={filters.make}
         onValueChange={(value) => setFilters({ ...filters, make: value })}
       >
-        <SelectTrigger className="w-[90px] h-9 text-sm bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
+        <SelectTrigger className="w-[90px] h-9 text-sm bg-white/70 backdrop-blur-sm text-gray-900 border-gray-200 hover:border-violet-200 focus:ring-2 focus:ring-violet-400 focus:border-transparent transition-all">
           <SelectValue placeholder="Make" className="placeholder:text-gray-500" />
         </SelectTrigger>
-        <SelectContent className="bg-white border border-gray-200">
+        <SelectContent className="bg-white/90 backdrop-blur-sm border border-gray-200">
           <SelectItem value="toyota">Toyota</SelectItem>
           <SelectItem value="volkswagen">VW</SelectItem>
           <SelectItem value="bmw">BMW</SelectItem>
@@ -77,10 +79,10 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
         onValueChange={(value) => setFilters({ ...filters, model: value })}
         disabled={!filters.make}
       >
-        <SelectTrigger className="w-[90px] h-9 text-sm bg-white text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300">
+        <SelectTrigger className="w-[90px] h-9 text-sm bg-white/70 backdrop-blur-sm text-gray-900 border-gray-200 hover:border-violet-200 focus:ring-2 focus:ring-violet-400 focus:border-transparent transition-all">
           <SelectValue placeholder="Model" className="placeholder:text-gray-500" />
         </SelectTrigger>
-        <SelectContent className="bg-white border border-gray-200">
+        <SelectContent className="bg-white/90 backdrop-blur-sm border border-gray-200">
           <SelectItem value="corolla">Corolla</SelectItem>
           <SelectItem value="golf">Golf</SelectItem>
           <SelectItem value="3-series">3 Series</SelectItem>
@@ -94,14 +96,14 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
           placeholder="Min €"
           value={filters.minPrice}
           onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-          className="w-[80px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-500 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[80px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
         <Input
           type="number"
           placeholder="Max €"
           value={filters.maxPrice}
           onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
-          className="w-[80px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-500 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[80px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
       </div>
 
@@ -111,23 +113,23 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
           placeholder="Min Year"
           value={filters.minYear}
           onChange={(e) => setFilters({ ...filters, minYear: e.target.value })}
-          className="w-[90px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-500 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[90px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
         <Input
           type="number"
           placeholder="Max Year"
           value={filters.maxYear}
           onChange={(e) => setFilters({ ...filters, maxYear: e.target.value })}
-          className="w-[90px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-500 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
+          className="w-[90px] h-9 text-sm bg-white text-gray-900 placeholder:text-gray-900 border-gray-200 hover:border-gray-300 focus:ring-0 focus:border-gray-300"
         />
       </div>
 
       <Button 
         type="submit" 
         disabled={isLoading}
-        className="h-9 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 rounded-lg transition-colors"
+        className="h-9 bg-violet-600 hover:bg-violet-700 text-white transition-colors duration-200 disabled:opacity-50"
       >
-        Search
+        {isLoading ? 'Searching...' : 'Search'}
       </Button>
     </form>
   );
