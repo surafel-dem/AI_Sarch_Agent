@@ -112,12 +112,19 @@ export default function SearchPage() {
   }, []);
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-white">
       {/* Left Panel - Search Results */}
-      <div className="w-1/2 relative">
-        <div className="h-screen flex flex-col">
+      <div className="w-[65%] border-r border-gray-200 relative">
+        {/* Side Panel Icons */}
+        <div className="fixed left-0 top-0 bottom-0 w-12 flex flex-col items-center py-4 bg-white z-10">
+          <div className="space-y-4">
+            {/* Your side panel icons here */}
+          </div>
+        </div>
+
+        <div className="h-screen flex flex-col pl-12"> 
           <div 
-            className="flex-grow overflow-y-auto"
+            className="flex-grow overflow-y-auto px-6 pt-4"
             style={{ paddingBottom: '120px' }} 
           >
             <SearchOutput 
@@ -125,27 +132,33 @@ export default function SearchPage() {
             />
           </div>
 
-          {/* Sticky Filter Form */}
-          <div className="fixed bottom-0 left-0 w-[50%] border-t bg-white/80 backdrop-blur-sm">
-            <div className="p-3 max-w-[95%] mx-auto">
-              <FilterForm onSearch={handleSearch} isLoading={isLoading} />
+          {/* Filter Form - Compact one-line style */}
+          <div className="sticky bottom-0 left-0 w-full pl-12">
+            <div className="mx-4 mb-4">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_0_24px_rgba(0,0,0,0.05)] border border-gray-100">
+                <div className="py-2.5 px-4">
+                  <div className="flex items-center gap-3 max-w-full overflow-x-auto no-scrollbar">
+                    <FilterForm onSearch={handleSearch} isLoading={isLoading} />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Right Panel - AI Analysis */}
-      <div className="w-1/2 border-l relative bg-gray-50">
-        <div className="h-screen flex flex-col relative">
-          <div className="px-4 py-3 border-b bg-white">
-            <h2 className="text-lg font-semibold text-gray-700">AI Assistant</h2>
-            <p className="text-sm text-gray-500">Ask questions about the search results</p>
+      <div className="w-[35%]">
+        <div className="h-screen flex flex-col">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-800">AI Assistant</h2>
+            <p className="text-sm text-gray-600">Ask questions about the search results</p>
           </div>
           
           <div 
             ref={chatRef}
-            className="flex-grow overflow-y-auto px-4 py-4 space-y-6"
-            style={{ paddingBottom: '100px' }}
+            className="flex-grow overflow-y-auto px-6 py-4 space-y-6"
+            style={{ paddingBottom: '120px' }} 
           >
             {messages.map((message) => (
               <div key={message.id} className="space-y-2">
@@ -159,21 +172,21 @@ export default function SearchPage() {
             ))}
           </div>
 
-          {/* Fixed Chat Input at Bottom */}
-          <div className="fixed bottom-4 right-0 w-[50%] px-4 z-10">
-            <div className="bg-white border rounded-lg shadow-lg p-4">
-              <form onSubmit={(e) => { e.preventDefault(); }} className="flex gap-2">
+          {/* Chat Input - Claude style */}
+          <div className="sticky bottom-0 w-full">
+            <div className="mx-4 mb-4 bg-white rounded-2xl shadow-[0_0_24px_rgba(0,0,0,0.05)] border border-gray-100">
+              <form onSubmit={(e) => { e.preventDefault(); }} className="flex items-center gap-2 py-3 px-4">
                 <Input
                   placeholder="Ask me anything about these cars..."
                   value=""
                   onChange={(e) => {}}
-                  className="flex-1 bg-transparent"
+                  className="flex-1 bg-transparent border-0 focus:ring-0 focus:border-0 px-0 h-10 text-base outline-none focus:outline-none"
                 />
                 <Button 
                   type="submit" 
                   size="sm" 
                   disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-5 py-2 text-sm font-medium transition-colors"
                 >
                   Send
                 </Button>
