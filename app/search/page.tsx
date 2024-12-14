@@ -6,11 +6,12 @@ import { useUser } from '@clerk/nextjs';
 import { CarSpecs } from '@/types/search';
 import { ChatMessage } from '@/types/chat';
 import { v4 as uuidv4 } from 'uuid';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import { SearchOutput } from '@/components/search/search-output';
 import { FilterForm } from "@/components/filter-form";
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
+import { AgentResponse } from '@/components/chat/agent-response';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -114,22 +115,19 @@ export default function SearchPage() {
     <div className="flex h-screen">
       {/* Left Panel - Search Results */}
       <div className="w-1/2 relative">
-        <div className="h-screen flex flex-col relative">
+        <div className="h-screen flex flex-col">
           <div 
-            ref={searchResultsRef}
-            className="flex-grow overflow-y-auto px-4 py-4 pl-16"
-            style={{ paddingBottom: '180px' }}
+            className="flex-grow overflow-y-auto"
+            style={{ paddingBottom: '120px' }} 
           >
-            {messages.map((message) => (
-              <div key={message.id} className="mb-4">
-                <SearchOutput message={message} />
-              </div>
-            ))}
+            <SearchOutput 
+              message={messages[messages.length - 1] || { isLoading: false }}
+            />
           </div>
 
-          {/* Fixed Filter Form at Bottom */}
-          <div className="fixed bottom-4 left-0 w-[50%] px-4 z-10">
-            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg shadow-lg p-4">
+          {/* Sticky Filter Form */}
+          <div className="fixed bottom-0 left-0 w-[50%] border-t bg-white/80 backdrop-blur-sm">
+            <div className="p-3 max-w-[95%] mx-auto">
               <FilterForm onSearch={handleSearch} isLoading={isLoading} />
             </div>
           </div>
@@ -137,55 +135,46 @@ export default function SearchPage() {
       </div>
 
       {/* Right Panel - AI Analysis */}
-      <div className="w-1/2 border-l relative">
+      <div className="w-1/2 border-l relative bg-gray-50">
         <div className="h-screen flex flex-col relative">
+          <div className="px-4 py-3 border-b bg-white">
+            <h2 className="text-lg font-semibold text-gray-700">AI Assistant</h2>
+            <p className="text-sm text-gray-500">Ask questions about the search results</p>
+          </div>
+          
           <div 
             ref={chatRef}
-            className="flex-grow overflow-y-auto px-4 py-4"
+            className="flex-grow overflow-y-auto px-4 py-4 space-y-6"
             style={{ paddingBottom: '100px' }}
           >
             {messages.map((message) => (
-              <div key={message.id} className="mb-4">
-                {message.response?.aiResponse ? (
-                  <div className="bg-white rounded-lg shadow p-4">
-                    {message.response.aiResponse.error ? (
-                      <div className="text-red-500">
-                        {message.response.aiResponse.error}
-                      </div>
-                    ) : (
-                      <div className="prose">
-                        <ReactMarkdown>
-                          {typeof message.response.aiResponse === 'string' 
-                            ? message.response.aiResponse 
-                            : typeof message.response.aiResponse.content === 'string'
-                              ? message.response.aiResponse.content
-                              : JSON.stringify(message.response.aiResponse, null, 2)}
-                        </ReactMarkdown>
-                      </div>
-                    )}
-                  </div>
-                ) : message.response?.loading ? (
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded"></div>
-                    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                  </div>
-                ) : null}
+              <div key={message.id} className="space-y-2">
+                {message.response?.aiResponse && (
+                  <AgentResponse 
+                    response={message.response.aiResponse}
+                    isLoading={message.response.loading}
+                  />
+                )}
               </div>
             ))}
           </div>
 
           {/* Fixed Chat Input at Bottom */}
           <div className="fixed bottom-4 right-0 w-[50%] px-4 z-10">
-            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg shadow-lg p-4">
+            <div className="bg-white border rounded-lg shadow-lg p-4">
               <form onSubmit={(e) => { e.preventDefault(); }} className="flex gap-2">
                 <Input
-                  placeholder="Ask about the search results..."
+                  placeholder="Ask me anything about these cars..."
                   value=""
                   onChange={(e) => {}}
-                  className="flex-1"
+                  className="flex-1 bg-transparent"
                 />
-                <Button type="submit" size="sm" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  size="sm" 
+                  disabled={isLoading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
                   Send
                 </Button>
               </form>
