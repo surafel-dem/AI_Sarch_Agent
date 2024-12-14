@@ -7,80 +7,23 @@ import { supabase } from '@/lib/supabase';
 import { CarSpecs } from '@/types/car';
 import { ChatMessage } from '@/types/chat';
 import { v4 as uuidv4 } from 'uuid';
-import { generateCleanId } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { SearchOutput } from '@/components/search/search-output';
 import { FilterForm } from "@/components/filter-form";
-import { SearchDivider } from '@/components/search/search-divider';
 import { Input } from '@/components/ui/input';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useUser();
-  const [sessionId] = useState(() => uuidv4());  // Generate proper UUID for session
-  const [tempUserId] = useState(() => generateCleanId()); // Call the function
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const searchResultsRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<WebSocket | null>(null);
-  const lastSearchRef = useRef<{
-    id: string;
-    filters: CarSpecs;
-    timestamp: number;
-  } | null>(null);
-  const searchLoggedRef = useRef<string | null>(null);
-
-  // Helper function to get user identifier
-  const getUserIdentifier = () => {
-    console.log('Current user:', user);
-    console.log('User ID:', user?.id);
-    console.log('User email:', user?.emailAddresses?.[0]?.emailAddress);
-
-    if (user?.id) {
-      const userInfo = {
-        clerk_id: user.id,
-        user_type: 'authenticated' as const,
-        email: user.emailAddresses?.[0]?.emailAddress
-      };
-      console.log('Returning user info:', userInfo);
-      return userInfo;
-    }
-    
-    const anonymousInfo = {
-      clerk_id: tempUserId,
-      user_type: 'anonymous' as const,
-      email: null
-    };
-    console.log('Returning anonymous info:', anonymousInfo);
-    return anonymousInfo;
-  };
-
-  useEffect(() => {
-    const updateAuth = async () => {
-      if (user) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.access_token) {
-          try {
-            await supabase.auth.setSession({
-              access_token: session.access_token,
-              refresh_token: session.refresh_token || ''
-            });
-            console.log('Auth session updated');
-          } catch (error) {
-            console.error('Failed to set auth session:', error);
-          }
-        }
-      }
-    };
-    
-    updateAuth();
-  }, [user]);
 
   const scrollToBottom = (container: HTMLDivElement | null) => {
     if (container) {
-      (container as HTMLDivElement).scrollTo({
+      container.scrollTo({
         top: container.scrollHeight,
         behavior: 'smooth'
       });
@@ -91,107 +34,45 @@ export default function SearchPage() {
     setIsLoading(true);
 
     try {
-      console.log('=== Starting new search ===');
-      console.log('Filters received:', JSON.stringify(filters, null, 2));
-
-      // Get user identifier
-      const userInfo = getUserIdentifier();
-      console.log('User info:', JSON.stringify(userInfo, null, 2));
-
-      // Create a unique search ID
-      const searchId = uuidv4();
-
-      // Build and execute the search query
       let query = supabase
         .from('car_list')
         .select('*');
 
-      // Apply non-empty filters
-      const appliedFilters: Record<string, any> = {};
-
-      if (filters.make && filters.make.trim() !== '') {
-        appliedFilters.make = filters.make.trim();
-        query = query.ilike('make', `%${appliedFilters.make}%`);
+      // Apply filters
+      if (filters.make?.trim()) {
+        query = query.ilike('make', `%${filters.make.trim()}%`);
       }
       
-      if (filters.model && filters.model.trim() !== '') {
-        appliedFilters.model = filters.model.trim();
-        query = query.ilike('model', `%${appliedFilters.model}%`);
+      if (filters.model?.trim()) {
+        query = query.ilike('model', `%${filters.model.trim()}%`);
       }
       
-      if (filters.minYear && !isNaN(Number(filters.minYear))) {
-        appliedFilters.minYear = Number(filters.minYear);
-        query = query.gte('year', appliedFilters.minYear);
+      if (filters.minYear) {
+        query = query.gte('year', filters.minYear);
+      }
+      if (filters.maxYear) {
+        query = query.lte('year', filters.maxYear);
       }
       
-      if (filters.maxYear && !isNaN(Number(filters.maxYear))) {
-        appliedFilters.maxYear = Number(filters.maxYear);
-        query = query.lte('year', appliedFilters.maxYear);
+      if (filters.minPrice) {
+        query = query.gte('price', filters.minPrice);
       }
-      
-      if (filters.minPrice && !isNaN(Number(filters.minPrice))) {
-        appliedFilters.minPrice = Number(filters.minPrice);
-        query = query.gte('price', appliedFilters.minPrice);
-      }
-      
-      if (filters.maxPrice && !isNaN(Number(filters.maxPrice))) {
-        appliedFilters.maxPrice = Number(filters.maxPrice);
-        query = query.lte('price', appliedFilters.maxPrice);
+      if (filters.maxPrice) {
+        query = query.lte('price', filters.maxPrice);
       }
 
       // Execute query
       const { data: cars, error: queryError } = await query;
 
       if (queryError) {
-        console.error('Query error:', queryError);
         throw queryError;
       }
 
-      // Log the search with exact table structure
-      if (userInfo?.clerk_id) {
-        console.log('Attempting to log search...');
-        
-        const searchLog = {
-          clerk_id: userInfo.clerk_id,
-          filters: filters,
-          results: cars,
-          results_count: cars?.length || 0,
-          status: 'pending',
-          session_id: sessionId, // We already have this from earlier in the code
-        };
-
-        console.log('Search log payload:', searchLog);
-
-        fetch('/api/search/log', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(searchLog),
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('Search logged successfully:', data);
-        })
-        .catch(error => {
-          console.error('Search logging failed:', error);
-        });
-      }
-
-      // Create and add message
       const newMessage: ChatMessage = {
-        id: searchId, // Use the same ID for consistency
+        id: uuidv4(),
         role: 'assistant',
         content: `Found ${cars?.length || 0} matching vehicles`,
         timestamp: Date.now(),
-        userId: userInfo.clerk_id,
-        carSpecs: filters,
-        isLoading: false,
         response: {
           type: 'car_listing',
           message: '',
@@ -204,26 +85,19 @@ export default function SearchPage() {
 
     } catch (error) {
       console.error('Search failed:', error);
-      const userInfo = getUserIdentifier();
       
-      setMessages(prev => [
-        ...prev,
-        {
-          id: uuidv4(),
-          role: 'system',
-          content: 'Search failed. Please try again.',
-          timestamp: Date.now(),
-          userId: userInfo.clerk_id,
-          carSpecs: filters,
-          isLoading: false,
-          response: {
-            type: 'car_listing',
-            message: 'Error occurred',
-            results: [],
-            loading: false
-          }
+      setMessages([{
+        id: uuidv4(),
+        role: 'system',
+        content: 'Search failed. Please try again.',
+        timestamp: Date.now(),
+        response: {
+          type: 'car_listing',
+          message: 'Error occurred',
+          results: [],
+          loading: false
         }
-      ]);
+      }]);
     } finally {
       setIsLoading(false);
       scrollToBottom(searchResultsRef.current);
@@ -251,11 +125,10 @@ export default function SearchPage() {
       {/* Left Panel - Search Results */}
       <div className="w-1/2 relative">
         <div className="h-screen flex flex-col relative">
-          {/* Scrollable Results */}
           <div 
             ref={searchResultsRef}
             className="flex-grow overflow-y-auto px-4 py-4 pl-16"
-            style={{ paddingBottom: '180px' }} // Space for the filter form
+            style={{ paddingBottom: '180px' }}
           >
             {messages.map((message) => (
               <div key={message.id} className="mb-4">
@@ -279,15 +152,13 @@ export default function SearchPage() {
           <div 
             ref={chatRef}
             className="flex-grow overflow-y-auto px-4 py-4"
-            style={{ paddingBottom: '100px' }} // Space for the chat input
+            style={{ paddingBottom: '100px' }}
           >
             {messages.map((message) => (
               <div key={message.id} className="mb-4">
                 {message.response?.aiResponse && (
                   <div className="bg-white rounded-lg shadow p-4">
-                    {/* <ReactMarkdown>
-                      {message.response.aiResponse}
-                    </ReactMarkdown> */}
+                    {message.response.aiResponse}
                   </div>
                 )}
               </div>
