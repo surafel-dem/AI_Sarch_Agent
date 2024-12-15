@@ -16,6 +16,7 @@ const config: Config = {
         'float-slower': 'float 10s ease-in-out infinite',
         'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
         'pulse-slower': 'pulse-slow 6s ease-in-out infinite',
+        bounce: 'bounce 0.5s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -29,6 +30,10 @@ const config: Config = {
         'pulse-slow': {
           '0%, 100%': { opacity: '0.1' },
           '50%': { opacity: '0.3' },
+        },
+        bounce: {
+          '0%, 80%, 100%': { transform: 'translateY(0)' },
+          '40%': { transform: 'translateY(-3px)' }
         }
       },
       borderRadius: {

@@ -21,10 +21,9 @@ interface FilterFormProps {
     minYear?: string;
     maxYear?: string;
   }) => void;
-  isLoading?: boolean;
 }
 
-export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
+export function FilterForm({ onSearch }: FilterFormProps) {
   const [filters, setFilters] = useState({
     location: '',
     make: '',
@@ -163,10 +162,9 @@ export function FilterForm({ onSearch, isLoading }: FilterFormProps) {
 
       <Button 
         type="submit" 
-        disabled={isLoading}
-        className="h-9 bg-violet-600 hover:bg-violet-700 text-white transition-colors duration-200 disabled:opacity-50"
+        className="h-9 bg-violet-600 hover:bg-violet-700 text-white transition-colors duration-200"
       >
-        {isLoading ? 'Searching...' : 'Search'}
+        Search
       </Button>
     </form>
   );

@@ -18,6 +18,15 @@ export default function SearchPage() {
   const [searchResults, setSearchResults] = useState<ChatMessage[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentFilters, setCurrentFilters] = useState<CarSpecs>({
+    location: '',
+    make: '',
+    model: '',
+    minPrice: '',
+    maxPrice: '',
+    minYear: '',
+    maxYear: '',
+  });
   const searchResultsRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -43,6 +52,7 @@ export default function SearchPage() {
 
   const handleSearch = async (filters: CarSpecs) => {
     setIsLoading(true);
+    setCurrentFilters(filters); // Update current filters
     const searchId = uuidv4();
     console.log('Frontend: Starting search with filters:', filters);
 
@@ -200,8 +210,68 @@ export default function SearchPage() {
       <div className="relative">
         <div className="flex h-screen bg-white">
           {/* Left Panel - Search Results */}
-          <div className="w-[65%] border-r border-gray-200 relative">
-            <div className="h-screen flex flex-col pt-6"> 
+          <div className="w-[65%] relative">
+            {/* Loading indicator */}
+            {isLoading && (
+              <div className="absolute top-4 left-4 flex items-center space-x-1">
+                <div className="text-sm text-gray-500">
+                  Searching
+                  <span className="inline-flex ml-1">
+                    <span className="animate-[bounce_1.4s_infinite] [animation-delay:-0.32s]">.</span>
+                    <span className="animate-[bounce_1.4s_infinite] [animation-delay:-0.16s]">.</span>
+                    <span className="animate-[bounce_1.4s_infinite]">.</span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="h-screen overflow-hidden flex flex-col">
+              {/* Active Filters Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-100 z-10">
+                <div className="pl-16 pr-6 py-3">
+                  <div className="flex flex-wrap gap-2 items-center h-[42px]">
+                    {Object.entries(currentFilters)
+                      .filter(([_, value]) => value && value !== '')
+                      .map(([key, value]) => {
+                        let displayText = '';
+                        switch(key) {
+                          case 'location':
+                            displayText = value.charAt(0).toUpperCase() + value.slice(1);
+                            break;
+                          case 'make':
+                            displayText = value.toUpperCase();
+                            break;
+                          case 'model':
+                            displayText = value.charAt(0).toUpperCase() + value.slice(1);
+                            break;
+                          case 'minPrice':
+                            displayText = `From €${Number(value).toLocaleString()}`;
+                            break;
+                          case 'maxPrice':
+                            displayText = `To €${Number(value).toLocaleString()}`;
+                            break;
+                          case 'minYear':
+                            displayText = `${value}+`;
+                            break;
+                          case 'maxYear':
+                            displayText = `Up to ${value}`;
+                            break;
+                          default:
+                            return null;
+                        }
+                        return (
+                          <span 
+                            key={key} 
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700"
+                          >
+                            {displayText}
+                          </span>
+                        );
+                      })}
+                  </div>
+                </div>
+              </div>
+
               {/* Search Results Area */}
               <div 
                 ref={searchResultsRef}
@@ -215,15 +285,9 @@ export default function SearchPage() {
               </div>
 
               {/* Filter Form - Fixed at bottom */}
-              <div className="sticky bottom-0 left-0 w-full pl-16">
-                <div className="mx-4 mb-4">
-                  <div className="bg-white border-t border-gray-200 shadow-sm">
-                    <div className="py-2.5 px-4">
-                      <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar">
-                        <FilterForm onSearch={handleSearch} isLoading={isLoading} />
-                      </div>
-                    </div>
-                  </div>
+              <div className="fixed bottom-0 left-0 w-[65%] bg-white border-t border-gray-100">
+                <div className="px-16 py-3">
+                  <FilterForm onSearch={handleSearch} />
                 </div>
               </div>
             </div>

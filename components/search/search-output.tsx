@@ -1,7 +1,6 @@
 import { SearchResponse } from '@/types/search';
 import { useState } from 'react';
 import Link from 'next/link';
-import { LoadingDots } from '@/components/ui/loading-dots';
 import { X, ExternalLink } from 'lucide-react';
 
 interface SearchOutputProps {
@@ -17,11 +16,7 @@ export function SearchOutput({ message, loading }: SearchOutputProps) {
   const [showListingModal, setShowListingModal] = useState(false);
 
   if (loading) {
-    return (
-      <div className="absolute top-4 left-4">
-        <LoadingDots />
-      </div>
-    );
+    return null;
   }
 
   if (message?.isLoading) {
