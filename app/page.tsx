@@ -60,9 +60,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Hero Section */}
-      <div className="relative px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl py-12">
+      {/* Main Section - Hero + Search + Quick Links */}
+      <div className="min-h-screen flex flex-col justify-center px-6 lg:px-8 relative">
+        {/* Hero Content */}
+        <div className="mx-auto max-w-4xl w-full mb-12">
           <div className="text-center">
             <h1 className="text-[3.5rem] font-bold tracking-tight leading-tight">
               <span className="bg-gradient-to-b from-white via-gray-200 to-gray-400 text-transparent bg-clip-text">Find Your Car With</span>
@@ -74,76 +75,84 @@ export default function Home() {
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="relative z-10 w-full -mt-4">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <SearchForm />
+        {/* Search Form and Quick Links */}
+        <div className="w-full max-w-4xl mx-auto">
+          <SearchForm />
+          <div className="mt-8">
             <QuickLinks />
-            
-            {/* About and Contact sections - Only show for non-logged in users */}
-            {!isSignedIn && (
-              <>
-                {/* About Section */}
-                <section id="about" className="mt-32 text-center">
-                  <h2 className="text-3xl font-bold tracking-tight text-white mb-8">Our Story</h2>
-                  <div className="prose prose-lg prose-invert mx-auto">
-                    <p className="text-gray-300">
-                      Axe started as an <span className="text-white">open source</span> project in 2023. 
-                      We were <span className="text-white">frustrated</span> by how difficult it was to manage
-                      <span className="text-white"> procurement requests</span> that <span className="text-white">worked well</span> across the organization.
-                    </p>
-                    <p className="text-gray-300 mt-4">
-                      As we started to dig deeper, <span className="text-white">it became clear</span> that this
-                      was just the tip of the iceberg. We realized that managing spend that <span className="text-white">reach the business goals</span> was 
-                      the biggest pain point, so we started to <span className="text-white">explore something new</span>.
-                    </p>
-                    <p className="text-gray-300 mt-4">
-                      In 2024, we launched an entire procurement management
-                      platform and joined <span className="text-white">Y Combinator's</span> winter batch.
-                      We're creating something special here, and we're excited to build it with you.
-                    </p>
-                  </div>
-                </section>
-                
-                {/* Contact Section */}
-                <section id="contact" className="mt-32 text-center">
-                  <h2 className="text-3xl font-bold tracking-tight text-white mb-8">Get in touch</h2>
-                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
-                    <form className="mt-12 space-y-6 text-left">
-                      <div className="space-y-2">
-                        <label className="block text-gray-400 text-sm">Email address</label>
-                        <input 
-                          type="email" 
-                          placeholder="Enter your email"
-                          className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-gray-400 text-sm">How can we help?</label>
-                        <textarea 
-                          rows={4}
-                          placeholder="I'd like to know how Axe can help me with..."
-                          className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        className="mt-6 w-28 bg-white/10 hover:bg-white/20 text-white rounded-full px-6 py-3 text-sm font-medium transition-colors duration-200"
-                      >
-                        Submit
-                      </button>
-                    </form>
-                  </div>
-                </section>
-              </>
-            )}
           </div>
         </div>
       </div>
 
+      {/* About and Contact sections - Only show for non-logged in users */}
+      {!isSignedIn && (
+        <>
+          {/* Gradient Divider */}
+          <div className="w-full flex justify-center px-6 lg:px-8">
+            <div className="w-24 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          </div>
+
+          {/* About Section */}
+          <section id="about" className="min-h-screen flex flex-col justify-center items-center px-6 lg:px-8">
+            <h2 className="text-3xl font-bold tracking-tight text-white mb-8">Our Story</h2>
+            <div className="prose prose-lg prose-invert max-w-xl mx-auto text-center">
+              <p className="text-gray-300 text-lg leading-relaxed">
+                Axe started as an <span className="text-white">open source</span> project in 2023. 
+                We were <span className="text-white">frustrated</span> by how difficult it was to manage
+                <span className="text-white"> procurement requests</span> that <span className="text-white">worked well</span> across the organization.
+              </p>
+              <p className="text-gray-300 mt-6 text-lg leading-relaxed">
+                As we started to dig deeper, <span className="text-white">it became clear</span> that this
+                was just the tip of the iceberg. We realized that managing spend that <span className="text-white">reach the business goals</span> was 
+                the biggest pain point, so we started to <span className="text-white">explore something new</span>.
+              </p>
+              <p className="text-gray-300 mt-6 text-lg leading-relaxed">
+                In 2024, we launched an entire procurement management
+                platform and joined <span className="text-white">Y Combinator's</span> winter batch.
+                We're creating something special here, and we're excited to build it with you.
+              </p>
+            </div>
+          </section>
+          
+          {/* Gradient Divider */}
+          <div className="w-full flex justify-center px-6 lg:px-8">
+            <div className="w-24 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          </div>
+          
+          {/* Contact Section */}
+          <section id="contact" className="min-h-screen flex flex-col justify-center items-center">
+            <h2 className="text-3xl font-bold tracking-tight text-white mb-8">Get in touch</h2>
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 w-full max-w-2xl">
+              <form className="mt-12 space-y-6 text-left">
+                <div className="space-y-2">
+                  <label className="block text-gray-400 text-sm">Email address</label>
+                  <input 
+                    type="email" 
+                    placeholder="Enter your email"
+                    className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-gray-400 text-sm">How can we help?</label>
+                  <textarea 
+                    rows={4}
+                    placeholder="I'd like to know how Axe can help me with..."
+                    className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="mt-6 w-28 bg-white/10 hover:bg-white/20 text-white rounded-full px-6 py-3 text-sm font-medium transition-colors duration-200"
+                >
+                  Submit
+                </button>
+              </form>
+            </div>
+          </section>
+        </>
+      )}
+      
       {/* AI Assistant */}
       <AIAssistant />
     </main>

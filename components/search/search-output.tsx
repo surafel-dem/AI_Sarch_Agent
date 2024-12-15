@@ -1,6 +1,8 @@
 import { SearchResponse } from '@/types/search';
+import { useState } from 'react';
 import Link from 'next/link';
 import { LoadingDots } from '@/components/ui/loading-dots';
+import { X, ExternalLink } from 'lucide-react';
 
 interface SearchOutputProps {
   message: {
@@ -11,6 +13,9 @@ interface SearchOutputProps {
 }
 
 export function SearchOutput({ message, loading }: SearchOutputProps) {
+  const [selectedCar, setSelectedCar] = useState<any>(null);
+  const [showListingModal, setShowListingModal] = useState(false);
+
   if (loading) {
     return (
       <div className="absolute top-4 left-4">
@@ -53,41 +58,93 @@ export function SearchOutput({ message, loading }: SearchOutputProps) {
       {message.response.results.map((car, index) => (
         <div 
           key={index} 
-          className="group border border-transparent hover:border-gray-200 rounded-lg p-3 transition-all duration-200 relative"
+          className="group hover:bg-gray-50 rounded-lg p-4 transition-all duration-200"
         >
-          <div className="flex justify-between items-start gap-4">
-            <div className="min-w-0 flex-1">
-              <h3 className="font-medium text-base text-gray-900 truncate pr-4">
-                {car.make} {car.model} {car.variant}
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <h3 className="text-xl font-medium text-gray-900">
+                {car.make} {car.model} {car.model_variant}
               </h3>
-              <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
+              <div className="mt-1 text-gray-600">
                 <span>{car.year}</span>
-                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                <span className="mx-2">•</span>
                 <span>{car.location}</span>
               </div>
-              <p className="mt-1 text-sm text-gray-600 line-clamp-1 pr-4">{car.description}</p>
+              <p className="mt-2 text-gray-600">
+                {car.description}
+              </p>
             </div>
-            <div className="text-right flex flex-col items-end shrink-0">
-              <div className="text-base font-medium text-gray-900">
-                €{typeof car.price === 'number' ? car.price.toLocaleString() : car.price}
+            <div className="text-right">
+              <div className="text-2xl font-semibold">
+                €{typeof car.price_amount === 'number' ? car.price_amount.toLocaleString() : 'Price on request'}
               </div>
-              <div className="text-sm text-gray-500">{car.seller_type}</div>
             </div>
           </div>
           
           <div className="mt-2 flex justify-end">
-            <Link
-              href={`/listing/${car.id}`}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            <button
+              onClick={() => {
+                setSelectedCar(car);
+                setShowListingModal(true);
+              }}
+              className="bg-transparent text-blue-500 hover:text-blue-600 font-medium flex items-center gap-1 px-4 py-2 rounded-lg border border-blue-200 hover:bg-blue-50/50 transition-colors"
             >
               View Details
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+              <span className="text-lg">→</span>
+            </button>
           </div>
         </div>
       ))}
+
+      {/* Listing Modal */}
+      {showListingModal && selectedCar?.url && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-[600px] max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-xl font-semibold">
+                External Listing
+              </h2>
+              <button 
+                onClick={() => {
+                  setShowListingModal(false);
+                  setSelectedCar(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 text-center">
+              <div className="mb-6">
+                <h3 className="text-lg font-medium mb-2">
+                  {selectedCar.make} {selectedCar.model} {selectedCar.model_variant}
+                </h3>
+                <p className="text-gray-600">
+                  This listing is hosted on an external website. Click below to view the full details.
+                </p>
+              </div>
+              
+              <div className="flex flex-col gap-4">
+                <a
+                  href={selectedCar.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-transparent text-blue-500 hover:text-blue-600 px-6 py-3 rounded-lg border border-blue-200 hover:bg-blue-50/50 inline-flex items-center justify-center gap-2 transition-colors"
+                >
+                  Open in New Tab
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <p className="text-sm text-gray-500">
+                  Note: You will be redirected to {new URL(selectedCar.url).hostname}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

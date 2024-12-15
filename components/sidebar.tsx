@@ -11,9 +11,12 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const isSearchPage = pathname === '/search';
 
   const menuItems = [
     { icon: Home, label: 'Home', href: '/' },
@@ -27,7 +30,10 @@ export function Sidebar() {
       {/* Toggle Button */}
       <button
         type="button"
-        className="fixed top-3 left-3 z-50 text-white appearance-none bg-transparent border-0 p-0 outline-none"
+        className={cn(
+          "fixed top-3 left-3 z-50 appearance-none bg-transparent border-0 p-0 outline-none",
+          isSearchPage ? "text-purple-600 hover:text-purple-700" : "text-white"
+        )}
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? (
@@ -53,8 +59,11 @@ export function Sidebar() {
                   key={item.href} 
                   href={item.href}
                   className={cn(
-                    "flex items-center p-2 text-white hover:text-white/80 transition-colors",
-                    !isOpen && "justify-center"
+                    "flex items-center p-2 transition-colors",
+                    !isOpen && "justify-center",
+                    isSearchPage 
+                      ? "text-purple-600 hover:text-purple-700" 
+                      : "text-white hover:text-white/80"
                   )}
                 >
                   <item.icon className={cn(
