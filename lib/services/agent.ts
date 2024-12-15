@@ -19,7 +19,7 @@ export class AgentService {
     return this.instance;
   }
 
-  async invoke(sessionId: string, filters: CarSpecs, results: any[]) {
+  async invoke(sessionId: string, filters: CarSpecs, results: any[], userMessage?: string, lastSearchMessage?: string) {
     // Rate limiting
     try {
       await this.limiter.check(10, sessionId); // 10 requests per minute per session
@@ -28,7 +28,7 @@ export class AgentService {
     }
 
     // Prepare payload
-    const payload = this.preparePayload(sessionId, filters, results);
+    const payload = this.preparePayload(sessionId, filters, results, userMessage, lastSearchMessage);
 
     // Make request with retries
     return await this.makeRequestWithRetry(payload);
@@ -63,7 +63,7 @@ export class AgentService {
     }
   }
 
-  private preparePayload(sessionId: string, filters: CarSpecs, results: any[]) {
+  private preparePayload(sessionId: string, filters: CarSpecs, results: any[], userMessage?: string, lastSearchMessage?: string) {
     // Filter out empty values
     const selectedFilters = Object.entries(filters).reduce((acc, [key, value]) => {
       if (value !== undefined && value !== '' && value !== null) {
@@ -72,8 +72,8 @@ export class AgentService {
       return acc;
     }, {} as Record<string, any>);
 
-    // Create a human-readable chat input from the filters
-    const chatInput = Object.entries(selectedFilters)
+    // Create a human-readable filter description
+    const filterDescription = Object.entries(selectedFilters)
       .map(([key, value]) => {
         switch (key) {
           case 'make':
@@ -97,9 +97,16 @@ export class AgentService {
       .filter(Boolean)
       .join(', ');
 
+    console.log('Preparing n8n webhook payload:', {
+      sessionId,
+      userMessage,
+      filterDescription,
+      resultsCount: results.length
+    });
+
     return {
       sessionId,
-      chatInput,
+      chatInput: userMessage || filterDescription, // Use user message if provided, otherwise use filter description
       carSpecs: selectedFilters,
       timestamp: new Date().toISOString(),
       results: {
@@ -118,6 +125,11 @@ export class AgentService {
             description: car.description
           }
         }))
+      },
+      searchContext: {
+        lastSearchMessage,
+        lastSearchResults: results,
+        lastSearchFilters: filters
       }
     };
   }

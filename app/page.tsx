@@ -61,7 +61,7 @@ export default function Home() {
       </div>
 
       {/* Main Section - Hero + Search + Quick Links */}
-      <div className="min-h-screen flex flex-col justify-center px-6 lg:px-8 relative">
+      <div className="flex-1 flex flex-col justify-center px-6 lg:px-8 relative">
         {/* Hero Content */}
         <div className="mx-auto max-w-4xl w-full mb-12">
           <div className="text-center">

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { CarSpecs, ChatMessage, SearchResponse } from '@/types/search';
-import { invokeSearchAgent } from '@/lib/search-api';
+import { AgentService } from '@/lib/services/agent';
 import { Button } from '@/components/ui/button';
 import { SearchOutput } from '../search/search-output';
 import { v4 as uuidv4 } from 'uuid';
@@ -35,6 +35,7 @@ export function ChatInterface({
     if (!inputMessage.trim() || isLoading) return;
 
     const chatInput = inputMessage.trim();
+    console.log('Submitting chat message:', chatInput);
     setInputMessage('');
     
     // Send user message
@@ -48,14 +49,18 @@ export function ChatInterface({
     onMessage(userMessage);
 
     try {
-      // Get response from API
-      const response = await invokeSearchAgent({
-        sessionId: sessionId.current,
-        chatInput,
-        carSpecs: initialSpecs,
-        userId: user?.id || 'anonymous',
-        timestamp: Date.now()
-      });
+      // Get agent service instance
+      const agentService = AgentService.getInstance();
+      
+      console.log('Invoking agent service with message:', chatInput);
+      const response = await agentService.invoke(
+        sessionId.current,
+        initialSpecs,
+        [], // Empty results array for chat-only messages
+        chatInput // Pass the user's message
+      );
+
+      console.log('Received agent response:', response);
 
       // Transform webhook response to SearchResponse type
       let searchResponse: SearchResponse;
@@ -85,7 +90,7 @@ export function ChatInterface({
 
       onMessage(assistantMessage);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Error in chat submission:', error);
       onMessage({
         role: 'assistant',
         content: 'Sorry, I encountered an error while processing your request. Please try again.',
@@ -97,36 +102,46 @@ export function ChatInterface({
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       {/* Messages Area */}
-      <div className="w-full h-[calc(100vh-144px)] overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4 py-4 mb-32">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-4 py-4 space-y-6">
+          {/* Messages */}
           {messages.map((message, index) => (
-            <div key={index} className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
-              <div className={`max-w-[85%] ${
-                message.role === 'user' 
-                  ? 'bg-[#2563EB]/10 border-[#2563EB]/20' 
-                  : 'bg-[#f8f8f8] border-gray-100'
-              } rounded-xl border p-4 my-2 shadow-sm`}>
-                {message.role === 'assistant' ? (
-                  message.response ? (
-                    <SearchOutput response={message.response} />
-                  ) : (
-                    <p className="text-[#14162E]">{message.content}</p>
-                  )
-                ) : (
-                  <p className="text-[#14162E]">{message.content}</p>
-                )}
+            <div key={index} className={`flex items-start gap-2 ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}>
+              {message.role === 'assistant' && (
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                  AI
+                </div>
+              )}
+              <div className={`rounded-2xl p-4 max-w-[80%] ${
+                message.role === 'assistant' 
+                  ? 'bg-gray-100 dark:bg-gray-800' 
+                  : 'bg-blue-600 text-white'
+              }`}>
+                {message.content}
               </div>
+              {message.role === 'user' && (
+                <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white text-sm font-medium">
+                  U
+                </div>
+              )}
             </div>
           ))}
 
-          {/* AI Typing Indicator */}
+          {/* Loading indicator */}
           {isLoading && (
-            <div className="flex items-center gap-1 px-4 py-2">
-              <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse" />
-              <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse delay-75" />
-              <div className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse delay-150" />
+            <div className="flex items-start gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                AI
+              </div>
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:0.4s]" />
+                </div>
+              </div>
             </div>
           )}
           
@@ -135,33 +150,36 @@ export function ChatInterface({
       </div>
       
       {/* Fixed Chat Input */}
-      <div className="fixed inset-x-0 bottom-0 bg-white z-50">
-        <div 
-          className="absolute inset-x-0 -top-32 h-32 bg-gradient-to-t from-white via-white to-transparent pointer-events-none"
-          style={{ maskImage: 'linear-gradient(to top, white, transparent)' }}
-        />
-        <div className="border-t border-gray-200">
-          <div className="max-w-3xl mx-auto px-4 py-4">
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ask about cars..."
-                className="flex-1 rounded-lg border border-gray-100 bg-[#f8f8f8] p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent text-[#14162E] placeholder:text-[#6B7280]"
-                disabled={isLoading}
-              />
-              <Button 
-                type="submit" 
-                disabled={isLoading}
-                className="bg-[#2563EB] hover:bg-[#2563EB]/90 text-white rounded-lg px-4 py-2 transition-colors duration-200"
-              >
-                Send
-              </Button>
-            </form>
-          </div>
+      <div className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          {/* Chat Input */}
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (inputMessage.trim() && !isLoading) {
+                    handleSubmit(e as any);
+                  }
+                }
+              }}
+              placeholder="Message the AI assistant..."
+              className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
+              disabled={isLoading}
+            />
+            <Button 
+              type="submit" 
+              disabled={isLoading || !inputMessage.trim()}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-6 py-3 font-medium transition-colors duration-200"
+            >
+              Send
+            </Button>
+          </form>
         </div>
       </div>
-    </>
+    </div>
   );
 }

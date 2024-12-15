@@ -11,23 +11,34 @@ import { FilterForm } from "@/components/filter-form";
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
 import { AgentResponse } from '@/components/chat/agent-response';
+import { AgentService } from '@/lib/services/agent';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [searchResults, setSearchResults] = useState<ChatMessage[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const searchResultsRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [inputValue, setInputValue] = useState('');
 
-  const scrollToBottom = (container: HTMLDivElement | null) => {
-    if (container) {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
+  // Scroll to the latest message smoothly
+  const scrollToLatestMessage = (container: HTMLElement | null) => {
+    if (!container) return;
+    
+    // Get all message elements
+    const messages = container.querySelectorAll('[data-message]');
+    if (messages.length === 0) return;
+    
+    // Get the latest message
+    const latestMessage = messages[messages.length - 1];
+    
+    // Scroll to the latest message with smooth behavior
+    latestMessage.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'start'
+    });
   };
 
   const handleSearch = async (filters: CarSpecs) => {
@@ -36,7 +47,6 @@ export default function SearchPage() {
     console.log('Frontend: Starting search with filters:', filters);
 
     try {
-      console.log('Frontend: Sending search request to API...');
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: {
@@ -48,61 +58,122 @@ export default function SearchPage() {
         }),
       });
 
-      console.log('Frontend: Received response with status:', response.status);
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Frontend: Search failed with error:', errorData);
-        throw new Error(errorData.error || 'Search failed');
+        throw new Error('Search failed');
       }
 
       const data = await response.json();
       console.log('Frontend: Received search results:', data);
 
+      // Extract message from agent response
+      const agentMessage = data.agentResponse?.output || 
+                         data.agentResponse?.message || 
+                         (typeof data.agentResponse === 'string' ? data.agentResponse : '');
+
       const newMessage: ChatMessage = {
         id: searchId,
         role: 'assistant',
-        content: data.message || `Found ${data.results?.length || 0} matching vehicles`,
+        content: agentMessage,
         timestamp: Date.now(),
         response: {
           type: 'car_listing',
-          message: data.message || '',
+          message: agentMessage,
           results: data.results || [],
           loading: false,
           aiResponse: data.agentResponse
         }
       };
 
-      console.log('Frontend: Updating messages with search results');
-      setMessages([newMessage]);
-
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      console.error('Frontend: Search failed:', errorMessage);
+      // Update both search results and chat messages
+      setSearchResults([newMessage]);
+      setChatMessages(prev => [...prev, newMessage]);
       
-      setMessages([{
-        id: searchId,
-        role: 'system',
-        content: 'Search failed. Please try again.',
-        timestamp: Date.now(),
-        response: {
-          type: 'car_listing',
-          message: errorMessage,
-          results: [],
-          loading: false
-        }
-      }]);
+      // Scroll to the latest message after a short delay to ensure rendering
+      setTimeout(() => {
+        scrollToLatestMessage(chatRef.current);
+      }, 100);
+      
+    } catch (error) {
+      console.error('Frontend: Search failed:', error);
+      return;
     } finally {
-      console.log('Frontend: Search completed');
       setIsLoading(false);
-      scrollToBottom(searchResultsRef.current);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && inputValue.trim()) {
       e.preventDefault();
-      // Handle send message logic here
+      
+      const messageId = uuidv4();
+      const userMessage = inputValue.trim();
+      setInputValue('');
+
+      // Get current search context
+      const currentFilters = searchParams.get('selections') 
+        ? JSON.parse(searchParams.get('selections')!)
+        : {};
+      const currentResults = searchResults[0]?.response?.results || [];
+      const lastSearchMessage = searchResults[0]?.content || '';
+
+      // Add user message to chat
+      const newUserMessage: ChatMessage = {
+        id: messageId,
+        role: 'user',
+        content: userMessage,
+        timestamp: Date.now(),
+        response: {
+          type: 'text',
+          message: userMessage,
+          loading: true
+        }
+      };
+      
+      setChatMessages(prev => [...prev, newUserMessage]);
+      // Scroll to user message
+      setTimeout(() => {
+        scrollToLatestMessage(chatRef.current);
+      }, 100);
+
+      try {
+        const agentService = AgentService.getInstance();
+        const response = await agentService.invoke(
+          messageId,
+          currentFilters,
+          currentResults,
+          userMessage,
+          lastSearchMessage
+        );
+
+        // Parse the response message ensuring we get a string
+        const responseMessage = Array.isArray(response) 
+          ? response[0].output 
+          : (response.output || response.message || 
+             (typeof response === 'string' ? response : ''));
+
+        // Add assistant response to chat
+        const assistantMessage: ChatMessage = {
+          id: uuidv4(),
+          role: 'assistant',
+          content: responseMessage,
+          timestamp: Date.now(),
+          response: {
+            type: 'text',
+            message: responseMessage,
+            loading: false,
+            aiResponse: response
+          }
+        };
+
+        setChatMessages(prev => [...prev, assistantMessage]);
+        // Scroll to AI response
+        setTimeout(() => {
+          scrollToLatestMessage(chatRef.current);
+        }, 100);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        return;
+      }
     }
   };
 
@@ -138,7 +209,7 @@ export default function SearchPage() {
                 style={{ paddingBottom: '120px' }} 
               >
                 <SearchOutput 
-                  message={messages[messages.length - 1] || { isLoading: true }}
+                  message={searchResults[searchResults.length - 1] || { isLoading: true }}
                   loading={isLoading}
                 />
               </div>
@@ -159,43 +230,65 @@ export default function SearchPage() {
           </div>
 
           {/* Right Panel - AI Assistant */}
-          <div className="w-[35%] relative">
-            <div className="h-screen flex flex-col pt-6 px-6">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-800">AI Assistant</h2>
-                <p className="text-sm text-gray-600">Ask questions about the search results</p>
+          <div className="w-[35%] relative bg-gray-50">
+            <div className="h-screen flex flex-col">
+              <div className="px-6 py-3 border-b border-gray-100 bg-white">
+                <h2 className="text-lg font-medium text-gray-800">AI Assistant</h2>
+                <p className="text-xs text-gray-500">Ask questions about the search results</p>
               </div>
               
               <div 
                 ref={chatRef}
-                className="flex-grow overflow-y-auto"
+                className="flex-grow overflow-y-auto space-y-4 px-4 py-4"
                 style={{ paddingBottom: '120px' }} 
               >
-                {messages.map((message) => (
-                  <div key={message.id} className="space-y-2">
-                    {message.response?.aiResponse && (
-                      <AgentResponse response={message.response.aiResponse} />
+                {chatMessages.map((message) => (
+                  <div key={message.id} data-message>
+                    {message.role === 'user' ? (
+                      // User message
+                      <div className="flex items-start space-x-3 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-blue-600/10 flex items-center justify-center">
+                          <span className="text-xs font-medium text-blue-600">U</span>
+                        </div>
+                        <div className="flex-1 prose prose-xs max-w-none text-gray-600 bg-white rounded-lg py-2">
+                          {message.content}
+                        </div>
+                      </div>
+                    ) : (
+                      // Assistant message
+                      <div className="flex items-start space-x-3">
+                        <div className="w-6 h-6 rounded-full bg-emerald-600/10 flex items-center justify-center">
+                          <span className="text-xs font-medium text-emerald-600">AI</span>
+                        </div>
+                        <div className="flex-1 prose prose-xs max-w-none text-gray-600 prose-p:mt-0 prose-p:mb-2 last:prose-p:mb-0 prose-headings:font-medium">
+                          <ReactMarkdown>
+                            {message.response?.aiResponse?.message || message.content}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
                     )}
                   </div>
                 ))}
               </div>
 
               {/* Chat Input */}
-              <div className="sticky bottom-0 w-full bg-white border-t border-gray-100 p-4">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                  <textarea
-                    ref={inputRef}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Ask about the search results..."
-                    className="w-full px-4 py-3 text-sm bg-transparent border-none focus:ring-0 resize-none"
-                    rows={1}
-                    style={{
-                      minHeight: '44px',
-                      maxHeight: '44px'
-                    }}
-                  />
+              <div className="sticky bottom-0 w-full bg-gray-50 border-t border-gray-100">
+                <div className="max-w-3xl mx-auto p-3">
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:border-gray-300 transition-colors">
+                    <textarea
+                      ref={inputRef}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask about the search results..."
+                      className="w-full px-3 py-2 text-sm bg-transparent border-none focus:ring-0 focus:outline-none resize-none placeholder-gray-400"
+                      rows={1}
+                      style={{
+                        minHeight: '40px',
+                        maxHeight: '40px'
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
