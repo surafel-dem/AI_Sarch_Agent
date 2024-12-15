@@ -281,6 +281,10 @@ export default function SearchPage() {
                 <SearchOutput 
                   message={searchResults[searchResults.length - 1] || { isLoading: true }}
                   loading={isLoading}
+                  results={searchResults}
+                  loadingText="Searching for cars"
+                  noResultsText="No results found. Try adjusting your search criteria."
+                  resultsFoundText={(count) => `Found ${count} ${count === 1 ? 'match' : 'matches'}`}
                 />
               </div>
 

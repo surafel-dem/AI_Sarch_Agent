@@ -49,7 +49,7 @@ export function SearchOutput({ message, loading }: SearchOutputProps) {
   }
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-4 pl-16">
       {message.response.results.map((car, index) => (
         <div 
           key={index} 
