@@ -235,297 +235,277 @@ export function SearchForm() {
   }, []);
 
   return (
-    <div className="w-full">
-      <div className="w-full max-w-xl mx-auto relative bg-black/5 backdrop-blur-xl rounded-[20px] border border-white/10 p-6">
-        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-        <div className="absolute inset-y-0 -left-px w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" />
-        <div className="absolute inset-y-0 -right-px w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" />
-        
-        <form onSubmit={handleSubmit} className="space-y-6 relative">
-          {/* Step indicator */}
-          <div className="flex justify-center items-center gap-2 mb-6">
-            {[1, 2, 3].map((num) => (
-              <div key={num} className="flex items-center">
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
-                    currentStep === num
-                      ? "bg-[#6366f1] text-white"
-                      : "bg-[#2A2A2A] text-gray-400"
-                  )}
-                >
-                  {num}
-                </div>
-                {num < 3 && (
-                  <div
-                    className={cn(
-                      "w-12 h-0.5 mx-2",
-                      num < currentStep ? "bg-[#6366f1]" : "bg-[#2A2A2A]"
-                    )}
-                  />
-                )}
+    <div className="w-full max-w-[500px] mx-auto">
+      <div className="space-y-6">
+        {/* Progress Steps */}
+        <div className="flex items-center justify-center gap-4 mb-6">
+          {[1, 2, 3].map((step) => (
+            <div key={step} className="flex items-center">
+              <div className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
+                currentStep === step 
+                  ? "bg-[#6366f1] text-white" 
+                  : "bg-white/5 text-gray-400"
+              )}>
+                {step}
               </div>
-            ))}
-          </div>
+              {step < 3 && (
+                <div className="w-12 h-[1px] bg-white/10 mx-2" />
+              )}
+            </div>
+          ))}
+        </div>
 
-          {/* Form container */}
-          <div className="relative h-[200px]">
-            {/* Form content */}
-            <div className="h-full">
-              {currentStep === 1 && (
-                <div className="space-y-4 flex flex-col items-center">
-                  {/* First row: Location, Make, Model */}
-                  <div className="flex justify-center gap-3 mb-4 w-full max-w-[600px]">
-                    <Select name="location" onValueChange={(value) => handleSelectChange("location", value)}>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Location" />
+        {/* Glass box container */}
+        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5">
+          <div className="h-[240px] flex flex-col">
+            {currentStep === 1 && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1.5">Location</label>
+                    <Select value={formData.location} onValueChange={(value) => handleSelectChange('location', value)}>
+                      <SelectTrigger variant="glass" className="w-full text-white h-9">
+                        <SelectValue placeholder="Select location" className="text-gray-400" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent variant="glass">
                         {locations.map((location) => (
-                          <SelectItem key={location} value={location}>
+                          <SelectItem key={location} value={location} className="text-white">
                             {location}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-
-                    <Select name="make" onValueChange={(value) => handleSelectChange("make", value)}>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Make" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1.5">Make</label>
+                    <Select value={formData.make} onValueChange={(value) => handleSelectChange('make', value)}>
+                      <SelectTrigger variant="glass" className="w-full text-white h-9">
+                        <SelectValue placeholder="Select make" className="text-gray-400" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent variant="glass">
                         {makes.map((make) => (
-                          <SelectItem key={make} value={make}>
+                          <SelectItem key={make} value={make} className="text-white">
                             {make}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-
-                    <Select
-                      name="model"
-                      onValueChange={(value) => handleSelectChange("model", value)}
-                      disabled={!formData.make}
-                    >
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Model" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1.5">Model</label>
+                    <Select value={formData.model} onValueChange={(value) => handleSelectChange('model', value)}>
+                      <SelectTrigger variant="glass" className="w-full text-white h-9">
+                        <SelectValue placeholder="Select model" className="text-gray-400" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {formData.make && carModels[formData.make as CarMake].map((model) => (
-                          <SelectItem key={model} value={model}>
+                      <SelectContent variant="glass">
+                        {formData.make && carModels[formData.make as CarMake]?.map((model) => (
+                          <SelectItem key={model} value={model} className="text-white">
                             {model}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {/* Second row: Price and Year ranges */}
-                  <div className="flex justify-center gap-6 w-full max-w-[600px]">
-                    <div className="flex gap-2">
-                      <Select name="minPrice" onValueChange={(value) => handleSelectChange("minPrice", value)}>
-                        <SelectTrigger className="w-[100px]">
-                          <SelectValue placeholder="Min €" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {priceRanges.map((price) => (
-                            <SelectItem key={price} value={price}>
-                              €{price}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Select name="maxPrice" onValueChange={(value) => handleSelectChange("maxPrice", value)}>
-                        <SelectTrigger className="w-[100px]">
-                          <SelectValue placeholder="Max €" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {priceRanges.map((price) => (
-                            <SelectItem key={price} value={price}>
-                              €{price}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Select name="minYear" onValueChange={(value) => handleSelectChange("minYear", value)}>
-                        <SelectTrigger className="w-[90px]">
-                          <SelectValue placeholder="Min Year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {yearRanges.map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Select name="maxYear" onValueChange={(value) => handleSelectChange("maxYear", value)}>
-                        <SelectTrigger className="w-[90px]">
-                          <SelectValue placeholder="Max Year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {yearRanges.map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
                 </div>
-              )}
-              {currentStep === 2 && (
-                <div className="space-y-4 flex flex-col items-center">
-                  {/* Tab Headers */}
-                  <div className="flex space-x-1 border-b border-[#2D2D2D] w-full max-w-[600px] justify-center">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('priorities')}
-                      className={cn(
-                        "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
-                        activeTab === 'priorities'
-                          ? "bg-[#6366f1]/10 text-[#6366f1] border-b-2 border-[#6366f1]"
-                          : "bg-transparent text-gray-400 hover:text-[#6366f1]/70"
-                      )}
-                    >
-                      Priorities
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('mustHave')}
-                      className={cn(
-                        "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
-                        activeTab === 'mustHave'
-                          ? "bg-[#6366f1]/10 text-[#6366f1] border-b-2 border-[#6366f1]"
-                          : "bg-transparent text-gray-400 hover:text-[#6366f1]/70"
-                      )}
-                    >
-                      Must Have
-                    </button>
-                  </div>
 
-                  {/* Tab Content */}
-                  <div className="pt-2 w-full max-w-[600px]">
-                    {activeTab === 'priorities' && (
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 justify-center">
-                        {priorities.map((priority) => (
-                          <label
-                            key={priority}
-                            className="flex items-center space-x-1.5 text-xs"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.priorities.includes(priority)}
-                              onChange={() => handleCheckboxChange('priorities', priority)}
-                              className="h-3 w-3 rounded border-[#6366f1]/30 text-[#6366f1] focus:ring-[#6366f1]/20"
-                            />
-                            <span className="text-gray-200">{priority}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-
-                    {activeTab === 'mustHave' && (
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 justify-center">
-                        {mustHaveFeatures.map((feature) => (
-                          <label
-                            key={feature}
-                            className="flex items-center space-x-1.5 text-xs"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.mustHaveFeatures.includes(feature)}
-                              onChange={() => handleCheckboxChange('mustHave', feature)}
-                              className="h-3 w-3 rounded border-[#6366f1]/30 text-[#6366f1] focus:ring-[#6366f1]/20"
-                            />
-                            <span className="text-gray-200">{feature}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {currentStep === 3 && (
-                <div className="space-y-4 flex flex-col items-center">
-                  <div className="flex justify-center w-full max-w-[600px]">
-                    <Select name="usage" onValueChange={(value) => handleSelectChange("usage", value)}>
-                      <SelectTrigger className="w-64">
-                        <SelectValue placeholder="How will you use this car?" />
+                <div className="grid grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1.5">Min Price</label>
+                    <Select value={formData.minPrice} onValueChange={(value) => handleSelectChange('minPrice', value)}>
+                      <SelectTrigger variant="glass" className="w-full text-white h-9">
+                        <SelectValue placeholder="Min" className="text-gray-400" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {usageOptions.map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
+                      <SelectContent variant="glass">
+                        {priceRanges.map((price) => (
+                          <SelectItem key={price} value={price} className="text-white">
+                            €{price}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex justify-center w-full max-w-[600px]">
-                    <Input
-                      type="text"
-                      placeholder="Any must have feature?"
-                      value={formData.customFeature}
-                      onChange={(e) => setFormData(prev => ({ ...prev, customFeature: e.target.value }))}
-                      className="h-10 px-3 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A] shadow-sm text-gray-200 text-sm placeholder:text-gray-400 hover:border-[#4A4A4A] focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]"
-                    />
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1.5">Max Price</label>
+                    <Select value={formData.maxPrice} onValueChange={(value) => handleSelectChange('maxPrice', value)}>
+                      <SelectTrigger variant="glass" className="w-full text-white h-9">
+                        <SelectValue placeholder="Max" className="text-gray-400" />
+                      </SelectTrigger>
+                      <SelectContent variant="glass">
+                        {priceRanges.map((price) => (
+                          <SelectItem key={price} value={price} className="text-white">
+                            €{price}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1.5">Min Year</label>
+                    <Select value={formData.minYear} onValueChange={(value) => handleSelectChange('minYear', value)}>
+                      <SelectTrigger variant="glass" className="w-full text-white h-9">
+                        <SelectValue placeholder="Min" className="text-gray-400" />
+                      </SelectTrigger>
+                      <SelectContent variant="glass">
+                        {yearRanges.map((year) => (
+                          <SelectItem key={year} value={year.toString()} className="text-white">
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-1.5">Max Year</label>
+                    <Select value={formData.maxYear} onValueChange={(value) => handleSelectChange('maxYear', value)}>
+                      <SelectTrigger variant="glass" className="w-full text-white h-9">
+                        <SelectValue placeholder="Max" className="text-gray-400" />
+                      </SelectTrigger>
+                      <SelectContent variant="glass">
+                        {yearRanges.map((year) => (
+                          <SelectItem key={year} value={year.toString()} className="text-white">
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Navigation buttons */}
-            <div className="absolute bottom-0 left-0 right-0 flex justify-between">
-              <div>
-                {currentStep > 1 && (
-                  <Button
-                    type="button"
-                    onClick={prevStep}
-                    variant="outline"
-                    className="flex items-center gap-2 bg-[#2A2A2A] text-gray-200 border-[#3A3A3A] hover:bg-[#3A3A3A] hover:text-white"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Back
-                  </Button>
-                )}
               </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="flex flex-col h-full">
+                <div className="flex space-x-1 border-b border-[#2D2D2D] justify-center mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('priorities')}
+                    className={cn(
+                      "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
+                      activeTab === 'priorities'
+                        ? "bg-[#6366f1]/10 text-[#6366f1] border-b-2 border-[#6366f1]"
+                        : "bg-transparent text-gray-400 hover:text-[#6366f1]/70"
+                    )}
+                  >
+                    Priorities
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('mustHave')}
+                    className={cn(
+                      "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
+                      activeTab === 'mustHave'
+                        ? "bg-[#6366f1]/10 text-[#6366f1] border-b-2 border-[#6366f1]"
+                        : "bg-transparent text-gray-400 hover:text-[#6366f1]/70"
+                    )}
+                  >
+                    Must Have
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    {activeTab === 'priorities' && priorities.map((priority) => (
+                      <label key={priority} className="flex items-center space-x-1.5 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={formData.priorities.includes(priority)}
+                          onChange={() => handleCheckboxChange('priorities', priority)}
+                          className="h-3 w-3 rounded border-[#6366f1]/30 text-[#6366f1] focus:ring-[#6366f1]/20"
+                        />
+                        <span className="text-gray-200">{priority}</span>
+                      </label>
+                    ))}
+                    {activeTab === 'mustHave' && mustHaveFeatures.map((feature) => (
+                      <label key={feature} className="flex items-center space-x-1.5 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={formData.mustHaveFeatures.includes(feature)}
+                          onChange={() => handleCheckboxChange('mustHave', feature)}
+                          className="h-3 w-3 rounded border-[#6366f1]/30 text-[#6366f1] focus:ring-[#6366f1]/20"
+                        />
+                        <span className="text-gray-200">{feature}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5">Usage</label>
+                  <Select value={formData.usage} onValueChange={(value) => handleSelectChange('usage', value)}>
+                    <SelectTrigger variant="glass" className="w-full text-white h-9">
+                      <SelectValue placeholder="Select usage" className="text-gray-400" />
+                    </SelectTrigger>
+                    <SelectContent variant="glass">
+                      {usageOptions.map((option) => (
+                        <SelectItem key={option} value={option} className="text-white">
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5">Custom Feature</label>
+                  <Input
+                    type="text"
+                    placeholder="Enter custom feature"
+                    value={formData.customFeature}
+                    onChange={(e) => setFormData(prev => ({ ...prev, customFeature: e.target.value }))}
+                    className="h-9 px-3 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A] shadow-sm text-gray-200 text-sm placeholder:text-gray-400 hover:border-[#4A4A4A] focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation buttons */}
+          <div className="flex justify-between pt-3 mt-3 border-t border-white/10">
+            {currentStep > 1 && (
               <Button
                 type="button"
-                onClick={() => {
-                  if (currentStep === 3) {
-                    router.push('/search?' + new URLSearchParams({
-                      selections: JSON.stringify(formData)
-                    }).toString());
-                  } else {
-                    nextStep();
-                  }
-                }}
-                className="flex items-center gap-2 bg-[#6366f1] hover:bg-[#4F46E5] text-white"
-                disabled={!isFormValid()}
+                onClick={prevStep}
+                variant="outline"
+                className="h-9 px-4 flex items-center gap-2 bg-[#2A2A2A] text-gray-200 border-[#3A3A3A] hover:bg-[#3A3A3A] hover:text-white"
               >
-                {currentStep === 3 ? (
-                  <>
-                    Apply Filters
-                    <ChevronRight className="w-4 h-4" />
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </>
-                )}
+                <ChevronLeft className="w-4 h-4" />
+                Back
               </Button>
-            </div>
+            )}
+            <div className="flex-1" />
+            <Button
+              type="button"
+              onClick={() => {
+                if (currentStep === 3) {
+                  router.push('/search?' + new URLSearchParams({
+                    selections: JSON.stringify(formData)
+                  }).toString());
+                } else {
+                  nextStep();
+                }
+              }}
+              className="h-9 px-4 flex items-center gap-2 bg-[#6366f1] hover:bg-[#4F46E5] text-white"
+              disabled={!isFormValid()}
+            >
+              {currentStep === 3 ? (
+                <>
+                  Apply Filters
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </Button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

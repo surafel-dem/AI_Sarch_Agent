@@ -4,7 +4,6 @@ import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
 import { cn } from '@/lib/utils'
 import { Sidebar } from '@/components/sidebar'
-import { Navbar } from '@/components/navbar'
 import { Toaster } from 'sonner'
 import { clerkConfig } from '@/lib/clerk-config'
 
@@ -13,6 +12,8 @@ const poppins = Poppins({
   weight: ['400', '600'],
   variable: '--font-poppins',
 })
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Car Sales Agent',
@@ -25,13 +26,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body
         className={cn(
           "min-h-screen antialiased",
-          "bg-[#0a0a0f] bg-gradient-to-br from-[#0a0a0f] via-[#1a1a2e] to-[#2d1b4d]",
+          "bg-black bg-[radial-gradient(ellipse_at_top,rgba(51,51,51,0.4)_0%,rgba(17,17,17,0.2)_50%,transparent_100%)]",
           poppins.variable,
-          "font-poppins text-white"
+          "font-poppins text-white",
+          inter.className
         )}
       >
         <ClerkProvider 
@@ -40,7 +42,6 @@ export default function RootLayout({
         >
           <div className="min-h-screen">
             <Sidebar />
-            <Navbar />
             <main>{children}</main>
           </div>
           <Toaster />
