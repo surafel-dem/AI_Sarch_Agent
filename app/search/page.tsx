@@ -27,6 +27,7 @@ export default function SearchPage() {
     minYear: '',
     maxYear: '',
   });
+  const [searchRequestId, setSearchRequestId] = useState<string | null>(null);
   const searchResultsRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -50,13 +51,40 @@ export default function SearchPage() {
     });
   };
 
+  useEffect(() => {
+    console.log('SearchPage: useEffect triggered');
+    const selections = searchParams.get('selections') 
+      ? JSON.parse(searchParams.get('selections')!) 
+      : {};
+
+    console.log('SearchPage: URL selections:', selections);
+
+    if (Object.keys(selections).length > 0) {
+      console.log('SearchPage: Initiating search from URL params');
+      handleSearch(selections);
+    } else {
+      console.log('SearchPage: No selections in URL, skipping initial search');
+      setIsLoading(false);
+    }
+  }, []);
+
   const handleSearch = async (filters: CarSpecs) => {
+    console.log('SearchPage: handleSearch called with filters:', filters);
     setIsLoading(true);
-    setCurrentFilters(filters); // Update current filters
+    setCurrentFilters(filters);
     const searchId = uuidv4();
-    console.log('Frontend: Starting search with filters:', filters);
+    
+    // Update URL with new filters
+    const searchParams = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        searchParams.append(key, value.toString());
+      }
+    });
+    window.history.replaceState({}, '', `${window.location.pathname}?${searchParams.toString()}`);
 
     try {
+      console.log('SearchPage: Making API request with searchId:', searchId);
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: {
@@ -73,12 +101,13 @@ export default function SearchPage() {
       }
 
       const data = await response.json();
-      console.log('Frontend: Received search results:', data);
+      console.log('SearchPage: Received API response for searchId:', searchId, data);
 
-      // Extract message from agent response
       const agentMessage = data.agentResponse?.output || 
                          data.agentResponse?.message || 
                          (typeof data.agentResponse === 'string' ? data.agentResponse : '');
+      
+      console.log('SearchPage: Creating new message with agentMessage:', agentMessage);
 
       const newMessage: ChatMessage = {
         id: searchId,
@@ -94,17 +123,24 @@ export default function SearchPage() {
         }
       };
 
-      // Update both search results and chat messages
+      console.log('SearchPage: Updating state with new message');
       setSearchResults([newMessage]);
-      setChatMessages(prev => [...prev, newMessage]);
+      setChatMessages(prev => {
+        // Only add the message if it's not already in the chat
+        if (prev.some(msg => msg.id === searchId)) {
+          console.log('SearchPage: Message already exists in chat, skipping');
+          return prev;
+        }
+        return [...prev, newMessage];
+      });
       
-      // Scroll to the latest message after a short delay to ensure rendering
       setTimeout(() => {
+        console.log('SearchPage: Scrolling to latest message');
         scrollToLatestMessage(chatRef.current);
       }, 100);
       
     } catch (error) {
-      console.error('Frontend: Search failed:', error);
+      console.error('SearchPage: Search failed:', error);
       return;
     } finally {
       setIsLoading(false);
@@ -186,19 +222,6 @@ export default function SearchPage() {
       }
     }
   };
-
-  // Run initial search from URL params if present
-  useEffect(() => {
-    const selections = searchParams.get('selections') 
-      ? JSON.parse(searchParams.get('selections')!) 
-      : {};
-
-    if (Object.keys(selections).length > 0) {
-      handleSearch(selections);
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen w-full bg-[#0A0A0A] relative">

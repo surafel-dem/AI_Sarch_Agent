@@ -21,22 +21,40 @@ interface FilterFormProps {
     minYear?: string;
     maxYear?: string;
   }) => void;
+  initialFilters?: {
+    location?: string;
+    make?: string;
+    model?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    minYear?: string;
+    maxYear?: string;
+  };
 }
 
-export function FilterForm({ onSearch }: FilterFormProps) {
+export function FilterForm({ onSearch, initialFilters }: FilterFormProps) {
   const [filters, setFilters] = useState({
-    location: '',
-    make: '',
-    model: '',
-    minPrice: '',
-    maxPrice: '',
-    minYear: '',
-    maxYear: '',
+    location: initialFilters?.location || '',
+    make: initialFilters?.make || '',
+    model: initialFilters?.model || '',
+    minPrice: initialFilters?.minPrice || '',
+    maxPrice: initialFilters?.maxPrice || '',
+    minYear: initialFilters?.minYear || '',
+    maxYear: initialFilters?.maxYear || '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(filters);
+    // Only include non-empty values in the search
+    const searchFilters = Object.entries(filters)
+      .reduce((acc, [key, value]) => {
+        if (value && value.trim() !== '') {
+          acc[key] = value.trim();
+        }
+        return acc;
+      }, {} as Record<string, string>);
+      
+    onSearch(searchFilters);
   };
 
   return (
