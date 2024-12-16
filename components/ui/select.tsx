@@ -21,18 +21,13 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-9 w-full items-center justify-between rounded-md",
-      variant === 'default' ? [
-        "bg-white border border-gray-200",
-        "px-3 py-2 text-sm text-gray-900",
-        "placeholder:text-gray-500",
-        "hover:border-gray-300 focus:ring-0 focus:border-gray-300",
-      ] : [
-        "bg-white/5 backdrop-blur-xl border border-white/10",
-        "px-3 py-2 text-sm text-white",
-        "placeholder:text-white/70",
-        "hover:bg-white/10 focus:ring-0 focus:border-white/20",
-      ],
+      "h-12 w-full rounded-xl px-4 py-3",
+      "bg-[#141B2D]/60 backdrop-blur-md",
+      "text-gray-100 placeholder:text-gray-400",
+      "border-0 ring-0 focus:ring-1 ring-blue-500/20",
+      "transition-all duration-200",
+      "hover:bg-[#141B2D]/80",
+      "focus:outline-none focus:ring-blue-500/30",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "[&>span]:line-clamp-1",
       className
@@ -43,7 +38,7 @@ const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Icon asChild>
       <ChevronDown className={cn(
         "h-4 w-4",
-        variant === 'default' ? "text-gray-600" : "text-white/70"
+        "text-gray-600"
       )} />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
@@ -60,14 +55,14 @@ const SelectScrollUpButton = React.forwardRef<
     ref={ref}
     className={cn(
       "flex cursor-default items-center justify-center py-1",
-      variant === 'default' ? "text-gray-600" : "text-white/70",
+      "text-gray-600",
       className
     )}
     {...props}
   >
     <ChevronUp className={cn(
       "h-4 w-4",
-      variant === 'default' ? "text-gray-600" : "text-white/70"
+      "text-gray-600"
     )} />
   </SelectPrimitive.ScrollUpButton>
 ))
@@ -83,14 +78,14 @@ const SelectScrollDownButton = React.forwardRef<
     ref={ref}
     className={cn(
       "flex cursor-default items-center justify-center py-1",
-      variant === 'default' ? "text-gray-600" : "text-white/70",
+      "text-gray-600",
       className
     )}
     {...props}
   >
     <ChevronDown className={cn(
       "h-4 w-4",
-      variant === 'default' ? "text-gray-600" : "text-white/70"
+      "text-gray-600"
     )} />
   </SelectPrimitive.ScrollDownButton>
 ))
@@ -107,14 +102,10 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 min-w-[8rem] overflow-hidden rounded-md",
-        variant === 'default' ? [
-          "bg-white border border-gray-200",
-          "text-gray-900 shadow-md",
-        ] : [
-          "bg-white/5 backdrop-blur-xl border border-white/10",
-          "text-white shadow-xl",
-        ],
+        "relative z-50 min-w-[8rem] overflow-hidden rounded-xl",
+        "bg-[#0A0F1C]/95 backdrop-blur-xl",
+        "text-gray-100",
+        "shadow-lg shadow-blue-500/10",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -127,7 +118,7 @@ const SelectContent = React.forwardRef<
       position={position}
       {...props}
     >
-      <SelectScrollUpButton variant={variant} />
+      <SelectScrollUpButton />
       <SelectPrimitive.Viewport
         className={cn(
           "p-1",
@@ -137,7 +128,7 @@ const SelectContent = React.forwardRef<
       >
         {children}
       </SelectPrimitive.Viewport>
-      <SelectScrollDownButton variant={variant} />
+      <SelectScrollDownButton />
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
 ))
@@ -153,7 +144,7 @@ const SelectLabel = React.forwardRef<
     ref={ref}
     className={cn(
       "py-1.5 pl-8 pr-2 text-sm font-semibold",
-      variant === 'default' ? "text-gray-900" : "text-white",
+      "text-gray-900",
       className
     )}
     {...props}
@@ -171,13 +162,8 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2",
-      variant === 'default' ? [
-        "text-gray-900 hover:bg-gray-100",
-        "focus:bg-gray-100 focus:text-gray-900",
-      ] : [
-        "text-white/70 hover:text-white hover:bg-white/5",
-        "focus:bg-white/10 focus:text-white",
-      ],
+      "text-gray-900 hover:bg-gray-100",
+      "focus:bg-gray-100 focus:text-gray-900",
       className
     )}
     {...props}
@@ -186,7 +172,7 @@ const SelectItem = React.forwardRef<
       <SelectPrimitive.ItemIndicator>
         <Check className={cn(
           "h-4 w-4",
-          variant === 'default' ? "text-gray-600" : "text-white/70"
+          "text-gray-600"
         )} />
       </SelectPrimitive.ItemIndicator>
     </span>
@@ -205,7 +191,7 @@ const SelectSeparator = React.forwardRef<
     ref={ref}
     className={cn(
       "-mx-1 my-1 h-px",
-      variant === 'default' ? "bg-gray-200" : "bg-white/10",
+      "bg-gray-200",
       className
     )}
     {...props}

@@ -244,33 +244,33 @@ export function SearchForm() {
               <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
                 currentStep === step 
-                  ? "bg-[#6366f1] text-white" 
-                  : "bg-white/5 text-gray-400"
+                  ? "bg-indigo-500 text-white ring-2 ring-indigo-200" 
+                  : "bg-white/10 text-gray-300 hover:bg-white/20"
               )}>
                 {step}
               </div>
               {step < 3 && (
-                <div className="w-12 h-[1px] bg-white/10 mx-2" />
+                <div className="w-12 h-[1px] bg-indigo-200/30" />
               )}
             </div>
           ))}
         </div>
 
         {/* Glass box container */}
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-5 shadow-lg">
           <div className="h-[240px] flex flex-col">
             {currentStep === 1 && (
               <div className="space-y-3">
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1.5">Location</label>
+                    <label className="block text-white text-sm mb-1.5">Location</label>
                     <Select value={formData.location} onValueChange={(value) => handleSelectChange('location', value)}>
-                      <SelectTrigger variant="glass" className="w-full text-white h-9">
-                        <SelectValue placeholder="Select location" className="text-gray-400" />
+                      <SelectTrigger className="w-full text-white h-9 bg-white/10 hover:bg-white/20 border border-white/20">
+                        <SelectValue placeholder="Select location" className="text-gray-300" />
                       </SelectTrigger>
-                      <SelectContent variant="glass">
+                      <SelectContent className="bg-gray-800/95 backdrop-blur-xl border border-white/10 text-white">
                         {locations.map((location) => (
-                          <SelectItem key={location} value={location} className="text-white">
+                          <SelectItem key={location} value={location} className="text-white hover:bg-indigo-500/20">
                             {location}
                           </SelectItem>
                         ))}
@@ -278,14 +278,14 @@ export function SearchForm() {
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1.5">Make</label>
+                    <label className="block text-white text-sm mb-1.5">Make</label>
                     <Select value={formData.make} onValueChange={(value) => handleSelectChange('make', value)}>
-                      <SelectTrigger variant="glass" className="w-full text-white h-9">
-                        <SelectValue placeholder="Select make" className="text-gray-400" />
+                      <SelectTrigger className="w-full text-white h-9 bg-white/10 hover:bg-white/20 border border-white/20">
+                        <SelectValue placeholder="Select make" className="text-gray-300" />
                       </SelectTrigger>
-                      <SelectContent variant="glass">
+                      <SelectContent className="bg-gray-800/95 backdrop-blur-xl border border-white/10 text-white">
                         {makes.map((make) => (
-                          <SelectItem key={make} value={make} className="text-white">
+                          <SelectItem key={make} value={make} className="text-white hover:bg-indigo-500/20">
                             {make}
                           </SelectItem>
                         ))}
@@ -293,14 +293,14 @@ export function SearchForm() {
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1.5">Model</label>
+                    <label className="block text-white text-sm mb-1.5">Model</label>
                     <Select value={formData.model} onValueChange={(value) => handleSelectChange('model', value)}>
-                      <SelectTrigger variant="glass" className="w-full text-white h-9">
-                        <SelectValue placeholder="Select model" className="text-gray-400" />
+                      <SelectTrigger className="w-full text-white h-9 bg-white/10 hover:bg-white/20 border border-white/20">
+                        <SelectValue placeholder="Select model" className="text-gray-300" />
                       </SelectTrigger>
-                      <SelectContent variant="glass">
+                      <SelectContent className="bg-gray-800/95 backdrop-blur-xl border border-white/10 text-white">
                         {formData.make && carModels[formData.make as CarMake]?.map((model) => (
-                          <SelectItem key={model} value={model} className="text-white">
+                          <SelectItem key={model} value={model} className="text-white hover:bg-indigo-500/20">
                             {model}
                           </SelectItem>
                         ))}
@@ -311,14 +311,14 @@ export function SearchForm() {
 
                 <div className="grid grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1.5">Min Price</label>
+                    <label className="block text-white text-sm mb-1.5">Min Price</label>
                     <Select value={formData.minPrice} onValueChange={(value) => handleSelectChange('minPrice', value)}>
-                      <SelectTrigger variant="glass" className="w-full text-white h-9">
-                        <SelectValue placeholder="Min" className="text-gray-400" />
+                      <SelectTrigger className="w-full text-white h-9 bg-white/10 hover:bg-white/20 border border-white/20">
+                        <SelectValue placeholder="Min" className="text-gray-300" />
                       </SelectTrigger>
-                      <SelectContent variant="glass">
+                      <SelectContent className="bg-gray-800/95 backdrop-blur-xl border border-white/10 text-white">
                         {priceRanges.map((price) => (
-                          <SelectItem key={price} value={price} className="text-white">
+                          <SelectItem key={price} value={price} className="text-white hover:bg-indigo-500/20">
                             €{price}
                           </SelectItem>
                         ))}
@@ -326,14 +326,14 @@ export function SearchForm() {
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1.5">Max Price</label>
+                    <label className="block text-white text-sm mb-1.5">Max Price</label>
                     <Select value={formData.maxPrice} onValueChange={(value) => handleSelectChange('maxPrice', value)}>
-                      <SelectTrigger variant="glass" className="w-full text-white h-9">
-                        <SelectValue placeholder="Max" className="text-gray-400" />
+                      <SelectTrigger className="w-full text-white h-9 bg-white/10 hover:bg-white/20 border border-white/20">
+                        <SelectValue placeholder="Max" className="text-gray-300" />
                       </SelectTrigger>
-                      <SelectContent variant="glass">
+                      <SelectContent className="bg-gray-800/95 backdrop-blur-xl border border-white/10 text-white">
                         {priceRanges.map((price) => (
-                          <SelectItem key={price} value={price} className="text-white">
+                          <SelectItem key={price} value={price} className="text-white hover:bg-indigo-500/20">
                             €{price}
                           </SelectItem>
                         ))}
@@ -341,14 +341,14 @@ export function SearchForm() {
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1.5">Min Year</label>
+                    <label className="block text-white text-sm mb-1.5">Min Year</label>
                     <Select value={formData.minYear} onValueChange={(value) => handleSelectChange('minYear', value)}>
-                      <SelectTrigger variant="glass" className="w-full text-white h-9">
-                        <SelectValue placeholder="Min" className="text-gray-400" />
+                      <SelectTrigger className="w-full text-white h-9 bg-white/10 hover:bg-white/20 border border-white/20">
+                        <SelectValue placeholder="Min" className="text-gray-300" />
                       </SelectTrigger>
-                      <SelectContent variant="glass">
+                      <SelectContent className="bg-gray-800/95 backdrop-blur-xl border border-white/10 text-white">
                         {yearRanges.map((year) => (
-                          <SelectItem key={year} value={year.toString()} className="text-white">
+                          <SelectItem key={year} value={year.toString()} className="text-white hover:bg-indigo-500/20">
                             {year}
                           </SelectItem>
                         ))}
@@ -356,14 +356,14 @@ export function SearchForm() {
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1.5">Max Year</label>
+                    <label className="block text-white text-sm mb-1.5">Max Year</label>
                     <Select value={formData.maxYear} onValueChange={(value) => handleSelectChange('maxYear', value)}>
-                      <SelectTrigger variant="glass" className="w-full text-white h-9">
-                        <SelectValue placeholder="Max" className="text-gray-400" />
+                      <SelectTrigger className="w-full text-white h-9 bg-white/10 hover:bg-white/20 border border-white/20">
+                        <SelectValue placeholder="Max" className="text-gray-300" />
                       </SelectTrigger>
-                      <SelectContent variant="glass">
+                      <SelectContent className="bg-gray-800/95 backdrop-blur-xl border border-white/10 text-white">
                         {yearRanges.map((year) => (
-                          <SelectItem key={year} value={year.toString()} className="text-white">
+                          <SelectItem key={year} value={year.toString()} className="text-white hover:bg-indigo-500/20">
                             {year}
                           </SelectItem>
                         ))}
@@ -383,8 +383,8 @@ export function SearchForm() {
                     className={cn(
                       "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
                       activeTab === 'priorities'
-                        ? "bg-[#6366f1]/10 text-[#6366f1] border-b-2 border-[#6366f1]"
-                        : "bg-transparent text-gray-400 hover:text-[#6366f1]/70"
+                        ? "bg-indigo-500/10 text-indigo-500 border-b-2 border-indigo-500"
+                        : "bg-transparent text-gray-300 hover:text-indigo-500/70"
                     )}
                   >
                     Priorities
@@ -395,8 +395,8 @@ export function SearchForm() {
                     className={cn(
                       "px-3 py-1.5 text-sm font-medium rounded-t-lg transition-colors",
                       activeTab === 'mustHave'
-                        ? "bg-[#6366f1]/10 text-[#6366f1] border-b-2 border-[#6366f1]"
-                        : "bg-transparent text-gray-400 hover:text-[#6366f1]/70"
+                        ? "bg-indigo-500/10 text-indigo-500 border-b-2 border-indigo-500"
+                        : "bg-transparent text-gray-300 hover:text-indigo-500/70"
                     )}
                   >
                     Must Have
@@ -411,7 +411,7 @@ export function SearchForm() {
                           type="checkbox"
                           checked={formData.priorities.includes(priority)}
                           onChange={() => handleCheckboxChange('priorities', priority)}
-                          className="h-3 w-3 rounded border-[#6366f1]/30 text-[#6366f1] focus:ring-[#6366f1]/20"
+                          className="h-3 w-3 rounded border-indigo-500/30 text-indigo-500 focus:ring-indigo-500/20"
                         />
                         <span className="text-gray-200">{priority}</span>
                       </label>
@@ -422,7 +422,7 @@ export function SearchForm() {
                           type="checkbox"
                           checked={formData.mustHaveFeatures.includes(feature)}
                           onChange={() => handleCheckboxChange('mustHave', feature)}
-                          className="h-3 w-3 rounded border-[#6366f1]/30 text-[#6366f1] focus:ring-[#6366f1]/20"
+                          className="h-3 w-3 rounded border-indigo-500/30 text-indigo-500 focus:ring-indigo-500/20"
                         />
                         <span className="text-gray-200">{feature}</span>
                       </label>
@@ -435,14 +435,14 @@ export function SearchForm() {
             {currentStep === 3 && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-gray-400 text-sm mb-1.5">Usage</label>
+                  <label className="block text-white text-sm mb-1.5">Usage</label>
                   <Select value={formData.usage} onValueChange={(value) => handleSelectChange('usage', value)}>
-                    <SelectTrigger variant="glass" className="w-full text-white h-9">
-                      <SelectValue placeholder="Select usage" className="text-gray-400" />
+                    <SelectTrigger className="w-full text-white h-9 bg-white/10 hover:bg-white/20 border border-white/20">
+                      <SelectValue placeholder="Select usage" className="text-gray-300" />
                     </SelectTrigger>
-                    <SelectContent variant="glass">
+                    <SelectContent className="bg-gray-800/95 backdrop-blur-xl border border-white/10 text-white">
                       {usageOptions.map((option) => (
-                        <SelectItem key={option} value={option} className="text-white">
+                        <SelectItem key={option} value={option} className="text-white hover:bg-indigo-500/20">
                           {option}
                         </SelectItem>
                       ))}
@@ -451,13 +451,13 @@ export function SearchForm() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 text-sm mb-1.5">Custom Feature</label>
+                  <label className="block text-white text-sm mb-1.5">Custom Feature</label>
                   <Input
                     type="text"
                     placeholder="Enter custom feature"
                     value={formData.customFeature}
                     onChange={(e) => setFormData(prev => ({ ...prev, customFeature: e.target.value }))}
-                    className="h-9 px-3 bg-[#2A2A2A] rounded-lg border border-[#3A3A3A] shadow-sm text-gray-200 text-sm placeholder:text-gray-400 hover:border-[#4A4A4A] focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f1]"
+                    className="h-9 px-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg shadow-sm text-white text-sm placeholder:text-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
                 </div>
               </div>
@@ -465,20 +465,20 @@ export function SearchForm() {
           </div>
 
           {/* Navigation buttons */}
-          <div className="flex justify-between pt-3 mt-3 border-t border-white/10">
+          <div className="flex justify-between pt-3 mt-3 border-t border-white/5">
             {currentStep > 1 && (
               <Button
                 type="button"
                 onClick={prevStep}
                 variant="outline"
-                className="h-9 px-4 flex items-center gap-2 bg-[#2A2A2A] text-gray-200 border-[#3A3A3A] hover:bg-[#3A3A3A] hover:text-white"
+                className="h-9 px-4 flex items-center gap-2 bg-white/10 hover:bg-white/20 text-gray-300 border border-white/20"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Back
               </Button>
             )}
             <div className="flex-1" />
-            <Button
+            <button
               type="button"
               onClick={() => {
                 if (currentStep === 3) {
@@ -489,7 +489,7 @@ export function SearchForm() {
                   nextStep();
                 }
               }}
-              className="h-9 px-4 flex items-center gap-2 bg-[#6366f1] hover:bg-[#4F46E5] text-white"
+              className="h-9 px-4 flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-lg transition-colors"
               disabled={!isFormValid()}
             >
               {currentStep === 3 ? (
@@ -503,7 +503,7 @@ export function SearchForm() {
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
-            </Button>
+            </button>
           </div>
         </div>
       </div>

@@ -96,22 +96,28 @@ export default function Home() {
           {/* About Section */}
           <section id="about" className="min-h-screen flex flex-col justify-center items-center px-6 lg:px-8">
             <h2 className="text-3xl font-bold tracking-tight text-white mb-8">Our Story</h2>
-            <div className="prose prose-lg prose-invert max-w-xl mx-auto text-center">
-              <p className="text-gray-300 text-lg leading-relaxed">
-                Axe started as an <span className="text-white">open source</span> project in 2023. 
-                We were <span className="text-white">frustrated</span> by how difficult it was to manage
-                <span className="text-white"> procurement requests</span> that <span className="text-white">worked well</span> across the organization.
-              </p>
-              <p className="text-gray-300 mt-6 text-lg leading-relaxed">
-                As we started to dig deeper, <span className="text-white">it became clear</span> that this
-                was just the tip of the iceberg. We realized that managing spend that <span className="text-white">reach the business goals</span> was 
-                the biggest pain point, so we started to <span className="text-white">explore something new</span>.
-              </p>
-              <p className="text-gray-300 mt-6 text-lg leading-relaxed">
-                In 2024, we launched an entire procurement management
-                platform and joined <span className="text-white">Y Combinator's</span> winter batch.
-                We're creating something special here, and we're excited to build it with you.
-              </p>
+            <div className="relative bg-[#0A0F1C]/80 backdrop-blur-xl rounded-[20px] border border-white/5 p-8 max-w-3xl mx-auto shadow-lg">
+              <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+              <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-blue-500/10 to-transparent" />
+              <div className="absolute inset-y-0 -left-px w-px bg-gradient-to-b from-transparent via-blue-500/10 to-transparent" />
+              <div className="absolute inset-y-0 -right-px w-px bg-gradient-to-b from-transparent via-blue-500/10 to-transparent" />
+              <div className="prose prose-lg prose-invert max-w-xl mx-auto text-center">
+                <p className="text-gray-300 text-lg leading-relaxed">
+                  Axe started as an <span className="text-white">open source</span> project in 2023. 
+                  We were <span className="text-white">frustrated</span> by how difficult it was to manage
+                  <span className="text-white"> procurement requests</span> that <span className="text-white">worked well</span> across the organization.
+                </p>
+                <p className="text-gray-300 mt-6 text-lg leading-relaxed">
+                  As we started to dig deeper, <span className="text-white">it became clear</span> that this
+                  was just the tip of the iceberg. We realized that managing spend that <span className="text-white">reach the business goals</span> was 
+                  the biggest pain point, so we started to <span className="text-white">explore something new</span>.
+                </p>
+                <p className="text-gray-300 mt-6 text-lg leading-relaxed">
+                  In 2024, we launched an entire procurement management
+                  platform and joined <span className="text-white">Y Combinator's</span> winter batch.
+                  We're creating something special here, and we're excited to build it with you.
+                </p>
+              </div>
             </div>
           </section>
           
@@ -121,16 +127,20 @@ export default function Home() {
           </div>
           
           {/* Contact Section */}
-          <section id="contact" className="min-h-screen flex flex-col justify-center items-center">
+          <section id="contact" className="min-h-screen flex flex-col justify-center items-center px-6 lg:px-8">
             <h2 className="text-3xl font-bold tracking-tight text-white mb-8">Get in touch</h2>
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 w-full max-w-2xl">
-              <form className="mt-12 space-y-6 text-left">
+            <div className="relative bg-[#0A0F1C]/80 backdrop-blur-xl rounded-[20px] border border-white/5 p-8 w-full max-w-2xl shadow-lg">
+              <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+              <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-blue-500/10 to-transparent" />
+              <div className="absolute inset-y-0 -left-px w-px bg-gradient-to-b from-transparent via-blue-500/10 to-transparent" />
+              <div className="absolute inset-y-0 -right-px w-px bg-gradient-to-b from-transparent via-blue-500/10 to-transparent" />
+              <form className="space-y-6 text-left">
                 <div className="space-y-2">
                   <label className="block text-gray-400 text-sm">Email address</label>
                   <input 
                     type="email" 
                     placeholder="Enter your email"
-                    className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                    className="w-full bg-[#141B2D]/60 backdrop-blur-md rounded-xl px-4 py-3 text-gray-100 placeholder:text-gray-400 border-0 ring-0 focus:ring-1 ring-blue-500/20 transition-all duration-200 hover:bg-[#141B2D]/80 focus:outline-none focus:ring-blue-500/30"
                   />
                 </div>
                 <div className="space-y-2">
@@ -138,7 +148,7 @@ export default function Home() {
                   <textarea 
                     rows={4}
                     placeholder="I'd like to know how Axe can help me with..."
-                    className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                    className="w-full bg-[#141B2D]/60 backdrop-blur-md rounded-xl px-4 py-3 text-gray-100 placeholder:text-gray-400 border-0 ring-0 focus:ring-1 ring-blue-500/20 transition-all duration-200 hover:bg-[#141B2D]/80 focus:outline-none focus:ring-blue-500/30"
                   />
                 </div>
                 <button

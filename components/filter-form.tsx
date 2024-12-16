@@ -40,11 +40,11 @@ export function FilterForm({ onSearch }: FilterFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full relative bg-black/5 backdrop-blur-xl rounded-[20px] border border-white/20 px-4 py-3">
-      <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
-      <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-violet-500/10 to-transparent" />
-      <div className="absolute inset-y-0 -left-px w-px bg-gradient-to-b from-transparent via-violet-500/10 to-transparent" />
-      <div className="absolute inset-y-0 -right-px w-px bg-gradient-to-b from-transparent via-violet-500/10 to-transparent" />
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full relative bg-[#0A0F1C]/80 backdrop-blur-xl rounded-[20px] border border-white/5 px-4 py-3 shadow-lg">
+      <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+      <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-blue-500/10 to-transparent" />
+      <div className="absolute inset-y-0 -left-px w-px bg-gradient-to-b from-transparent via-blue-500/10 to-transparent" />
+      <div className="absolute inset-y-0 -right-px w-px bg-gradient-to-b from-transparent via-blue-500/10 to-transparent" />
 
       <Select
         value={filters.location}
