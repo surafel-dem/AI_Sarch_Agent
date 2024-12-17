@@ -1,12 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/contexts/auth-context';
-import { CarSpecs, ChatMessage, SearchResponse } from '@/types/search';
-import { AgentService } from '@/lib/services/agent';
+import React, { useState, useRef, useEffect } from 'react';
+import { CarSpecs } from '@/types/car';
+import { ChatMessage } from '@/types/chat';
+import { SearchFilters } from '@/types/search';
+import { Chat } from './chat';
 import { Button } from '@/components/ui/button';
 import { SearchOutput } from '../search/search-output';
 import { v4 as uuidv4 } from 'uuid';
+import { X, Home, MessageSquarePlus, Heart } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ChatHistory } from './chat-history';
+import { useAuth } from '@/contexts/auth-context';
+import { AgentService } from '@/lib/services/agent';
 
 interface ChatInterfaceProps {
   initialSpecs: CarSpecs;
@@ -25,6 +32,9 @@ export function ChatInterface({
   const [inputMessage, setInputMessage] = useState('');
   const sessionId = useRef(uuidv4());
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(undefined);
+  const router = useRouter();
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -103,6 +113,55 @@ export function ChatInterface({
 
   return (
     <div className="flex flex-col h-full">
+      <aside
+        className={`fixed inset-y-0 left-0 transform ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 z-40 w-64 bg-white border-r border-gray-100 transition-transform duration-200 ease-in-out`}
+      >
+        <div className="flex flex-col h-full">
+          <nav className="flex-1 overflow-y-auto py-2">
+            <div className="flex flex-col mb-2">
+              <Link
+                href="/"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-800"
+              >
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </Link>
+              <button
+                onClick={() => {
+                  setCurrentSessionId(undefined);
+                  router.push('/');
+                }}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-800 text-left"
+              >
+                <MessageSquarePlus className="h-4 w-4" />
+                <span>New Chat</span>
+              </button>
+              <Link
+                href="/favorites"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-800"
+              >
+                <Heart className="h-4 w-4" />
+                <span>Favorites</span>
+              </Link>
+            </div>
+
+            <div className="h-px bg-gray-100 mx-3 my-2" />
+
+            <ChatHistory
+              messages={messages}
+              currentSessionId={currentSessionId}
+              onSessionSelect={(id) => {
+                setCurrentSessionId(id);
+                router.push(`/?session=${id}`);
+              }}
+              isOpen={isOpen}
+            />
+          </nav>
+        </div>
+      </aside>
+
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-4 space-y-6">

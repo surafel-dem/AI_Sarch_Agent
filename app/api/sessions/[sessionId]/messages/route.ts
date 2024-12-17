@@ -1,20 +1,18 @@
 import { NextResponse } from 'next/server';
-import { createAdminSupabase } from '@/lib/supabase';
-import { headers } from 'next/headers';
+import { auth } from '@clerk/nextjs';
+import { createServerSupabase } from '@/lib/supabase';
 
 export async function GET(
   request: Request,
   { params }: { params: { sessionId: string } }
 ) {
   try {
-    const headersList = headers();
-    const userId = headersList.get('x-clerk-user-id');
-    
+    const { userId } = auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createAdminSupabase();
+    const supabase = createServerSupabase();
 
     // Get user's UUID from clerk_id
     const { data: userData, error: userError } = await supabase
@@ -25,7 +23,7 @@ export async function GET(
 
     if (userError) {
       console.error('Error fetching user:', userError);
-      return NextResponse.json({ error: 'User not found', details: userError }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Verify session ownership
@@ -38,28 +36,33 @@ export async function GET(
 
     if (sessionError || !session) {
       console.error('Error fetching session:', sessionError);
-      return NextResponse.json({ error: 'Session not found', details: sessionError }, { status: 404 });
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
     // Get messages
     const { data: messages, error: messagesError } = await supabase
-      .from('chat_messages')
+      .from('chat_memory')
       .select('*')
       .eq('session_id', params.sessionId)
       .order('created_at', { ascending: true });
 
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);
-      return NextResponse.json({ error: 'Failed to fetch messages', details: messagesError }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
     }
 
-    return NextResponse.json(messages || []);
+    // Transform messages to include the message content from JSONB
+    const transformedMessages = messages.map(msg => ({
+      id: msg.id,
+      session_id: msg.session_id,
+      ...msg.message,
+      created_at: msg.created_at
+    }));
+
+    return NextResponse.json(transformedMessages);
   } catch (error) {
-    console.error('Error in GET /api/sessions/[sessionId]/messages:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    console.error('Error in GET messages:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -68,9 +71,7 @@ export async function POST(
   { params }: { params: { sessionId: string } }
 ) {
   try {
-    const headersList = headers();
-    const userId = headersList.get('x-clerk-user-id');
-    
+    const { userId } = auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -78,7 +79,7 @@ export async function POST(
     const body = await request.json();
     const { role, content, metadata } = body;
 
-    const supabase = createAdminSupabase();
+    const supabase = createServerSupabase();
 
     // Get user's UUID from clerk_id
     const { data: userData, error: userError } = await supabase
@@ -89,7 +90,7 @@ export async function POST(
 
     if (userError) {
       console.error('Error fetching user:', userError);
-      return NextResponse.json({ error: 'User not found', details: userError }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Verify session ownership
@@ -101,50 +102,47 @@ export async function POST(
       .single();
 
     if (sessionError || !session) {
-      console.error('Error fetching session:', sessionError);
-      return NextResponse.json({ error: 'Session not found', details: sessionError }, { status: 404 });
+      console.error('Error verifying session:', sessionError);
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
     // Create message
     const { data: message, error: messageError } = await supabase
-      .from('chat_messages')
-      .insert([
-        {
-          session_id: params.sessionId,
-          role,
+      .from('chat_memory')
+      .insert([{
+        session_id: params.sessionId,
+        message: {
+          type: role,
           content,
-          metadata,
-          created_at: new Date().toISOString()
-        }
-      ])
+          ...(metadata ? { metadata } : {})
+        },
+        created_at: new Date().toISOString()
+      }])
       .select()
       .single();
 
     if (messageError) {
       console.error('Error creating message:', messageError);
-      return NextResponse.json({ error: 'Failed to create message', details: messageError }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
     }
 
-    // Update session's last_message
-    const { error: updateError } = await supabase
+    // Update session's updated_at timestamp
+    await supabase
       .from('chat_sessions')
-      .update({ 
-        last_message: content,
-        updated_at: new Date().toISOString()
-      })
+      .update({ updated_at: new Date().toISOString() })
       .eq('id', params.sessionId);
 
-    if (updateError) {
-      console.error('Error updating session:', updateError);
-      // Don't return error since message was created successfully
-    }
+    // Transform the message to include the message content from JSONB
+    const transformedMessage = {
+      id: message.id,
+      session_id: message.session_id,
+      ...message.message,
+      created_at: message.created_at
+    };
 
-    return NextResponse.json(message);
+    return NextResponse.json(transformedMessage);
   } catch (error) {
-    console.error('Error in POST /api/sessions/[sessionId]/messages:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    console.error('Error in POST message:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

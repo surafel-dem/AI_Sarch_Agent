@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createAdminSupabase } from '@/lib/supabase';
+import { createServerSupabase } from '@/lib/supabase';
 import { AgentService } from '@/lib/services/agent';
 import { headers } from 'next/headers';
 
@@ -23,7 +23,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createAdminSupabase();
+    const supabase = createServerSupabase();
+    if (!supabase) {
+      console.error('API: Failed to create Supabase client');
+      return NextResponse.json({ error: 'Database configuration error' }, { status: 500 });
+    }
 
     // Get user's UUID from clerk_id
     const { data: userData, error: userError } = await supabase
@@ -38,7 +42,8 @@ export async function POST(request: Request) {
         .from('users')
         .insert([{ 
           clerk_id: userId,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }])
         .select('id')
         .single();
