@@ -90,7 +90,7 @@ export function Sidebar({ currentSessionId, onSessionSelect, messages = [] }: Si
         {userId && isSearchPage && isOpen && (
           <div className="flex-1 overflow-y-auto px-2 py-2 min-h-0">
             <ChatHistory
-              messages={messages}
+              messages={messages.slice(0, 5)}
               currentSessionId={currentSessionId}
               onSessionSelect={onSessionSelect}
               isOpen={isOpen}

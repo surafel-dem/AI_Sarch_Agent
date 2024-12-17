@@ -95,19 +95,36 @@ export function ChatHistory({ messages, currentSessionId, onSessionSelect, isOpe
     }
   }, [isOpen, isLoaded, isSignedIn]);
 
-  const formatSessionTitle = (session: Session) => {
-    if (session.title && session.title !== 'New Chat') return session.title;
-    
-    // Try to get filters from the last message
+  const formatHistoryLabel = (session: Session) => {
     if (session.last_message?.filters) {
       const { make, model, location } = session.last_message.filters;
-      if (make && model && location) return `${make} ${model} in ${location}`;
-      if (make && model) return `${make} ${model} Search`;
-      if (make) return `${make} Search`;
-      if (location) return `Search in ${location}`;
+      const parts = [];
+      
+      if (make) parts.push(make);
+      if (model) parts.push(model);
+      if (location) parts.push(`in ${location}`);
+      
+      if (parts.length > 0) {
+        return parts.join(' ');
+      }
     }
     
-    return session.title || 'New Chat';
+    // If no filters, try to get meaningful content from the message
+    if (session.last_message?.content) {
+      // Remove any system prefixes or technical details
+      let content = session.last_message.content
+        .replace(/^System:|Assistant:|User:/gi, '')
+        .trim();
+      
+      // Limit the length
+      if (content.length > 50) {
+        content = content.substring(0, 47) + '...';
+      }
+      
+      return content;
+    }
+    
+    return 'New Search';
   };
 
   if (!isLoaded || !isSignedIn) {
@@ -151,28 +168,19 @@ export function ChatHistory({ messages, currentSessionId, onSessionSelect, isOpe
   }
 
   return (
-    <div className="flex flex-col gap-0.5">
-      {sessions.map((session) => (
+    <div className="flex flex-col">
+      {sessions.slice(0, 5).map((session) => (
         <button
           key={session.id}
           onClick={() => onSessionSelect?.(session.id)}
-          className={`w-full px-3 py-2 text-left hover:bg-gray-800/5 transition-colors ${
-            session.id === currentSessionId ? 'bg-gray-800/5' : ''
-          }`}
+          className={`w-full px-3 py-1.5 text-left transition-colors bg-transparent ${
+            session.id === currentSessionId ? 'text-purple-600' : 'text-gray-600'
+          } hover:text-purple-600`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-0.5 flex-grow min-w-0">
-              <h3 className="text-sm text-gray-800 truncate">
-                {formatSessionTitle(session)}
-              </h3>
-              <p className="text-xs text-gray-500 truncate">
-                {session.last_message?.content || 'No messages'}
-              </p>
-              <span className="text-xs text-gray-400">
-                {formatDistanceToNow(new Date(session.updated_at || session.created_at), { addSuffix: true })}
-              </span>
-            </div>
-            <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
+          <div className="flex items-center">
+            <p className="text-sm truncate flex-grow">
+              {formatHistoryLabel(session)}
+            </p>
           </div>
         </button>
       ))}

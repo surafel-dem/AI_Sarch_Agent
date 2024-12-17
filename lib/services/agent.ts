@@ -3,8 +3,8 @@ import { CarSpecs } from '@/types/search';
 
 export class AgentService {
   private static instance: AgentService;
-  private readonly maxRetries = 3;
   private readonly baseUrl = 'https://n8n.yotor.co/webhook/invoke_agent';
+  private readonly token = process.env.NEXT_PUBLIC_AGENT_TOKEN;
   private readonly limiter = rateLimit({
     interval: 60000, // 1 minute
     uniqueTokenPerInterval: 100,
@@ -19,47 +19,86 @@ export class AgentService {
     return this.instance;
   }
 
-  async invoke(sessionId: string, filters: CarSpecs, results: any[], userMessage?: string, lastSearchMessage?: string) {
-    // Rate limiting
+  private async checkRateLimit(sessionId: string) {
     try {
       await this.limiter.check(10, sessionId); // 10 requests per minute per session
+      console.log('AgentService: Rate limit check passed for session:', sessionId);
     } catch (error) {
+      console.error('AgentService: Rate limit exceeded for session:', sessionId);
       throw new Error('Too many requests. Please try again later.');
     }
-
-    // Prepare payload
-    const payload = this.preparePayload(sessionId, filters, results, userMessage, lastSearchMessage);
-
-    // Make request with retries
-    return await this.makeRequestWithRetry(payload);
   }
 
-  private async makeRequestWithRetry(payload: any, attempt = 1): Promise<any> {
+  public async invoke(
+    sessionId: string,
+    filters: CarSpecs,
+    results: any[],
+    userMessage?: string,
+    lastSearchMessage?: string
+  ): Promise<any> {
     try {
-      const response = await fetch(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_AGENT_TOKEN}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to invoke agent: ${response.status}`);
+      if (!this.token) {
+        throw new Error('Agent service token not configured');
       }
 
-      return await response.json();
+      await this.checkRateLimit(sessionId);
+
+      const payload = this.preparePayload(sessionId, filters, results, userMessage, lastSearchMessage);
+
+      console.log('AgentService: Preparing payload with filters:', filters);
+      console.log('Preparing n8n webhook payload:', payload);
+
+      return await this.makeRequestWithRetry(
+        this.baseUrl,
+        payload
+      );
     } catch (error) {
-      console.error(`Agent request failed (attempt ${attempt}):`, error);
-      
-      if (attempt < this.maxRetries) {
-        // Exponential backoff
-        const delay = Math.pow(2, attempt) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        return this.makeRequestWithRetry(payload, attempt + 1);
-      }
+      console.error('Error:', error);
       throw error;
+    }
+  }
+
+  private async makeRequestWithRetry(
+    url: string,
+    payload: any,
+    maxRetries: number = 3,
+    initialDelay: number = 2000
+  ): Promise<any> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`AgentService: Making request attempt ${attempt}/${maxRetries}`);
+        console.log('AgentService: Sending request to:', url);
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `Request failed with status: ${response.status}. Error: ${errorText}`
+          );
+        }
+
+        const data = await response.json();
+        console.log('AgentService: Received successful response:', data);
+        return data;
+      } catch (error) {
+        console.error(`AgentService: Request failed (attempt ${attempt}):`, error);
+        
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        
+        const delay = initialDelay * Math.pow(2, attempt - 1);
+        console.log(`AgentService: Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
   }
 
@@ -72,65 +111,35 @@ export class AgentService {
       return acc;
     }, {} as Record<string, any>);
 
-    // Create a human-readable filter description
-    const filterDescription = Object.entries(selectedFilters)
-      .map(([key, value]) => {
-        switch (key) {
-          case 'make':
-            return `Make: ${value}`;
-          case 'model':
-            return `Model: ${value}`;
-          case 'minYear':
-            return `Year from: ${value}`;
-          case 'maxYear':
-            return `Year to: ${value}`;
-          case 'minPrice':
-            return `Price from: €${value}`;
-          case 'maxPrice':
-            return `Price to: €${value}`;
-          case 'location':
-            return `Location: ${value}`;
-          default:
-            return `${key}: ${value}`;
-        }
-      })
-      .filter(Boolean)
-      .join(', ');
-
     console.log('Preparing n8n webhook payload:', {
       sessionId,
       userMessage,
-      filterDescription,
+      filters: selectedFilters,
       resultsCount: results.length
     });
 
     return {
       sessionId,
-      chatInput: userMessage || filterDescription, // Use user message if provided, otherwise use filter description
+      chatInput: userMessage || '', // Let the agent generate its own description
       carSpecs: selectedFilters,
       timestamp: new Date().toISOString(),
       results: {
         count: results.length,
         items: results.map(car => ({
           id: car.listing_id,
-          title: `${car.year} ${car.make} ${car.model}`,
+          title: car.title || `${car.year} ${car.make} ${car.model}`,
           price: car.price,
           details: {
-            make: car.make,
-            model: car.model,
-            year: car.year,
-            price: car.price,
-            location: car.location,
-            transmission: car.transmission,
-            description: car.description
+            ...car, // Pass all car details to let agent decide what to use
+            listingUrl: car.listingUrl
           }
         }))
       },
-      searchContext: {
+      searchContext: lastSearchMessage ? {
         lastSearchMessage,
         lastSearchResults: results,
-        lastSearchFilters: filters
-      }
+        lastSearchFilters: selectedFilters
+      } : undefined
     };
   }
 }

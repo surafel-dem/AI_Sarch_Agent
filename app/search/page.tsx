@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useUser } from "@clerk/nextjs";
 import { useSearchParams } from 'next/navigation';
-import { SearchOutput } from '@/components/search/search-output';
-import { CarSpecs } from '@/types/search';
-import { ChatMessage } from '@/types/chat';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import type { CarSpecs, ChatMessage } from '@/types';
+import { SearchOutput } from '@/components/search/search-output';
 import { Button } from "@/components/ui/button";
 import { FilterForm } from '@/components/filter-form';
 import ReactMarkdown from 'react-markdown';
@@ -16,42 +16,35 @@ import { Input } from '@/components/ui/input';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
+  const { user } = useUser();
   const [searchResults, setSearchResults] = useState<ChatMessage[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentFilters, setCurrentFilters] = useState<CarSpecs>({
-    location: '',
-    make: '',
-    model: '',
-    minPrice: '',
-    maxPrice: '',
-    minYear: '',
-    maxYear: '',
-  });
-  const [searchRequestId, setSearchRequestId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState<CarSpecs | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [searchRequestId, setSearchRequestId] = useState<string | null>(null);
   const searchResultsRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
+  const pendingRequests = useRef<Set<string>>(new Set());
+  const lastSearchRef = useRef<string>('');
 
-  // Scroll to the latest message smoothly
-  const scrollToLatestMessage = (container: HTMLElement | null) => {
-    if (!container) return;
-    
-    // Get all message elements
-    const messages = container.querySelectorAll('[data-message]');
-    if (messages.length === 0) return;
-    
-    // Get the latest message
-    const latestMessage = messages[messages.length - 1];
-    
-    // Scroll to the latest message with smooth behavior
-    latestMessage.scrollIntoView({ 
-      behavior: 'smooth', 
-      block: 'start'
-    });
-  };
+  const scrollToLatestMessage = useCallback(() => {
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'end',
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      scrollToLatestMessage();
+    }
+  }, [chatMessages, scrollToLatestMessage]);
 
   useEffect(() => {
     console.log('SearchPage: useEffect triggered');
@@ -68,7 +61,7 @@ export default function SearchPage() {
       console.log('SearchPage: No selections in URL, skipping initial search');
       setIsLoading(false);
     }
-  }, []);
+  }, [searchParams]);
 
   const handleSessionSelect = async (sessionId: string) => {
     if (!sessionId) return;
@@ -108,7 +101,7 @@ export default function SearchPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          title: `Search for ${filters.make || 'cars'}`,
+          title: `Car search session ${new Date().toLocaleString()}`,
           filters 
         })
       });
@@ -127,70 +120,127 @@ export default function SearchPage() {
       });
       window.history.replaceState({}, '', `${window.location.pathname}?${searchParams.toString()}`);
 
-      try {
-        console.log('SearchPage: Making API request with searchId:', searchId);
-        const response = await fetch('/api/search', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            filters,
-            searchId 
-          }),
-        });
+      console.log('SearchPage: Making API request with searchId:', searchId);
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          filters,
+          searchId,
+          userId: user?.id
+        }),
+      });
 
-        if (!response.ok) {
-          throw new Error('Search failed');
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
+
+      const data = await response.json();
+      console.log('SearchPage: Received API response for searchId:', searchId, data);
+
+      // Only update search results internally, don't show empty message
+      const searchMessage: ChatMessage = {
+        id: searchId,
+        role: 'assistant',
+        content: '',
+        timestamp: Date.now(),
+        response: {
+          type: 'car_listing',
+          message: '',
+          results: data.results || [],
+          loading: true
         }
+      };
 
-        const data = await response.json();
-        console.log('SearchPage: Received API response for searchId:', searchId, data);
+      // Only update search results, don't add to chat yet
+      setSearchResults([searchMessage]);
 
-        const agentMessage = data.agentResponse?.output || 
-                           data.agentResponse?.message || 
-                           (typeof data.agentResponse === 'string' ? data.agentResponse : '');
-        
-        console.log('SearchPage: Creating new message with agentMessage:', agentMessage);
-
-        const newMessage: ChatMessage = {
-          id: searchId,
-          role: 'assistant',
-          content: agentMessage,
-          timestamp: Date.now(),
-          response: {
-            type: 'car_listing',
-            message: agentMessage,
-            results: data.results || [],
-            loading: false,
-            aiResponse: data.agentResponse
+      // Call agent service separately, but only if we haven't already made a request for this searchId
+      if (data.results && !pendingRequests.current.has(searchId)) {
+        try {
+          pendingRequests.current.add(searchId);
+          console.log('SearchPage: Initializing agent service call for searchId:', searchId);
+          
+          const agentService = AgentService.getInstance();
+          console.log('SearchPage: Agent service instance obtained, calling with filters:', filters);
+          
+          const agentResponse = await agentService.invoke(searchId, filters, data.results);
+          console.log('SearchPage: Agent response received for searchId:', searchId);
+          console.log('SearchPage: Raw agent response:', agentResponse);
+          
+          // Extract message from the response
+          let messageContent;
+          if (agentResponse?.output) {
+            messageContent = agentResponse.output;
+          } else if (Array.isArray(agentResponse) && agentResponse[0]?.output) {
+            messageContent = agentResponse[0].output;
+          } else {
+            console.error('SearchPage: Unexpected agent response format:', agentResponse);
+            messageContent = 'I apologize, but I encountered an issue processing the results. Please try again or rephrase your request.';
           }
-        };
 
-        console.log('SearchPage: Updating state with new message');
-        setSearchResults([newMessage]);
-        setChatMessages(prev => {
-          // Only add the message if it's not already in the chat
-          if (prev.some(msg => msg.id === searchId)) {
-            console.log('SearchPage: Message already exists in chat, skipping');
-            return prev;
+          // Update the search message with content
+          const updatedSearchMessage = {
+            ...searchMessage,
+            content: messageContent,
+            response: {
+              ...searchMessage.response,
+              message: messageContent,
+              loading: false
+            }
+          };
+
+          setSearchResults([updatedSearchMessage]);
+
+          // Create agent message for chat
+          const agentMessage: ChatMessage = {
+            id: `${searchId}-agent`,
+            role: 'assistant',
+            content: messageContent,
+            timestamp: Date.now(),
+            response: {
+              type: 'agent',
+              message: messageContent,
+              aiResponse: agentResponse,
+              loading: false
+            }
+          };
+
+          // Only add non-empty messages to chat
+          if (messageContent.trim()) {
+            setChatMessages(prev => {
+              const updated = [...prev, agentMessage];
+              console.log('SearchPage: Updated chat messages count:', updated.length);
+              return updated;
+            });
           }
-          return [...prev, newMessage];
-        });
-        
-        setTimeout(() => {
-          console.log('SearchPage: Scrolling to latest message');
-          scrollToLatestMessage(chatRef.current);
-        }, 100);
-        
-      } catch (error) {
-        console.error('SearchPage: Search failed:', error);
-        return;
-      } finally {
-        setIsLoading(false);
+        } catch (error) {
+          console.error('SearchPage: Error getting agent response:', error);
+          // Add error message to chat
+          const errorMessage: ChatMessage = {
+            id: `${searchId}-error`,
+            role: 'assistant',
+            content: 'I apologize, but I encountered an error processing your request. Please try again.',
+            timestamp: Date.now(),
+            response: {
+              type: 'agent',
+              message: 'Error processing request',
+              loading: false
+            }
+          };
+          setChatMessages(prev => [...prev, errorMessage]);
+        } finally {
+          // Always remove the request from pending, whether it succeeded or failed
+          pendingRequests.current.delete(searchId);
+        }
       }
     } catch (error) {
-      console.error('Error creating session:', error);
+      console.error('SearchPage: Search failed:', error);
+      return;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -204,7 +254,7 @@ export default function SearchPage() {
 
       // Get current search context
       const currentFilters = searchParams.get('selections') 
-        ? JSON.parse(searchParams.get('selections')!)
+        ? JSON.parse(searchParams.get('selections')!) 
         : {};
       const currentResults = searchResults[0]?.response?.results || [];
       const lastSearchMessage = searchResults[0]?.content || '';
@@ -225,7 +275,7 @@ export default function SearchPage() {
       setChatMessages(prev => [...prev, newUserMessage]);
       // Scroll to user message
       setTimeout(() => {
-        scrollToLatestMessage(chatRef.current);
+        scrollToLatestMessage();
       }, 100);
 
       try {
@@ -261,7 +311,7 @@ export default function SearchPage() {
         setChatMessages(prev => [...prev, assistantMessage]);
         // Scroll to AI response
         setTimeout(() => {
-          scrollToLatestMessage(chatRef.current);
+          scrollToLatestMessage();
         }, 100);
       } catch (error) {
         console.error('Error sending message:', error);
@@ -299,7 +349,7 @@ export default function SearchPage() {
             <div className="sticky top-0 bg-white border-b border-gray-100 z-10">
               <div className="pl-16 pr-6 py-3">
                 <div className="flex flex-wrap gap-2 items-center h-[42px]">
-                  {Object.entries(currentFilters)
+                  {Object.entries(currentFilters || {})
                     .filter(([_, value]) => value && value !== '')
                     .map(([key, value]) => {
                       let displayText = '';
@@ -379,8 +429,13 @@ export default function SearchPage() {
               className="flex-grow overflow-y-auto space-y-4 px-4 py-4"
               style={{ paddingBottom: '120px' }} 
             >
-              {chatMessages.map((message) => (
-                <div key={message.id} data-message>
+              {chatMessages.map((message, index) => (
+                <div
+                  key={message.id}
+                  ref={index === chatMessages.length - 1 ? lastMessageRef : null}
+                  className="mb-4"
+                  data-message
+                >
                   {message.role === 'user' ? (
                     // User message
                     <div className="flex items-start space-x-3 mb-2">

@@ -70,7 +70,8 @@ export async function GET() {
         user_id
       `)
       .eq('user_id', userData.id)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false })
+      .limit(5);
 
     if (sessionsError) {
       console.error('GET /api/sessions: Error fetching sessions:', sessionsError);
