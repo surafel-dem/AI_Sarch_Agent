@@ -1,33 +1,16 @@
 import { authMiddleware } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
 
 // Public routes that don't require authentication
 const publicRoutes = [
   "/",              // Homepage
   "/discover",      // Discovery page
-  "/search",        // Search results
-  "/api/search",    // Search API
-  "/api/auth/webhook", // Webhook endpoint
 ];
 
 export default authMiddleware({
   publicRoutes,
   ignoredRoutes: [
     "/((?!api|trpc))(_next|.+\\.[\\w]+$)", // Ignore static files
-    "/api/search",                          // Public API endpoints
-    "/search"                               // Public search page
   ],
   debug: true,
   afterAuth(auth, req) {
@@ -42,7 +25,15 @@ export default authMiddleware({
       return NextResponse.redirect(new URL('/sign-in', req.url));
     }
 
-    return NextResponse.next();
+    // Add auth header to all authenticated requests
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-clerk-user-id', auth.userId as string);
+
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 });
 

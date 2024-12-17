@@ -1,19 +1,17 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminSupabase } from '@/lib/supabase';
 import { AgentService } from '@/lib/services/agent';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+import { headers } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
+    const headersList = await headers();
+    const userId = headersList.get('x-clerk-user-id');
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { filters, searchId } = await request.json();
     console.log('API: Received search request with filters:', filters);
 
@@ -25,7 +23,38 @@ export async function POST(request: Request) {
       );
     }
 
-    // Build Supabase query
+    const supabase = createAdminSupabase();
+
+    // Get user's UUID from clerk_id
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (userError?.code === 'PGRST116') {
+      // If user doesn't exist, create them
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert([{ 
+          clerk_id: userId,
+          created_at: new Date().toISOString()
+        }])
+        .select('id')
+        .single();
+
+      if (createError) {
+        console.error('Error creating user:', createError);
+        return NextResponse.json({ error: 'Failed to create user', details: createError }, { status: 500 });
+      }
+
+      userData = newUser;
+    } else if (userError) {
+      console.error('Error fetching user:', userError);
+      return NextResponse.json({ error: 'Database error', details: userError }, { status: 500 });
+    }
+
+    // Build Supabase query for cars
     let query = supabase
       .from('car_list')
       .select('*');
@@ -99,39 +128,27 @@ export async function POST(request: Request) {
         console.log('API: Agent response received');
       } catch (error) {
         console.error('API: Agent service error:', error);
-        // Don't fail the whole request if agent fails
-        agentResponse = { error: 'Failed to get AI insights' };
+        // Don't fail the request, just log the error
       }
     }
 
-    if (!cars || cars.length === 0) {
-      console.log('API: No results found');
-      return NextResponse.json(
-        { 
-          message: 'No results found',
-          results: [],
-          searchId,
-          agentResponse: null
-        }
-      );
-    }
-
-    const response = {
+    // Format response to match SearchResponse type
+    return NextResponse.json({
       type: 'car_listing',
-      message: `Found ${cars.length} vehicles`,
-      results: cars,
+      message: cars && cars.length > 0 
+        ? `Found ${cars.length} vehicles matching your criteria`
+        : 'No results found',
+      results: cars || [],
       searchId,
       agentResponse
-    };
-
-    console.log('API: Sending response with', cars.length, 'results');
-    return NextResponse.json(response);
-
+    });
   } catch (error) {
     console.error('API: Unexpected error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
-      { error: errorMessage },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

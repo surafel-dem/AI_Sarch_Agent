@@ -3,9 +3,9 @@ import { Inter, Poppins } from 'next/font/google'
 import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
 import { cn } from '@/lib/utils'
-import { Sidebar } from '@/components/sidebar'
 import { Toaster } from 'sonner'
 import { clerkConfig } from '@/lib/clerk-config'
+import { AuthProvider } from '@/contexts/auth-context'
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -40,11 +40,12 @@ export default function RootLayout({
           {...clerkConfig}
           publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
         >
-          <div className="min-h-screen">
-            <Sidebar />
-            <main>{children}</main>
-          </div>
-          <Toaster />
+          <AuthProvider>
+            <div className="min-h-screen">
+              <main>{children}</main>
+            </div>
+            <Toaster />
+          </AuthProvider>
         </ClerkProvider>
       </body>
     </html>
